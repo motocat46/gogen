@@ -51,3 +51,4 @@ gogen
 # Coverage reports
 coverage.out
 coverage.html
+.idea/workspace.xml
