@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(go build:*)",
+      "Bash(go get:*)",
+      "Bash(go run:*)",
+      "Bash(go test:*)",
+      "Bash(ls /Volumes/yy/dev/projects/personal/gogen/testdata/examples/*.go | head -5)",
+      "Bash(go vet:*)",
+      "Bash(cd /tmp/testifacedir && go vet . 2>&1 && echo \"✅ 编译正确\"\nrm -rf /tmp/testifacedir /tmp/gogen_iface_bin /tmp/gogen_bin)",
+      "Bash(echo \"// dirty\" >> /Volumes/yy/dev/projects/personal/gogen/testdata/examples/alltypes_access.go && go run . check --no-default-excludes ./testdata/examples 2>&1; echo \"exit: $?\" && go run . --no-default-excludes ./testdata/examples > /dev/null)"
+    ]
+  }
+}
