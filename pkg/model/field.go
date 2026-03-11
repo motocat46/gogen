@@ -28,10 +28,12 @@ import (
 //	`gogen:"-"`         跳过此字段，不生成任何方法
 //	`gogen:"readonly"`  只生成 getter，不生成 setter 及写操作方法
 //	`gogen:"writeonly"` 只生成 setter，不生成 getter
+//	`gogen:"plain"`     简单模式：只生成核心 Get/Set，跳过 Add/Sub/Toggle/Has 等扩展方法
 type FieldConfig struct {
 	Skip      bool // 跳过此字段
 	Readonly  bool // 只读：只生成 getter
 	WriteOnly bool // 只写：只生成 setter
+	Plain     bool // 简单模式：跳过扩展方法，只保留核心访问器
 }
 
 // ParseFieldConfig 从原始 struct tag 字符串解析 FieldConfig。
@@ -52,6 +54,8 @@ func ParseFieldConfig(rawTag string) FieldConfig {
 			cfg.Readonly = true
 		case "writeonly":
 			cfg.WriteOnly = true
+		case "plain":
+			cfg.Plain = true
 		}
 	}
 	return cfg

@@ -60,6 +60,15 @@ func (this *{{ .ReceiverType }}) Get{{ .MethodName }}Copy() {{ .SliceType }} {
 	return slices.Clone(this.{{ .FieldName }})
 }
 {{ end -}}
+{{ if .Ensure -}}
+// Ensure{{ .MethodName }} 确保切片 {{ .FieldName }} 已初始化（nil 时自动创建空切片），返回字段引用
+func (this *{{ .ReceiverType }}) Ensure{{ .MethodName }}() {{ .SliceType }} {
+	if this.{{ .FieldName }} == nil {
+		this.{{ .FieldName }} = make({{ .SliceType }}, 0)
+	}
+	return this.{{ .FieldName }}
+}
+{{ end -}}
 {{ if .SetAt -}}
 // Set{{ .MethodName }}At 设置切片 {{ .FieldName }} 中 index 位置的元素
 func (this *{{ .ReceiverType }}) Set{{ .MethodName }}At(index int, elem {{ .ElemType }}) {
@@ -92,12 +101,13 @@ func (g *SliceGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte
 	}
 
 	fn := f.Name
-	r, w := f.IsReadable(), f.IsWritable()
+	r, w, plain := f.IsReadable(), f.IsWritable(), f.Config.Plain
 	getAt := r && s.CanGenerateMethod("Get"+fn+"At")
-	getLen := r && s.CanGenerateMethod("Get"+fn+"Len")
+	getLen := !plain && r && s.CanGenerateMethod("Get"+fn+"Len")
 	rang := r && s.CanGenerateMethod("Range"+fn)
-	has := r && s.CanGenerateMethod("Has"+fn)
-	getCopy := r && s.CanGenerateMethod("Get"+fn+"Copy")
+	has := !plain && r && s.CanGenerateMethod("Has"+fn)
+	getCopy := !plain && r && s.CanGenerateMethod("Get"+fn+"Copy")
+	ensure := w && s.CanGenerateMethod("Ensure"+fn)
 	setAt := w && s.CanGenerateMethod("Set"+fn+"At")
 	appendFn := w && s.CanGenerateMethod("Append"+fn)
 	remove := w && s.CanGenerateMethod("Remove"+fn)
@@ -114,10 +124,11 @@ func (g *SliceGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte
 		"Range":        rang,
 		"Has":          has,
 		"GetCopy":      getCopy,
+		"Ensure":       ensure,
 		"SetAt":        setAt,
 		"Append":       appendFn,
 		"Remove":       remove,
-		"Any":          getAt || getLen || rang || has || getCopy || setAt || appendFn || remove,
+		"Any":          getAt || getLen || rang || has || getCopy || ensure || setAt || appendFn || remove,
 	})
 	if err != nil {
 		return nil, err

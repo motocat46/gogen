@@ -87,6 +87,15 @@ func (this *{{ .ReceiverType }}) Get{{ .MethodName }}Copy() {{ .MapType }} {
 	return maps.Clone(this.{{ .FieldName }})
 }
 {{ end -}}
+{{ if .Ensure -}}
+// Ensure{{ .MethodName }} 确保 {{ .FieldName }} 已初始化（nil 时自动创建空 map），返回字段引用
+func (this *{{ .ReceiverType }}) Ensure{{ .MethodName }}() {{ .MapType }} {
+	if this.{{ .FieldName }} == nil {
+		this.{{ .FieldName }} = make({{ .MapType }})
+	}
+	return this.{{ .FieldName }}
+}
+{{ end -}}
 {{ if .SetVal -}}
 // Set{{ .MethodName }}Val 设置 {{ .FieldName }} 中指定 key 的值
 func (this *{{ .ReceiverType }}) Set{{ .MethodName }}Val(key {{ .KeyType }}, value {{ .ValueType }}) {
@@ -115,15 +124,16 @@ func (g *MapGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte, 
 	}
 
 	fn := f.Name
-	r, w := f.IsReadable(), f.IsWritable()
+	r, w, plain := f.IsReadable(), f.IsWritable(), f.Config.Plain
 	getVal := r && s.CanGenerateMethod("Get"+fn+"Val")
-	getValOrDefault := r && s.CanGenerateMethod("Get"+fn+"ValOrDefault")
+	getValOrDefault := !plain && r && s.CanGenerateMethod("Get"+fn+"ValOrDefault")
 	rang := r && s.CanGenerateMethod("Range"+fn)
-	has := r && s.CanGenerateMethod("Has"+fn)
-	hasKey := r && s.CanGenerateMethod("Has"+fn+"Key")
-	getLen := r && s.CanGenerateMethod("Get"+fn+"Len")
-	getKeys := r && s.CanGenerateMethod("Get"+fn+"Keys")
-	getCopy := r && s.CanGenerateMethod("Get"+fn+"Copy")
+	has := !plain && r && s.CanGenerateMethod("Has"+fn)
+	hasKey := !plain && r && s.CanGenerateMethod("Has"+fn+"Key")
+	getLen := !plain && r && s.CanGenerateMethod("Get"+fn+"Len")
+	getKeys := !plain && r && s.CanGenerateMethod("Get"+fn+"Keys")
+	getCopy := !plain && r && s.CanGenerateMethod("Get"+fn+"Copy")
+	ensure := w && s.CanGenerateMethod("Ensure"+fn)
 	setVal := w && s.CanGenerateMethod("Set"+fn+"Val")
 	delKey := w && s.CanGenerateMethod("Del"+fn+"Key")
 	var buf bytes.Buffer
@@ -143,9 +153,10 @@ func (g *MapGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte, 
 		"GetLen":          getLen,
 		"GetKeys":         getKeys,
 		"GetCopy":         getCopy,
+		"Ensure":          ensure,
 		"SetVal":          setVal,
 		"DelKey":          delKey,
-		"Any":             getVal || getValOrDefault || rang || has || hasKey || getLen || getKeys || getCopy || setVal || delKey,
+		"Any":             getVal || getValOrDefault || rang || has || hasKey || getLen || getKeys || getCopy || ensure || setVal || delKey,
 	})
 	if err != nil {
 		return nil, err

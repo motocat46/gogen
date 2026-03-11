@@ -55,3 +55,109 @@ func (this *TagControl) AddWriteOnly(delta int) {
 func (this *TagControl) SubWriteOnly(delta int) {
 	this.WriteOnly -= delta
 }
+
+// plain 模式测试：只生成核心 Get/Set，跳过扩展方法
+// GetPlainBool 获取 PlainBool
+func (this *TagControl) GetPlainBool() bool {
+	return this.PlainBool
+}
+
+// SetPlainBool 设置 PlainBool
+func (this *TagControl) SetPlainBool(PlainBool bool) {
+	this.PlainBool = PlainBool
+}
+
+// Get/Set，无 Add/Sub
+// GetPlainInt 获取 PlainInt
+func (this *TagControl) GetPlainInt() int {
+	return this.PlainInt
+}
+
+// SetPlainInt 设置 PlainInt
+func (this *TagControl) SetPlainInt(PlainInt int) {
+	this.PlainInt = PlainInt
+}
+
+// Get/Set，无 Has
+// GetPlainPtr 获取 PlainPtr
+func (this *TagControl) GetPlainPtr() *BaseInfo {
+	return this.PlainPtr
+}
+
+// SetPlainPtr 设置 PlainPtr
+func (this *TagControl) SetPlainPtr(PlainPtr *BaseInfo) {
+	this.PlainPtr = PlainPtr
+}
+
+// At/Range/SetAt/Append/Remove，无 Len/Has/GetCopy
+// GetPlainSliceAt 获取切片 PlainSlice 中 index 位置的元素
+func (this *TagControl) GetPlainSliceAt(index int) string {
+	return this.PlainSlice[index]
+}
+
+// RangePlainSlice 遍历切片 PlainSlice，fn 返回 false 时终止遍历
+func (this *TagControl) RangePlainSlice(fn func(index int, value string) bool) {
+	for i, v := range this.PlainSlice {
+		if !fn(i, v) {
+			break
+		}
+	}
+}
+
+// EnsurePlainSlice 确保切片 PlainSlice 已初始化（nil 时自动创建空切片），返回字段引用
+func (this *TagControl) EnsurePlainSlice() []string {
+	if this.PlainSlice == nil {
+		this.PlainSlice = make([]string, 0)
+	}
+	return this.PlainSlice
+}
+
+// SetPlainSliceAt 设置切片 PlainSlice 中 index 位置的元素
+func (this *TagControl) SetPlainSliceAt(index int, elem string) {
+	this.PlainSlice[index] = elem
+}
+
+// AppendPlainSlice 向切片 PlainSlice 追加元素
+func (this *TagControl) AppendPlainSlice(elem string) {
+	this.PlainSlice = append(this.PlainSlice, elem)
+}
+
+// RemovePlainSlice 删除切片 PlainSlice 中 index 位置的元素
+// 注意：会改变被删除元素之后所有元素的下标
+func (this *TagControl) RemovePlainSlice(index int) {
+	this.PlainSlice = append(this.PlainSlice[:index], this.PlainSlice[index+1:]...)
+}
+
+// Val/Range/SetVal/DelKey，无 Has 系列
+// GetPlainMapVal 获取 PlainMap 中指定 key 的值，ok 表示 key 是否存在
+func (this *TagControl) GetPlainMapVal(key string) (int, bool) {
+	val, ok := this.PlainMap[key]
+	return val, ok
+}
+
+// RangePlainMap 遍历 PlainMap，fn 返回 false 时终止遍历
+func (this *TagControl) RangePlainMap(fn func(key string, value int) bool) {
+	for k, v := range this.PlainMap {
+		if !fn(k, v) {
+			break
+		}
+	}
+}
+
+// EnsurePlainMap 确保 PlainMap 已初始化（nil 时自动创建空 map），返回字段引用
+func (this *TagControl) EnsurePlainMap() map[string]int {
+	if this.PlainMap == nil {
+		this.PlainMap = make(map[string]int)
+	}
+	return this.PlainMap
+}
+
+// SetPlainMapVal 设置 PlainMap 中指定 key 的值
+func (this *TagControl) SetPlainMapVal(key string, value int) {
+	this.PlainMap[key] = value
+}
+
+// DelPlainMapKey 删除 PlainMap 中指定 key
+func (this *TagControl) DelPlainMapKey(key string) {
+	delete(this.PlainMap, key)
+}

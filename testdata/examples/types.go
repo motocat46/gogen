@@ -129,6 +129,12 @@ type TagControl struct {
 	ReadOnly   int    `gogen:"readonly"`
 	WriteOnly  int    `gogen:"writeonly"`
 	Skip       int    `gogen:"-"`
+	// plain 模式测试：只生成核心 Get/Set，跳过扩展方法
+	PlainBool    bool                `gogen:"plain"` // Get/Set，无 Toggle
+	PlainInt     int                 `gogen:"plain"` // Get/Set，无 Add/Sub
+	PlainPtr     *BaseInfo           `gogen:"plain"` // Get/Set，无 Has
+	PlainSlice   []string            `gogen:"plain"` // At/Range/SetAt/Append/Remove，无 Len/Has/GetCopy
+	PlainMap     map[string]int      `gogen:"plain"` // Val/Range/SetVal/DelKey，无 Has 系列
 }
 
 // EmbedOther 测试嵌入其他结构体的字段（命名嵌入，非匿名）

@@ -57,7 +57,7 @@ func (g *BoolGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte,
 	r, w := f.IsReadable(), f.IsWritable()
 	getField := r && s.CanGenerateMethod("Get"+fn)
 	setField := w && s.CanGenerateMethod("Set"+fn)
-	toggle := w && s.CanGenerateMethod("Toggle"+fn)
+	toggle := !f.Config.Plain && w && s.CanGenerateMethod("Toggle"+fn)
 	var buf bytes.Buffer
 	err := boolTmpl.Execute(&buf, map[string]any{
 		"ReceiverType": s.ReceiverType(),

@@ -60,11 +60,11 @@ type NumericGenerator struct{}
 
 func (g *NumericGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte, error) {
 	fn := f.Name
-	r, w := f.IsReadable(), f.IsWritable()
+	r, w, plain := f.IsReadable(), f.IsWritable(), f.Config.Plain
 	getField := r && s.CanGenerateMethod("Get"+fn)
 	setField := w && s.CanGenerateMethod("Set"+fn)
-	addField := w && s.CanGenerateMethod("Add"+fn)
-	subField := w && s.CanGenerateMethod("Sub"+fn)
+	addField := !plain && w && s.CanGenerateMethod("Add"+fn)
+	subField := !plain && w && s.CanGenerateMethod("Sub"+fn)
 	var buf bytes.Buffer
 	err := numericTmpl.Execute(&buf, map[string]any{
 		"ReceiverType": s.ReceiverType(),

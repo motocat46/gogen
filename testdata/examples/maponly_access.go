@@ -70,6 +70,14 @@ func (this *MapOnly) GetIndexCopy() map[int]string {
 	return maps.Clone(this.Index)
 }
 
+// EnsureIndex 确保 Index 已初始化（nil 时自动创建空 map），返回字段引用
+func (this *MapOnly) EnsureIndex() map[int]string {
+	if this.Index == nil {
+		this.Index = make(map[int]string)
+	}
+	return this.Index
+}
+
 // SetIndexVal 设置 Index 中指定 key 的值
 func (this *MapOnly) SetIndexVal(key int, value string) {
 	this.Index[key] = value
@@ -134,6 +142,14 @@ func (this *MapOnly) GetConfigCopy() map[string]interface{} {
 	return maps.Clone(this.Config)
 }
 
+// EnsureConfig 确保 Config 已初始化（nil 时自动创建空 map），返回字段引用
+func (this *MapOnly) EnsureConfig() map[string]interface{} {
+	if this.Config == nil {
+		this.Config = make(map[string]interface{})
+	}
+	return this.Config
+}
+
 // SetConfigVal 设置 Config 中指定 key 的值
 func (this *MapOnly) SetConfigVal(key string, value interface{}) {
 	this.Config[key] = value
@@ -196,6 +212,14 @@ func (this *MapOnly) GetNestedKeys() []string {
 // GetNestedCopy 返回 Nested 的浅拷贝
 func (this *MapOnly) GetNestedCopy() map[string][]int {
 	return maps.Clone(this.Nested)
+}
+
+// EnsureNested 确保 Nested 已初始化（nil 时自动创建空 map），返回字段引用
+func (this *MapOnly) EnsureNested() map[string][]int {
+	if this.Nested == nil {
+		this.Nested = make(map[string][]int)
+	}
+	return this.Nested
 }
 
 // SetNestedVal 设置 Nested 中指定 key 的值

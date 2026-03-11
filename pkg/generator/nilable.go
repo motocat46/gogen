@@ -54,10 +54,10 @@ type NilableGenerator struct{}
 
 func (g *NilableGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte, error) {
 	fn := f.Name
-	r, w := f.IsReadable(), f.IsWritable()
+	r, w, plain := f.IsReadable(), f.IsWritable(), f.Config.Plain
 	getField := r && s.CanGenerateMethod("Get"+fn)
 	setField := w && s.CanGenerateMethod("Set"+fn)
-	hasField := r && s.CanGenerateMethod("Has"+fn)
+	hasField := !plain && r && s.CanGenerateMethod("Has"+fn)
 	var buf bytes.Buffer
 	err := nilableTmpl.Execute(&buf, map[string]any{
 		"ReceiverType": s.ReceiverType(),

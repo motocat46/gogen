@@ -76,10 +76,10 @@ func (g *ArrayGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte
 	}
 
 	fn := f.Name
-	r, w := f.IsReadable(), f.IsWritable()
+	r, w, plain := f.IsReadable(), f.IsWritable(), f.Config.Plain
 	getField := r && s.CanGenerateMethod("Get"+fn)
 	getAt := r && s.CanGenerateMethod("Get"+fn+"At")
-	getLen := r && s.CanGenerateMethod("Get"+fn+"Len")
+	getLen := !plain && r && s.CanGenerateMethod("Get"+fn+"Len")
 	rang := r && s.CanGenerateMethod("Range"+fn)
 	setAt := w && s.CanGenerateMethod("Set"+fn+"At")
 	var buf bytes.Buffer
