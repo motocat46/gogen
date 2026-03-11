@@ -165,8 +165,8 @@ func analyzeFile(pkg *packages.Package, file *ast.File, fileMap map[string]*ast.
 			// 收集所有字段名（含不导出字段），用于检测生成方法名与字段名的冲突。
 			// Go 规范：方法名不能与同类型的字段名相同。
 			fieldNames := make(map[string]bool, typesStruct.NumFields())
-			for i := range typesStruct.NumFields() {
-				fieldNames[typesStruct.Field(i).Name()] = true
+			for f := range typesStruct.Fields() {
+				fieldNames[f.Name()] = true
 			}
 
 			// 收集通过嵌入字段可访问的提升方法名，防止生成同名方法覆盖提升语义
@@ -380,8 +380,7 @@ func extractDoc(doc, line *ast.CommentGroup) string {
 // 生成器根据此集合跳过已有手写实现的方法，避免产生"方法重复声明"编译错误。
 func collectManualMethods(named *types.Named, pkg *packages.Package, fileMap map[string]*ast.File) map[string]bool {
 	methods := make(map[string]bool)
-	for i := range named.NumMethods() {
-		m := named.Method(i)
+	for m := range named.Methods() {
 		pos := pkg.Fset.Position(m.Pos())
 		astFile, ok := fileMap[pos.Filename]
 		if !ok {
@@ -428,8 +427,7 @@ func collectPromotedMethods(named *types.Named) map[string]bool {
 		return nil
 	}
 	promoted := make(map[string]bool)
-	for i := range underlying.NumFields() {
-		field := underlying.Field(i)
+	for field := range underlying.Fields() {
 		if !field.Anonymous() {
 			continue // 只处理嵌入字段（匿名字段）
 		}
@@ -439,8 +437,8 @@ func collectPromotedMethods(named *types.Named) map[string]bool {
 		}
 		// 使用 *ft 的方法集：包含 ft 自身及其所有深层嵌入的方法（递归覆盖）
 		mset := types.NewMethodSet(types.NewPointer(ft))
-		for j := range mset.Len() {
-			promoted[mset.At(j).Obj().Name()] = true
+		for sel := range mset.Methods() {
+			promoted[sel.Obj().Name()] = true
 		}
 	}
 	return promoted
@@ -474,7 +472,7 @@ func isExcluded(filename string, excludePaths []string) bool {
 				return true
 			}
 		} else {
-			for _, seg := range strings.Split(filename, string(filepath.Separator)) {
+			for seg := range strings.SplitSeq(filename, string(filepath.Separator)) {
 				if seg == ex {
 					return true
 				}
