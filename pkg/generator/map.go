@@ -33,6 +33,15 @@ func (this *{{ .ReceiverType }}) Get{{ .MethodName }}Val(key {{ .KeyType }}) ({{
 	return val, ok
 }
 {{ end -}}
+{{ if .GetValOrDefault -}}
+// Get{{ .MethodName }}ValOrDefault 获取 {{ .FieldName }} 中指定 key 的值，key 不存在时返回 def
+func (this *{{ .ReceiverType }}) Get{{ .MethodName }}ValOrDefault(key {{ .KeyType }}, def {{ .ValueType }}) {{ .ValueType }} {
+	if val, ok := this.{{ .FieldName }}[key]; ok {
+		return val
+	}
+	return def
+}
+{{ end -}}
 {{ if .Range -}}
 // Range{{ .MethodName }} 遍历 {{ .FieldName }}，fn 返回 false 时终止遍历
 func (this *{{ .ReceiverType }}) Range{{ .MethodName }}(fn func(key {{ .KeyType }}, value {{ .ValueType }}) bool) {
@@ -43,15 +52,50 @@ func (this *{{ .ReceiverType }}) Range{{ .MethodName }}(fn func(key {{ .KeyType 
 	}
 }
 {{ end -}}
-{{ if .SetKV -}}
-// Set{{ .MethodName }}KV 设置 {{ .FieldName }} 中指定 key 的值
-func (this *{{ .ReceiverType }}) Set{{ .MethodName }}KV(key {{ .KeyType }}, value {{ .ValueType }}) {
+{{ if .Has -}}
+// Has{{ .MethodName }} 返回 {{ .FieldName }} 是否已初始化（非 nil）
+func (this *{{ .ReceiverType }}) Has{{ .MethodName }}() bool {
+	return this.{{ .FieldName }} != nil
+}
+{{ end -}}
+{{ if .HasKey -}}
+// Has{{ .MethodName }}Key 检查 {{ .FieldName }} 中指定 key 是否存在
+func (this *{{ .ReceiverType }}) Has{{ .MethodName }}Key(key {{ .KeyType }}) bool {
+	_, ok := this.{{ .FieldName }}[key]
+	return ok
+}
+{{ end -}}
+{{ if .GetLen -}}
+// Get{{ .MethodName }}Len 获取 {{ .FieldName }} 的元素数量
+func (this *{{ .ReceiverType }}) Get{{ .MethodName }}Len() int {
+	return len(this.{{ .FieldName }})
+}
+{{ end -}}
+{{ if .GetKeys -}}
+// Get{{ .MethodName }}Keys 返回 {{ .FieldName }} 中所有 key 的切片（顺序不确定）
+func (this *{{ .ReceiverType }}) Get{{ .MethodName }}Keys() []{{ .KeyType }} {
+	keys := make([]{{ .KeyType }}, 0, len(this.{{ .FieldName }}))
+	for k := range this.{{ .FieldName }} {
+		keys = append(keys, k)
+	}
+	return keys
+}
+{{ end -}}
+{{ if .GetCopy -}}
+// Get{{ .MethodName }}Copy 返回 {{ .FieldName }} 的浅拷贝
+func (this *{{ .ReceiverType }}) Get{{ .MethodName }}Copy() {{ .MapType }} {
+	return maps.Clone(this.{{ .FieldName }})
+}
+{{ end -}}
+{{ if .SetVal -}}
+// Set{{ .MethodName }}Val 设置 {{ .FieldName }} 中指定 key 的值
+func (this *{{ .ReceiverType }}) Set{{ .MethodName }}Val(key {{ .KeyType }}, value {{ .ValueType }}) {
 	this.{{ .FieldName }}[key] = value
 }
 {{ end -}}
-{{ if .DelKV -}}
-// Del{{ .MethodName }}KV 删除 {{ .FieldName }} 中指定 key
-func (this *{{ .ReceiverType }}) Del{{ .MethodName }}KV(key {{ .KeyType }}) {
+{{ if .DelKey -}}
+// Del{{ .MethodName }}Key 删除 {{ .FieldName }} 中指定 key
+func (this *{{ .ReceiverType }}) Del{{ .MethodName }}Key(key {{ .KeyType }}) {
 	delete(this.{{ .FieldName }}, key)
 }
 {{ end }}`
@@ -73,22 +117,35 @@ func (g *MapGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte, 
 	fn := f.Name
 	r, w := f.IsReadable(), f.IsWritable()
 	getVal := r && s.CanGenerateMethod("Get"+fn+"Val")
+	getValOrDefault := r && s.CanGenerateMethod("Get"+fn+"ValOrDefault")
 	rang := r && s.CanGenerateMethod("Range"+fn)
-	setKV := w && s.CanGenerateMethod("Set"+fn+"KV")
-	delKV := w && s.CanGenerateMethod("Del"+fn+"KV")
+	has := r && s.CanGenerateMethod("Has"+fn)
+	hasKey := r && s.CanGenerateMethod("Has"+fn+"Key")
+	getLen := r && s.CanGenerateMethod("Get"+fn+"Len")
+	getKeys := r && s.CanGenerateMethod("Get"+fn+"Keys")
+	getCopy := r && s.CanGenerateMethod("Get"+fn+"Copy")
+	setVal := w && s.CanGenerateMethod("Set"+fn+"Val")
+	delKey := w && s.CanGenerateMethod("Del"+fn+"Key")
 	var buf bytes.Buffer
 	err := mapTmpl.Execute(&buf, map[string]any{
-		"ReceiverType": s.ReceiverType(),
-		"MethodName":   fn,
-		"FieldName":    f.Name,
-		"KeyType":    keyType,
-		"ValueType":  valueType,
-		"Doc":        formatDoc(f.Doc),
-		"GetVal":     getVal,
-		"Range":      rang,
-		"SetKV":      setKV,
-		"DelKV":      delKV,
-		"Any":        getVal || rang || setKV || delKV,
+		"ReceiverType":    s.ReceiverType(),
+		"MethodName":      fn,
+		"FieldName":       f.Name,
+		"KeyType":         keyType,
+		"ValueType":       valueType,
+		"MapType":         f.Type.TypeStr,
+		"Doc":             formatDoc(f.Doc),
+		"GetVal":          getVal,
+		"GetValOrDefault": getValOrDefault,
+		"Range":           rang,
+		"Has":             has,
+		"HasKey":          hasKey,
+		"GetLen":          getLen,
+		"GetKeys":         getKeys,
+		"GetCopy":         getCopy,
+		"SetVal":          setVal,
+		"DelKey":          delKey,
+		"Any":             getVal || getValOrDefault || rang || has || hasKey || getLen || getKeys || getCopy || setVal || delKey,
 	})
 	if err != nil {
 		return nil, err

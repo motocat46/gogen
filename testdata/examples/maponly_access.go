@@ -15,10 +15,20 @@
 
 package examples
 
+import "maps"
+
 // GetIndexVal 获取 Index 中指定 key 的值，ok 表示 key 是否存在
 func (this *MapOnly) GetIndexVal(key int) (string, bool) {
 	val, ok := this.Index[key]
 	return val, ok
+}
+
+// GetIndexValOrDefault 获取 Index 中指定 key 的值，key 不存在时返回 def
+func (this *MapOnly) GetIndexValOrDefault(key int, def string) string {
+	if val, ok := this.Index[key]; ok {
+		return val
+	}
+	return def
 }
 
 // RangeIndex 遍历 Index，fn 返回 false 时终止遍历
@@ -30,13 +40,43 @@ func (this *MapOnly) RangeIndex(fn func(key int, value string) bool) {
 	}
 }
 
-// SetIndexKV 设置 Index 中指定 key 的值
-func (this *MapOnly) SetIndexKV(key int, value string) {
+// HasIndex 返回 Index 是否已初始化（非 nil）
+func (this *MapOnly) HasIndex() bool {
+	return this.Index != nil
+}
+
+// HasIndexKey 检查 Index 中指定 key 是否存在
+func (this *MapOnly) HasIndexKey(key int) bool {
+	_, ok := this.Index[key]
+	return ok
+}
+
+// GetIndexLen 获取 Index 的元素数量
+func (this *MapOnly) GetIndexLen() int {
+	return len(this.Index)
+}
+
+// GetIndexKeys 返回 Index 中所有 key 的切片（顺序不确定）
+func (this *MapOnly) GetIndexKeys() []int {
+	keys := make([]int, 0, len(this.Index))
+	for k := range this.Index {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+// GetIndexCopy 返回 Index 的浅拷贝
+func (this *MapOnly) GetIndexCopy() map[int]string {
+	return maps.Clone(this.Index)
+}
+
+// SetIndexVal 设置 Index 中指定 key 的值
+func (this *MapOnly) SetIndexVal(key int, value string) {
 	this.Index[key] = value
 }
 
-// DelIndexKV 删除 Index 中指定 key
-func (this *MapOnly) DelIndexKV(key int) {
+// DelIndexKey 删除 Index 中指定 key
+func (this *MapOnly) DelIndexKey(key int) {
 	delete(this.Index, key)
 }
 
@@ -45,6 +85,14 @@ func (this *MapOnly) DelIndexKV(key int) {
 func (this *MapOnly) GetConfigVal(key string) (interface{}, bool) {
 	val, ok := this.Config[key]
 	return val, ok
+}
+
+// GetConfigValOrDefault 获取 Config 中指定 key 的值，key 不存在时返回 def
+func (this *MapOnly) GetConfigValOrDefault(key string, def interface{}) interface{} {
+	if val, ok := this.Config[key]; ok {
+		return val
+	}
+	return def
 }
 
 // RangeConfig 遍历 Config，fn 返回 false 时终止遍历
@@ -56,13 +104,43 @@ func (this *MapOnly) RangeConfig(fn func(key string, value interface{}) bool) {
 	}
 }
 
-// SetConfigKV 设置 Config 中指定 key 的值
-func (this *MapOnly) SetConfigKV(key string, value interface{}) {
+// HasConfig 返回 Config 是否已初始化（非 nil）
+func (this *MapOnly) HasConfig() bool {
+	return this.Config != nil
+}
+
+// HasConfigKey 检查 Config 中指定 key 是否存在
+func (this *MapOnly) HasConfigKey(key string) bool {
+	_, ok := this.Config[key]
+	return ok
+}
+
+// GetConfigLen 获取 Config 的元素数量
+func (this *MapOnly) GetConfigLen() int {
+	return len(this.Config)
+}
+
+// GetConfigKeys 返回 Config 中所有 key 的切片（顺序不确定）
+func (this *MapOnly) GetConfigKeys() []string {
+	keys := make([]string, 0, len(this.Config))
+	for k := range this.Config {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+// GetConfigCopy 返回 Config 的浅拷贝
+func (this *MapOnly) GetConfigCopy() map[string]interface{} {
+	return maps.Clone(this.Config)
+}
+
+// SetConfigVal 设置 Config 中指定 key 的值
+func (this *MapOnly) SetConfigVal(key string, value interface{}) {
 	this.Config[key] = value
 }
 
-// DelConfigKV 删除 Config 中指定 key
-func (this *MapOnly) DelConfigKV(key string) {
+// DelConfigKey 删除 Config 中指定 key
+func (this *MapOnly) DelConfigKey(key string) {
 	delete(this.Config, key)
 }
 
@@ -71,6 +149,14 @@ func (this *MapOnly) DelConfigKV(key string) {
 func (this *MapOnly) GetNestedVal(key string) ([]int, bool) {
 	val, ok := this.Nested[key]
 	return val, ok
+}
+
+// GetNestedValOrDefault 获取 Nested 中指定 key 的值，key 不存在时返回 def
+func (this *MapOnly) GetNestedValOrDefault(key string, def []int) []int {
+	if val, ok := this.Nested[key]; ok {
+		return val
+	}
+	return def
 }
 
 // RangeNested 遍历 Nested，fn 返回 false 时终止遍历
@@ -82,12 +168,42 @@ func (this *MapOnly) RangeNested(fn func(key string, value []int) bool) {
 	}
 }
 
-// SetNestedKV 设置 Nested 中指定 key 的值
-func (this *MapOnly) SetNestedKV(key string, value []int) {
+// HasNested 返回 Nested 是否已初始化（非 nil）
+func (this *MapOnly) HasNested() bool {
+	return this.Nested != nil
+}
+
+// HasNestedKey 检查 Nested 中指定 key 是否存在
+func (this *MapOnly) HasNestedKey(key string) bool {
+	_, ok := this.Nested[key]
+	return ok
+}
+
+// GetNestedLen 获取 Nested 的元素数量
+func (this *MapOnly) GetNestedLen() int {
+	return len(this.Nested)
+}
+
+// GetNestedKeys 返回 Nested 中所有 key 的切片（顺序不确定）
+func (this *MapOnly) GetNestedKeys() []string {
+	keys := make([]string, 0, len(this.Nested))
+	for k := range this.Nested {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+// GetNestedCopy 返回 Nested 的浅拷贝
+func (this *MapOnly) GetNestedCopy() map[string][]int {
+	return maps.Clone(this.Nested)
+}
+
+// SetNestedVal 设置 Nested 中指定 key 的值
+func (this *MapOnly) SetNestedVal(key string, value []int) {
 	this.Nested[key] = value
 }
 
-// DelNestedKV 删除 Nested 中指定 key
-func (this *MapOnly) DelNestedKV(key string) {
+// DelNestedKey 删除 Nested 中指定 key
+func (this *MapOnly) DelNestedKey(key string) {
 	delete(this.Nested, key)
 }

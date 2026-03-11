@@ -15,19 +15,16 @@
 
 package examples
 
-// GetNamesElem 获取切片 Names 中 index 位置的元素
-func (this *SliceOnly) GetNamesElem(index int) string {
+import "slices"
+
+// GetNamesAt 获取切片 Names 中 index 位置的元素
+func (this *SliceOnly) GetNamesAt(index int) string {
 	return this.Names[index]
 }
 
 // GetNamesLen 获取切片 Names 的长度
 func (this *SliceOnly) GetNamesLen() int {
 	return len(this.Names)
-}
-
-// GetNamesCap 获取切片 Names 的容量
-func (this *SliceOnly) GetNamesCap() int {
-	return cap(this.Names)
 }
 
 // RangeNames 遍历切片 Names，fn 返回 false 时终止遍历
@@ -39,35 +36,40 @@ func (this *SliceOnly) RangeNames(fn func(index int, value string) bool) {
 	}
 }
 
-// SetNamesElem 设置切片 Names 中 index 位置的元素
-func (this *SliceOnly) SetNamesElem(index int, elem string) {
+// HasNames 返回切片 Names 是否已初始化（非 nil）
+func (this *SliceOnly) HasNames() bool {
+	return this.Names != nil
+}
+
+// GetNamesCopy 返回切片 Names 的浅拷贝
+func (this *SliceOnly) GetNamesCopy() []string {
+	return slices.Clone(this.Names)
+}
+
+// SetNamesAt 设置切片 Names 中 index 位置的元素
+func (this *SliceOnly) SetNamesAt(index int, elem string) {
 	this.Names[index] = elem
 }
 
-// AddNamesElem 向切片 Names 追加元素
-func (this *SliceOnly) AddNamesElem(elem string) {
+// AppendNames 向切片 Names 追加元素
+func (this *SliceOnly) AppendNames(elem string) {
 	this.Names = append(this.Names, elem)
 }
 
-// DelNamesElem 删除切片 Names 中 index 位置的元素
+// RemoveNames 删除切片 Names 中 index 位置的元素
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *SliceOnly) DelNamesElem(index int) {
+func (this *SliceOnly) RemoveNames(index int) {
 	this.Names = append(this.Names[:index], this.Names[index+1:]...)
 }
 
-// GetScoresElem 获取切片 Scores 中 index 位置的元素
-func (this *SliceOnly) GetScoresElem(index int) float64 {
+// GetScoresAt 获取切片 Scores 中 index 位置的元素
+func (this *SliceOnly) GetScoresAt(index int) float64 {
 	return this.Scores[index]
 }
 
 // GetScoresLen 获取切片 Scores 的长度
 func (this *SliceOnly) GetScoresLen() int {
 	return len(this.Scores)
-}
-
-// GetScoresCap 获取切片 Scores 的容量
-func (this *SliceOnly) GetScoresCap() int {
-	return cap(this.Scores)
 }
 
 // RangeScores 遍历切片 Scores，fn 返回 false 时终止遍历
@@ -79,35 +81,40 @@ func (this *SliceOnly) RangeScores(fn func(index int, value float64) bool) {
 	}
 }
 
-// SetScoresElem 设置切片 Scores 中 index 位置的元素
-func (this *SliceOnly) SetScoresElem(index int, elem float64) {
+// HasScores 返回切片 Scores 是否已初始化（非 nil）
+func (this *SliceOnly) HasScores() bool {
+	return this.Scores != nil
+}
+
+// GetScoresCopy 返回切片 Scores 的浅拷贝
+func (this *SliceOnly) GetScoresCopy() []float64 {
+	return slices.Clone(this.Scores)
+}
+
+// SetScoresAt 设置切片 Scores 中 index 位置的元素
+func (this *SliceOnly) SetScoresAt(index int, elem float64) {
 	this.Scores[index] = elem
 }
 
-// AddScoresElem 向切片 Scores 追加元素
-func (this *SliceOnly) AddScoresElem(elem float64) {
+// AppendScores 向切片 Scores 追加元素
+func (this *SliceOnly) AppendScores(elem float64) {
 	this.Scores = append(this.Scores, elem)
 }
 
-// DelScoresElem 删除切片 Scores 中 index 位置的元素
+// RemoveScores 删除切片 Scores 中 index 位置的元素
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *SliceOnly) DelScoresElem(index int) {
+func (this *SliceOnly) RemoveScores(index int) {
 	this.Scores = append(this.Scores[:index], this.Scores[index+1:]...)
 }
 
-// GetItemsElem 获取切片 Items 中 index 位置的元素
-func (this *SliceOnly) GetItemsElem(index int) *BaseInfo {
+// GetItemsAt 获取切片 Items 中 index 位置的元素
+func (this *SliceOnly) GetItemsAt(index int) *BaseInfo {
 	return this.Items[index]
 }
 
 // GetItemsLen 获取切片 Items 的长度
 func (this *SliceOnly) GetItemsLen() int {
 	return len(this.Items)
-}
-
-// GetItemsCap 获取切片 Items 的容量
-func (this *SliceOnly) GetItemsCap() int {
-	return cap(this.Items)
 }
 
 // RangeItems 遍历切片 Items，fn 返回 false 时终止遍历
@@ -119,18 +126,28 @@ func (this *SliceOnly) RangeItems(fn func(index int, value *BaseInfo) bool) {
 	}
 }
 
-// SetItemsElem 设置切片 Items 中 index 位置的元素
-func (this *SliceOnly) SetItemsElem(index int, elem *BaseInfo) {
+// HasItems 返回切片 Items 是否已初始化（非 nil）
+func (this *SliceOnly) HasItems() bool {
+	return this.Items != nil
+}
+
+// GetItemsCopy 返回切片 Items 的浅拷贝
+func (this *SliceOnly) GetItemsCopy() []*BaseInfo {
+	return slices.Clone(this.Items)
+}
+
+// SetItemsAt 设置切片 Items 中 index 位置的元素
+func (this *SliceOnly) SetItemsAt(index int, elem *BaseInfo) {
 	this.Items[index] = elem
 }
 
-// AddItemsElem 向切片 Items 追加元素
-func (this *SliceOnly) AddItemsElem(elem *BaseInfo) {
+// AppendItems 向切片 Items 追加元素
+func (this *SliceOnly) AppendItems(elem *BaseInfo) {
 	this.Items = append(this.Items, elem)
 }
 
-// DelItemsElem 删除切片 Items 中 index 位置的元素
+// RemoveItems 删除切片 Items 中 index 位置的元素
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *SliceOnly) DelItemsElem(index int) {
+func (this *SliceOnly) RemoveItems(index int) {
 	this.Items = append(this.Items[:index], this.Items[index+1:]...)
 }

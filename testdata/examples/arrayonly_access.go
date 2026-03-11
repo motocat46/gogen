@@ -15,8 +15,13 @@
 
 package examples
 
-// GetFixed8Elem 获取数组 Fixed8 中 index 位置的元素
-func (this *ArrayOnly) GetFixed8Elem(index int) byte {
+// GetFixed8 获取数组 Fixed8 的完整副本
+func (this *ArrayOnly) GetFixed8() [8]byte {
+	return this.Fixed8
+}
+
+// GetFixed8At 获取数组 Fixed8 中 index 位置的元素
+func (this *ArrayOnly) GetFixed8At(index int) byte {
 	return this.Fixed8[index]
 }
 
@@ -34,13 +39,18 @@ func (this *ArrayOnly) RangeFixed8(fn func(index int, value byte) bool) {
 	}
 }
 
-// SetFixed8Elem 设置数组 Fixed8 中 index 位置的元素
-func (this *ArrayOnly) SetFixed8Elem(index int, elem byte) {
+// SetFixed8At 设置数组 Fixed8 中 index 位置的元素
+func (this *ArrayOnly) SetFixed8At(index int, elem byte) {
 	this.Fixed8[index] = elem
 }
 
-// GetFixed16Elem 获取数组 Fixed16 中 index 位置的元素
-func (this *ArrayOnly) GetFixed16Elem(index int) byte {
+// GetFixed16 获取数组 Fixed16 的完整副本
+func (this *ArrayOnly) GetFixed16() [16]byte {
+	return this.Fixed16
+}
+
+// GetFixed16At 获取数组 Fixed16 中 index 位置的元素
+func (this *ArrayOnly) GetFixed16At(index int) byte {
 	return this.Fixed16[index]
 }
 
@@ -58,13 +68,18 @@ func (this *ArrayOnly) RangeFixed16(fn func(index int, value byte) bool) {
 	}
 }
 
-// SetFixed16Elem 设置数组 Fixed16 中 index 位置的元素
-func (this *ArrayOnly) SetFixed16Elem(index int, elem byte) {
+// SetFixed16At 设置数组 Fixed16 中 index 位置的元素
+func (this *ArrayOnly) SetFixed16At(index int, elem byte) {
 	this.Fixed16[index] = elem
 }
 
-// GetFixed256Elem 获取数组 Fixed256 中 index 位置的元素
-func (this *ArrayOnly) GetFixed256Elem(index int) int32 {
+// GetFixed256 获取数组 Fixed256 的完整副本
+func (this *ArrayOnly) GetFixed256() [256]int32 {
+	return this.Fixed256
+}
+
+// GetFixed256At 获取数组 Fixed256 中 index 位置的元素
+func (this *ArrayOnly) GetFixed256At(index int) int32 {
 	return this.Fixed256[index]
 }
 
@@ -82,7 +97,7 @@ func (this *ArrayOnly) RangeFixed256(fn func(index int, value int32) bool) {
 	}
 }
 
-// SetFixed256Elem 设置数组 Fixed256 中 index 位置的元素
-func (this *ArrayOnly) SetFixed256Elem(index int, elem int32) {
+// SetFixed256At 设置数组 Fixed256 中 index 位置的元素
+func (this *ArrayOnly) SetFixed256At(index int, elem int32) {
 	this.Fixed256[index] = elem
 }

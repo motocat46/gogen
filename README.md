@@ -46,16 +46,20 @@ gogen --verbose ./...
 
 | 字段类型 | 生成的方法 |
 |---|---|
-| 基础类型 `int` / `string` / 自定义类型 | `GetField()`, `SetField()` |
-| 指针 `*T` | `GetField()`, `SetField()` |
+| `bool` / 底层为 bool 的类型 | `GetField()`, `SetField()`, `ToggleField()` |
+| `int`/`float`/`uint` 等数值类型 | `GetField()`, `SetField()`, `AddField(delta)`, `SubField(delta)` |
+| `string` / 自定义字符串类型 | `GetField()`, `SetField()` |
+| 指针 `*T` | `GetField()`, `SetField()`, `HasField()` |
+| `interface{}` / `any` / 具名接口 | `GetField()`, `SetField()`, `HasField()` |
+| `func` 类型 | `GetField()`, `SetField()`, `HasField()` |
 | 结构体 `T` | `GetField()`, `SetField()` |
 | 泛型实例 `List[T]` | `GetField()`, `SetField()` |
-| 切片 `[]T` | `GetFieldElem()`, `GetFieldLen()`, `GetFieldCap()`, `RangeField()`, `SetFieldElem()`, `AddFieldElem()`, `DelFieldElem()` |
-| 数组 `[N]T` | `GetFieldElem()`, `GetFieldLen()`, `RangeField()`, `SetFieldElem()` |
-| Map `map[K]V` | `GetFieldVal()`, `RangeField()`, `SetFieldKV()`, `DelFieldKV()` |
-| `interface{}` / `func` / `chan` | 跳过，不生成 |
+| 切片 `[]T` | `GetFieldAt()`, `GetFieldLen()`, `RangeField()`, `HasField()`, `GetFieldCopy()`, `SetFieldAt()`, `AppendField()`, `RemoveField()` |
+| 数组 `[N]T` | `GetField()`, `GetFieldAt()`, `GetFieldLen()`, `RangeField()`, `SetFieldAt()` |
+| Map `map[K]V` | `GetFieldVal()`, `GetFieldValOrDefault()`, `RangeField()`, `HasField()`, `HasFieldKey()`, `GetFieldLen()`, `GetFieldKeys()`, `GetFieldCopy()`, `SetFieldVal()`, `DelFieldKey()` |
+| `chan` | 跳过，不生成 |
 
-设计原则：切片和 map 不提供整体 getter（`GetEmails() []string`），只提供细粒度操作，强制封装。
+设计原则：切片和 map 不提供整体 getter（`GetEmails() []string`），只提供细粒度操作，强制封装。`GetFieldCopy()` 使用 `slices.Clone`/`maps.Clone` 返回浅拷贝，保护内部状态。
 
 ## struct tag 控制
 

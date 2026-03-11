@@ -24,3 +24,13 @@ func (this *EmbedDeep) GetID() int {
 func (this *EmbedDeep) SetID(ID int) {
 	this.ID = ID
 }
+
+// AddID 将 ID 增加 delta
+func (this *EmbedDeep) AddID(delta int) {
+	this.ID += delta
+}
+
+// SubID 将 ID 减少 delta
+func (this *EmbedDeep) SubID(delta int) {
+	this.ID -= delta
+}

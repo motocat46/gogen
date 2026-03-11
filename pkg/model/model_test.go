@@ -239,12 +239,16 @@ func TestTypeKindString(t *testing.T) {
 		want string
 	}{
 		{model.KindBasic, "basic"},
+		{model.KindBool, "bool"},
+		{model.KindNumeric, "numeric"},
 		{model.KindPointer, "pointer"},
 		{model.KindSlice, "slice"},
 		{model.KindArray, "array"},
 		{model.KindMap, "map"},
 		{model.KindStruct, "struct"},
 		{model.KindGeneric, "generic"},
+		{model.KindInterface, "interface"},
+		{model.KindFunc, "func"},
 		{model.KindUnsupported, "unsupported"},
 		{model.TypeKind(999), "unknown"},
 	}

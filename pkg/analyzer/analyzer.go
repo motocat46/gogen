@@ -261,7 +261,15 @@ func buildTypeInfo(t types.Type, qualifier types.Qualifier) *model.TypeInfo {
 
 	switch u := t.(type) {
 	case *types.Basic:
-		return &model.TypeInfo{Kind: model.KindBasic, TypeStr: typeStr}
+		kind := model.KindBasic
+		info := u.Info()
+		switch {
+		case info&types.IsBoolean != 0:
+			kind = model.KindBool
+		case info&(types.IsInteger|types.IsFloat|types.IsComplex) != 0:
+			kind = model.KindNumeric
+		}
+		return &model.TypeInfo{Kind: kind, TypeStr: typeStr}
 
 	case *types.Pointer:
 		elem := buildTypeInfo(u.Elem(), qualifier)
@@ -318,12 +326,12 @@ func buildTypeInfo(t types.Type, qualifier types.Qualifier) *model.TypeInfo {
 		return &result
 
 	case *types.Interface:
-		// interface{}/any 及具名接口（如 io.Reader）：生成 Get/Set，类型字符串由 TypeString 渲染
-		return &model.TypeInfo{Kind: model.KindBasic, TypeStr: typeStr}
+		// interface{}/any 及具名接口（如 io.Reader）：生成 Get/Set/Has，nil 表示未初始化
+		return &model.TypeInfo{Kind: model.KindInterface, TypeStr: typeStr}
 
 	case *types.Signature:
-		// func 类型字段（如 func(int) string）：生成 Get/Set，类型字符串即完整函数签名
-		return &model.TypeInfo{Kind: model.KindBasic, TypeStr: typeStr}
+		// func 类型字段（如 func(int) string）：生成 Get/Set/Has，nil 表示未设置
+		return &model.TypeInfo{Kind: model.KindFunc, TypeStr: typeStr}
 
 	case *types.Chan:
 		return &model.TypeInfo{Kind: model.KindUnsupported, TypeStr: typeStr}

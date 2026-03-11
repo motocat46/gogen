@@ -24,12 +24,19 @@ import (
 )
 
 // arrayTmplStr 数组类型不支持 append/delete，只提供元素访问和遍历。
+// GetField 返回数组值拷贝（数组是值类型，赋值即拷贝，无需 Copy 后缀）。
 const arrayTmplStr = `
 {{ if and .Any .Doc }}{{ .Doc }}
 {{ end -}}
-{{ if .GetElem -}}
-// Get{{ .MethodName }}Elem 获取数组 {{ .FieldName }} 中 index 位置的元素
-func (this *{{ .ReceiverType }}) Get{{ .MethodName }}Elem(index int) {{ .ElemType }} {
+{{ if .GetField -}}
+// Get{{ .MethodName }} 获取数组 {{ .FieldName }} 的完整副本
+func (this *{{ .ReceiverType }}) Get{{ .MethodName }}() {{ .ArrayType }} {
+	return this.{{ .FieldName }}
+}
+{{ end -}}
+{{ if .GetAt -}}
+// Get{{ .MethodName }}At 获取数组 {{ .FieldName }} 中 index 位置的元素
+func (this *{{ .ReceiverType }}) Get{{ .MethodName }}At(index int) {{ .ElemType }} {
 	return this.{{ .FieldName }}[index]
 }
 {{ end -}}
@@ -49,9 +56,9 @@ func (this *{{ .ReceiverType }}) Range{{ .MethodName }}(fn func(index int, value
 	}
 }
 {{ end -}}
-{{ if .SetElem -}}
-// Set{{ .MethodName }}Elem 设置数组 {{ .FieldName }} 中 index 位置的元素
-func (this *{{ .ReceiverType }}) Set{{ .MethodName }}Elem(index int, elem {{ .ElemType }}) {
+{{ if .SetAt -}}
+// Set{{ .MethodName }}At 设置数组 {{ .FieldName }} 中 index 位置的元素
+func (this *{{ .ReceiverType }}) Set{{ .MethodName }}At(index int, elem {{ .ElemType }}) {
 	this.{{ .FieldName }}[index] = elem
 }
 {{ end }}`
@@ -59,7 +66,7 @@ func (this *{{ .ReceiverType }}) Set{{ .MethodName }}Elem(index int, elem {{ .El
 var arrayTmpl = template.Must(template.New("array").Parse(arrayTmplStr))
 
 // ArrayGenerator 为数组类型字段生成访问器方法。
-// 数组长度固定，不支持 Add/Del 操作。
+// 数组长度固定，不支持 Append/Remove 操作。
 type ArrayGenerator struct{}
 
 func (g *ArrayGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte, error) {
@@ -70,22 +77,25 @@ func (g *ArrayGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte
 
 	fn := f.Name
 	r, w := f.IsReadable(), f.IsWritable()
-	getElem := r && s.CanGenerateMethod("Get"+fn+"Elem")
+	getField := r && s.CanGenerateMethod("Get"+fn)
+	getAt := r && s.CanGenerateMethod("Get"+fn+"At")
 	getLen := r && s.CanGenerateMethod("Get"+fn+"Len")
 	rang := r && s.CanGenerateMethod("Range"+fn)
-	setElem := w && s.CanGenerateMethod("Set"+fn+"Elem")
+	setAt := w && s.CanGenerateMethod("Set"+fn+"At")
 	var buf bytes.Buffer
 	err := arrayTmpl.Execute(&buf, map[string]any{
 		"ReceiverType": s.ReceiverType(),
 		"MethodName":   fn,
 		"FieldName":    f.Name,
 		"ElemType":     elemType,
-		"Doc":        formatDoc(f.Doc),
-		"GetElem":    getElem,
-		"GetLen":     getLen,
-		"Range":      rang,
-		"SetElem":    setElem,
-		"Any":        getElem || getLen || rang || setElem,
+		"ArrayType":    f.Type.TypeStr,
+		"Doc":          formatDoc(f.Doc),
+		"GetField":     getField,
+		"GetAt":        getAt,
+		"GetLen":       getLen,
+		"Range":        rang,
+		"SetAt":        setAt,
+		"Any":          getField || getAt || getLen || rang || setAt,
 	})
 	if err != nil {
 		return nil, err

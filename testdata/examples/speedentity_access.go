@@ -15,29 +15,12 @@
 
 package examples
 
-// 命名字段，应生成 GetBase/SetBase
-// GetBase 获取 Base
-func (this *EmbedOther) GetBase() BaseInfo {
-	return this.Base
+// AddSpeed 将 Speed 增加 delta
+func (this *SpeedEntity) AddSpeed(delta float32) {
+	this.Speed += delta
 }
 
-// SetBase 设置 Base
-func (this *EmbedOther) SetBase(Base BaseInfo) {
-	this.Base = Base
-}
-
-// 指针，应生成 GetBasePtr/SetBasePtr
-// GetBasePtr 获取 BasePtr
-func (this *EmbedOther) GetBasePtr() *BaseInfo {
-	return this.BasePtr
-}
-
-// SetBasePtr 设置 BasePtr
-func (this *EmbedOther) SetBasePtr(BasePtr *BaseInfo) {
-	this.BasePtr = BasePtr
-}
-
-// HasBasePtr 返回 BasePtr 是否已初始化（非 nil）
-func (this *EmbedOther) HasBasePtr() bool {
-	return this.BasePtr != nil
+// SubSpeed 将 Speed 减少 delta
+func (this *SpeedEntity) SubSpeed(delta float32) {
+	this.Speed -= delta
 }

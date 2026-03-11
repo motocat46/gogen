@@ -20,14 +20,18 @@ package model
 type TypeKind int
 
 const (
-	KindBasic       TypeKind = iota // int, string, bool, float64 等基础类型
-	KindPointer                     // *T 指针类型
+	KindBasic       TypeKind = iota // string、TypeParam 等基础类型（Get/Set）
+	KindBool                        // bool 类型（Get/Set/Toggle）
+	KindNumeric                     // int/float/uint/complex 等数值类型（Get/Set/Add/Sub）
+	KindPointer                     // *T 指针类型（Get/Set/Has）
 	KindSlice                       // []T 切片类型
 	KindArray                       // [N]T 数组类型
 	KindMap                         // map[K]V 映射类型
-	KindStruct                      // 具名结构体类型
-	KindGeneric                     // List[T]、Result[K,V] 等泛型实例化类型
-	KindUnsupported                 // interface/func/chan 等，跳过生成
+	KindStruct                      // 具名结构体类型（Get/Set）
+	KindGeneric                     // List[T]、Result[K,V] 等泛型实例化类型（Get/Set）
+	KindInterface                   // interface{}/any 及具名接口类型（Get/Set/Has）
+	KindFunc                        // func 类型字段（Get/Set/Has）
+	KindUnsupported                 // chan 等，跳过生成
 )
 
 // String 返回 TypeKind 的可读名称，方便调试
@@ -35,6 +39,10 @@ func (k TypeKind) String() string {
 	switch k {
 	case KindBasic:
 		return "basic"
+	case KindBool:
+		return "bool"
+	case KindNumeric:
+		return "numeric"
 	case KindPointer:
 		return "pointer"
 	case KindSlice:
@@ -47,6 +55,10 @@ func (k TypeKind) String() string {
 		return "struct"
 	case KindGeneric:
 		return "generic"
+	case KindInterface:
+		return "interface"
+	case KindFunc:
+		return "func"
 	case KindUnsupported:
 		return "unsupported"
 	default:

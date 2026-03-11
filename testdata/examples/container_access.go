@@ -36,3 +36,13 @@ func (this *Container[T]) GetSize() int {
 func (this *Container[T]) SetSize(Size int) {
 	this.Size = Size
 }
+
+// AddSize 将 Size 增加 delta
+func (this *Container[T]) AddSize(delta int) {
+	this.Size += delta
+}
+
+// SubSize 将 Size 减少 delta
+func (this *Container[T]) SubSize(delta int) {
+	this.Size -= delta
+}

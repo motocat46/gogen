@@ -15,7 +15,11 @@
 
 package examples
 
-import "time"
+import (
+	"maps"
+	"slices"
+	"time"
+)
 
 // --- 基础类型 ---
 // GetFieldBool 获取 FieldBool
@@ -28,6 +32,11 @@ func (this *AllTypes) SetFieldBool(FieldBool bool) {
 	this.FieldBool = FieldBool
 }
 
+// ToggleFieldBool 翻转 FieldBool 的布尔值
+func (this *AllTypes) ToggleFieldBool() {
+	this.FieldBool = !this.FieldBool
+}
+
 // GetFieldInt 获取 FieldInt
 func (this *AllTypes) GetFieldInt() int {
 	return this.FieldInt
@@ -36,6 +45,16 @@ func (this *AllTypes) GetFieldInt() int {
 // SetFieldInt 设置 FieldInt
 func (this *AllTypes) SetFieldInt(FieldInt int) {
 	this.FieldInt = FieldInt
+}
+
+// AddFieldInt 将 FieldInt 增加 delta
+func (this *AllTypes) AddFieldInt(delta int) {
+	this.FieldInt += delta
+}
+
+// SubFieldInt 将 FieldInt 减少 delta
+func (this *AllTypes) SubFieldInt(delta int) {
+	this.FieldInt -= delta
 }
 
 // GetFieldInt8 获取 FieldInt8
@@ -48,6 +67,16 @@ func (this *AllTypes) SetFieldInt8(FieldInt8 int8) {
 	this.FieldInt8 = FieldInt8
 }
 
+// AddFieldInt8 将 FieldInt8 增加 delta
+func (this *AllTypes) AddFieldInt8(delta int8) {
+	this.FieldInt8 += delta
+}
+
+// SubFieldInt8 将 FieldInt8 减少 delta
+func (this *AllTypes) SubFieldInt8(delta int8) {
+	this.FieldInt8 -= delta
+}
+
 // GetFieldInt16 获取 FieldInt16
 func (this *AllTypes) GetFieldInt16() int16 {
 	return this.FieldInt16
@@ -56,6 +85,16 @@ func (this *AllTypes) GetFieldInt16() int16 {
 // SetFieldInt16 设置 FieldInt16
 func (this *AllTypes) SetFieldInt16(FieldInt16 int16) {
 	this.FieldInt16 = FieldInt16
+}
+
+// AddFieldInt16 将 FieldInt16 增加 delta
+func (this *AllTypes) AddFieldInt16(delta int16) {
+	this.FieldInt16 += delta
+}
+
+// SubFieldInt16 将 FieldInt16 减少 delta
+func (this *AllTypes) SubFieldInt16(delta int16) {
+	this.FieldInt16 -= delta
 }
 
 // GetFieldInt32 获取 FieldInt32
@@ -68,6 +107,16 @@ func (this *AllTypes) SetFieldInt32(FieldInt32 int32) {
 	this.FieldInt32 = FieldInt32
 }
 
+// AddFieldInt32 将 FieldInt32 增加 delta
+func (this *AllTypes) AddFieldInt32(delta int32) {
+	this.FieldInt32 += delta
+}
+
+// SubFieldInt32 将 FieldInt32 减少 delta
+func (this *AllTypes) SubFieldInt32(delta int32) {
+	this.FieldInt32 -= delta
+}
+
 // GetFieldInt64 获取 FieldInt64
 func (this *AllTypes) GetFieldInt64() int64 {
 	return this.FieldInt64
@@ -76,6 +125,16 @@ func (this *AllTypes) GetFieldInt64() int64 {
 // SetFieldInt64 设置 FieldInt64
 func (this *AllTypes) SetFieldInt64(FieldInt64 int64) {
 	this.FieldInt64 = FieldInt64
+}
+
+// AddFieldInt64 将 FieldInt64 增加 delta
+func (this *AllTypes) AddFieldInt64(delta int64) {
+	this.FieldInt64 += delta
+}
+
+// SubFieldInt64 将 FieldInt64 减少 delta
+func (this *AllTypes) SubFieldInt64(delta int64) {
+	this.FieldInt64 -= delta
 }
 
 // GetFieldUint 获取 FieldUint
@@ -88,6 +147,16 @@ func (this *AllTypes) SetFieldUint(FieldUint uint) {
 	this.FieldUint = FieldUint
 }
 
+// AddFieldUint 将 FieldUint 增加 delta
+func (this *AllTypes) AddFieldUint(delta uint) {
+	this.FieldUint += delta
+}
+
+// SubFieldUint 将 FieldUint 减少 delta
+func (this *AllTypes) SubFieldUint(delta uint) {
+	this.FieldUint -= delta
+}
+
 // GetFieldUint8 获取 FieldUint8
 func (this *AllTypes) GetFieldUint8() uint8 {
 	return this.FieldUint8
@@ -96,6 +165,16 @@ func (this *AllTypes) GetFieldUint8() uint8 {
 // SetFieldUint8 设置 FieldUint8
 func (this *AllTypes) SetFieldUint8(FieldUint8 uint8) {
 	this.FieldUint8 = FieldUint8
+}
+
+// AddFieldUint8 将 FieldUint8 增加 delta
+func (this *AllTypes) AddFieldUint8(delta uint8) {
+	this.FieldUint8 += delta
+}
+
+// SubFieldUint8 将 FieldUint8 减少 delta
+func (this *AllTypes) SubFieldUint8(delta uint8) {
+	this.FieldUint8 -= delta
 }
 
 // GetFieldUint16 获取 FieldUint16
@@ -108,6 +187,16 @@ func (this *AllTypes) SetFieldUint16(FieldUint16 uint16) {
 	this.FieldUint16 = FieldUint16
 }
 
+// AddFieldUint16 将 FieldUint16 增加 delta
+func (this *AllTypes) AddFieldUint16(delta uint16) {
+	this.FieldUint16 += delta
+}
+
+// SubFieldUint16 将 FieldUint16 减少 delta
+func (this *AllTypes) SubFieldUint16(delta uint16) {
+	this.FieldUint16 -= delta
+}
+
 // GetFieldUint32 获取 FieldUint32
 func (this *AllTypes) GetFieldUint32() uint32 {
 	return this.FieldUint32
@@ -116,6 +205,16 @@ func (this *AllTypes) GetFieldUint32() uint32 {
 // SetFieldUint32 设置 FieldUint32
 func (this *AllTypes) SetFieldUint32(FieldUint32 uint32) {
 	this.FieldUint32 = FieldUint32
+}
+
+// AddFieldUint32 将 FieldUint32 增加 delta
+func (this *AllTypes) AddFieldUint32(delta uint32) {
+	this.FieldUint32 += delta
+}
+
+// SubFieldUint32 将 FieldUint32 减少 delta
+func (this *AllTypes) SubFieldUint32(delta uint32) {
+	this.FieldUint32 -= delta
 }
 
 // GetFieldUint64 获取 FieldUint64
@@ -128,6 +227,16 @@ func (this *AllTypes) SetFieldUint64(FieldUint64 uint64) {
 	this.FieldUint64 = FieldUint64
 }
 
+// AddFieldUint64 将 FieldUint64 增加 delta
+func (this *AllTypes) AddFieldUint64(delta uint64) {
+	this.FieldUint64 += delta
+}
+
+// SubFieldUint64 将 FieldUint64 减少 delta
+func (this *AllTypes) SubFieldUint64(delta uint64) {
+	this.FieldUint64 -= delta
+}
+
 // GetFieldFloat32 获取 FieldFloat32
 func (this *AllTypes) GetFieldFloat32() float32 {
 	return this.FieldFloat32
@@ -138,6 +247,16 @@ func (this *AllTypes) SetFieldFloat32(FieldFloat32 float32) {
 	this.FieldFloat32 = FieldFloat32
 }
 
+// AddFieldFloat32 将 FieldFloat32 增加 delta
+func (this *AllTypes) AddFieldFloat32(delta float32) {
+	this.FieldFloat32 += delta
+}
+
+// SubFieldFloat32 将 FieldFloat32 减少 delta
+func (this *AllTypes) SubFieldFloat32(delta float32) {
+	this.FieldFloat32 -= delta
+}
+
 // GetFieldFloat64 获取 FieldFloat64
 func (this *AllTypes) GetFieldFloat64() float64 {
 	return this.FieldFloat64
@@ -146,6 +265,16 @@ func (this *AllTypes) GetFieldFloat64() float64 {
 // SetFieldFloat64 设置 FieldFloat64
 func (this *AllTypes) SetFieldFloat64(FieldFloat64 float64) {
 	this.FieldFloat64 = FieldFloat64
+}
+
+// AddFieldFloat64 将 FieldFloat64 增加 delta
+func (this *AllTypes) AddFieldFloat64(delta float64) {
+	this.FieldFloat64 += delta
+}
+
+// SubFieldFloat64 将 FieldFloat64 减少 delta
+func (this *AllTypes) SubFieldFloat64(delta float64) {
+	this.FieldFloat64 -= delta
 }
 
 // GetFieldString 获取 FieldString
@@ -169,6 +298,16 @@ func (this *AllTypes) SetFieldByte(FieldByte byte) {
 	this.FieldByte = FieldByte
 }
 
+// AddFieldByte 将 FieldByte 增加 delta
+func (this *AllTypes) AddFieldByte(delta byte) {
+	this.FieldByte += delta
+}
+
+// SubFieldByte 将 FieldByte 减少 delta
+func (this *AllTypes) SubFieldByte(delta byte) {
+	this.FieldByte -= delta
+}
+
 // rune = int32
 // GetFieldRune 获取 FieldRune
 func (this *AllTypes) GetFieldRune() rune {
@@ -178,6 +317,16 @@ func (this *AllTypes) GetFieldRune() rune {
 // SetFieldRune 设置 FieldRune
 func (this *AllTypes) SetFieldRune(FieldRune rune) {
 	this.FieldRune = FieldRune
+}
+
+// AddFieldRune 将 FieldRune 增加 delta
+func (this *AllTypes) AddFieldRune(delta rune) {
+	this.FieldRune += delta
+}
+
+// SubFieldRune 将 FieldRune 减少 delta
+func (this *AllTypes) SubFieldRune(delta rune) {
+	this.FieldRune -= delta
 }
 
 // --- 指针类型 ---
@@ -191,6 +340,11 @@ func (this *AllTypes) SetFieldPtrInt(FieldPtrInt *int) {
 	this.FieldPtrInt = FieldPtrInt
 }
 
+// HasFieldPtrInt 返回 FieldPtrInt 是否已初始化（非 nil）
+func (this *AllTypes) HasFieldPtrInt() bool {
+	return this.FieldPtrInt != nil
+}
+
 // GetFieldPtrString 获取 FieldPtrString
 func (this *AllTypes) GetFieldPtrString() *string {
 	return this.FieldPtrString
@@ -199,6 +353,11 @@ func (this *AllTypes) GetFieldPtrString() *string {
 // SetFieldPtrString 设置 FieldPtrString
 func (this *AllTypes) SetFieldPtrString(FieldPtrString *string) {
 	this.FieldPtrString = FieldPtrString
+}
+
+// HasFieldPtrString 返回 FieldPtrString 是否已初始化（非 nil）
+func (this *AllTypes) HasFieldPtrString() bool {
+	return this.FieldPtrString != nil
 }
 
 // GetFieldPtrStruct 获取 FieldPtrStruct
@@ -211,6 +370,11 @@ func (this *AllTypes) SetFieldPtrStruct(FieldPtrStruct *BaseInfo) {
 	this.FieldPtrStruct = FieldPtrStruct
 }
 
+// HasFieldPtrStruct 返回 FieldPtrStruct 是否已初始化（非 nil）
+func (this *AllTypes) HasFieldPtrStruct() bool {
+	return this.FieldPtrStruct != nil
+}
+
 // --- 具名类型（新类型） ---
 // GetFieldUserID 获取 FieldUserID
 func (this *AllTypes) GetFieldUserID() UserID {
@@ -220,6 +384,16 @@ func (this *AllTypes) GetFieldUserID() UserID {
 // SetFieldUserID 设置 FieldUserID
 func (this *AllTypes) SetFieldUserID(FieldUserID UserID) {
 	this.FieldUserID = FieldUserID
+}
+
+// AddFieldUserID 将 FieldUserID 增加 delta
+func (this *AllTypes) AddFieldUserID(delta UserID) {
+	this.FieldUserID += delta
+}
+
+// SubFieldUserID 将 FieldUserID 减少 delta
+func (this *AllTypes) SubFieldUserID(delta UserID) {
+	this.FieldUserID -= delta
 }
 
 // GetFieldStatus 获取 FieldStatus
@@ -264,20 +438,25 @@ func (this *AllTypes) SetFieldDuration(FieldDuration time.Duration) {
 	this.FieldDuration = FieldDuration
 }
 
+// AddFieldDuration 将 FieldDuration 增加 delta
+func (this *AllTypes) AddFieldDuration(delta time.Duration) {
+	this.FieldDuration += delta
+}
+
+// SubFieldDuration 将 FieldDuration 减少 delta
+func (this *AllTypes) SubFieldDuration(delta time.Duration) {
+	this.FieldDuration -= delta
+}
+
 // --- 切片类型 ---
-// GetFieldSliceIntElem 获取切片 FieldSliceInt 中 index 位置的元素
-func (this *AllTypes) GetFieldSliceIntElem(index int) int {
+// GetFieldSliceIntAt 获取切片 FieldSliceInt 中 index 位置的元素
+func (this *AllTypes) GetFieldSliceIntAt(index int) int {
 	return this.FieldSliceInt[index]
 }
 
 // GetFieldSliceIntLen 获取切片 FieldSliceInt 的长度
 func (this *AllTypes) GetFieldSliceIntLen() int {
 	return len(this.FieldSliceInt)
-}
-
-// GetFieldSliceIntCap 获取切片 FieldSliceInt 的容量
-func (this *AllTypes) GetFieldSliceIntCap() int {
-	return cap(this.FieldSliceInt)
 }
 
 // RangeFieldSliceInt 遍历切片 FieldSliceInt，fn 返回 false 时终止遍历
@@ -289,35 +468,40 @@ func (this *AllTypes) RangeFieldSliceInt(fn func(index int, value int) bool) {
 	}
 }
 
-// SetFieldSliceIntElem 设置切片 FieldSliceInt 中 index 位置的元素
-func (this *AllTypes) SetFieldSliceIntElem(index int, elem int) {
+// HasFieldSliceInt 返回切片 FieldSliceInt 是否已初始化（非 nil）
+func (this *AllTypes) HasFieldSliceInt() bool {
+	return this.FieldSliceInt != nil
+}
+
+// GetFieldSliceIntCopy 返回切片 FieldSliceInt 的浅拷贝
+func (this *AllTypes) GetFieldSliceIntCopy() []int {
+	return slices.Clone(this.FieldSliceInt)
+}
+
+// SetFieldSliceIntAt 设置切片 FieldSliceInt 中 index 位置的元素
+func (this *AllTypes) SetFieldSliceIntAt(index int, elem int) {
 	this.FieldSliceInt[index] = elem
 }
 
-// AddFieldSliceIntElem 向切片 FieldSliceInt 追加元素
-func (this *AllTypes) AddFieldSliceIntElem(elem int) {
+// AppendFieldSliceInt 向切片 FieldSliceInt 追加元素
+func (this *AllTypes) AppendFieldSliceInt(elem int) {
 	this.FieldSliceInt = append(this.FieldSliceInt, elem)
 }
 
-// DelFieldSliceIntElem 删除切片 FieldSliceInt 中 index 位置的元素
+// RemoveFieldSliceInt 删除切片 FieldSliceInt 中 index 位置的元素
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *AllTypes) DelFieldSliceIntElem(index int) {
+func (this *AllTypes) RemoveFieldSliceInt(index int) {
 	this.FieldSliceInt = append(this.FieldSliceInt[:index], this.FieldSliceInt[index+1:]...)
 }
 
-// GetFieldSliceStringElem 获取切片 FieldSliceString 中 index 位置的元素
-func (this *AllTypes) GetFieldSliceStringElem(index int) string {
+// GetFieldSliceStringAt 获取切片 FieldSliceString 中 index 位置的元素
+func (this *AllTypes) GetFieldSliceStringAt(index int) string {
 	return this.FieldSliceString[index]
 }
 
 // GetFieldSliceStringLen 获取切片 FieldSliceString 的长度
 func (this *AllTypes) GetFieldSliceStringLen() int {
 	return len(this.FieldSliceString)
-}
-
-// GetFieldSliceStringCap 获取切片 FieldSliceString 的容量
-func (this *AllTypes) GetFieldSliceStringCap() int {
-	return cap(this.FieldSliceString)
 }
 
 // RangeFieldSliceString 遍历切片 FieldSliceString，fn 返回 false 时终止遍历
@@ -329,35 +513,40 @@ func (this *AllTypes) RangeFieldSliceString(fn func(index int, value string) boo
 	}
 }
 
-// SetFieldSliceStringElem 设置切片 FieldSliceString 中 index 位置的元素
-func (this *AllTypes) SetFieldSliceStringElem(index int, elem string) {
+// HasFieldSliceString 返回切片 FieldSliceString 是否已初始化（非 nil）
+func (this *AllTypes) HasFieldSliceString() bool {
+	return this.FieldSliceString != nil
+}
+
+// GetFieldSliceStringCopy 返回切片 FieldSliceString 的浅拷贝
+func (this *AllTypes) GetFieldSliceStringCopy() []string {
+	return slices.Clone(this.FieldSliceString)
+}
+
+// SetFieldSliceStringAt 设置切片 FieldSliceString 中 index 位置的元素
+func (this *AllTypes) SetFieldSliceStringAt(index int, elem string) {
 	this.FieldSliceString[index] = elem
 }
 
-// AddFieldSliceStringElem 向切片 FieldSliceString 追加元素
-func (this *AllTypes) AddFieldSliceStringElem(elem string) {
+// AppendFieldSliceString 向切片 FieldSliceString 追加元素
+func (this *AllTypes) AppendFieldSliceString(elem string) {
 	this.FieldSliceString = append(this.FieldSliceString, elem)
 }
 
-// DelFieldSliceStringElem 删除切片 FieldSliceString 中 index 位置的元素
+// RemoveFieldSliceString 删除切片 FieldSliceString 中 index 位置的元素
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *AllTypes) DelFieldSliceStringElem(index int) {
+func (this *AllTypes) RemoveFieldSliceString(index int) {
 	this.FieldSliceString = append(this.FieldSliceString[:index], this.FieldSliceString[index+1:]...)
 }
 
-// GetFieldSliceStructElem 获取切片 FieldSliceStruct 中 index 位置的元素
-func (this *AllTypes) GetFieldSliceStructElem(index int) *BaseInfo {
+// GetFieldSliceStructAt 获取切片 FieldSliceStruct 中 index 位置的元素
+func (this *AllTypes) GetFieldSliceStructAt(index int) *BaseInfo {
 	return this.FieldSliceStruct[index]
 }
 
 // GetFieldSliceStructLen 获取切片 FieldSliceStruct 的长度
 func (this *AllTypes) GetFieldSliceStructLen() int {
 	return len(this.FieldSliceStruct)
-}
-
-// GetFieldSliceStructCap 获取切片 FieldSliceStruct 的容量
-func (this *AllTypes) GetFieldSliceStructCap() int {
-	return cap(this.FieldSliceStruct)
 }
 
 // RangeFieldSliceStruct 遍历切片 FieldSliceStruct，fn 返回 false 时终止遍历
@@ -369,36 +558,41 @@ func (this *AllTypes) RangeFieldSliceStruct(fn func(index int, value *BaseInfo) 
 	}
 }
 
-// SetFieldSliceStructElem 设置切片 FieldSliceStruct 中 index 位置的元素
-func (this *AllTypes) SetFieldSliceStructElem(index int, elem *BaseInfo) {
+// HasFieldSliceStruct 返回切片 FieldSliceStruct 是否已初始化（非 nil）
+func (this *AllTypes) HasFieldSliceStruct() bool {
+	return this.FieldSliceStruct != nil
+}
+
+// GetFieldSliceStructCopy 返回切片 FieldSliceStruct 的浅拷贝
+func (this *AllTypes) GetFieldSliceStructCopy() []*BaseInfo {
+	return slices.Clone(this.FieldSliceStruct)
+}
+
+// SetFieldSliceStructAt 设置切片 FieldSliceStruct 中 index 位置的元素
+func (this *AllTypes) SetFieldSliceStructAt(index int, elem *BaseInfo) {
 	this.FieldSliceStruct[index] = elem
 }
 
-// AddFieldSliceStructElem 向切片 FieldSliceStruct 追加元素
-func (this *AllTypes) AddFieldSliceStructElem(elem *BaseInfo) {
+// AppendFieldSliceStruct 向切片 FieldSliceStruct 追加元素
+func (this *AllTypes) AppendFieldSliceStruct(elem *BaseInfo) {
 	this.FieldSliceStruct = append(this.FieldSliceStruct, elem)
 }
 
-// DelFieldSliceStructElem 删除切片 FieldSliceStruct 中 index 位置的元素
+// RemoveFieldSliceStruct 删除切片 FieldSliceStruct 中 index 位置的元素
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *AllTypes) DelFieldSliceStructElem(index int) {
+func (this *AllTypes) RemoveFieldSliceStruct(index int) {
 	this.FieldSliceStruct = append(this.FieldSliceStruct[:index], this.FieldSliceStruct[index+1:]...)
 }
 
 // 具名切片类型
-// GetFieldTagsElem 获取切片 FieldTags 中 index 位置的元素
-func (this *AllTypes) GetFieldTagsElem(index int) string {
+// GetFieldTagsAt 获取切片 FieldTags 中 index 位置的元素
+func (this *AllTypes) GetFieldTagsAt(index int) string {
 	return this.FieldTags[index]
 }
 
 // GetFieldTagsLen 获取切片 FieldTags 的长度
 func (this *AllTypes) GetFieldTagsLen() int {
 	return len(this.FieldTags)
-}
-
-// GetFieldTagsCap 获取切片 FieldTags 的容量
-func (this *AllTypes) GetFieldTagsCap() int {
-	return cap(this.FieldTags)
 }
 
 // RangeFieldTags 遍历切片 FieldTags，fn 返回 false 时终止遍历
@@ -410,25 +604,40 @@ func (this *AllTypes) RangeFieldTags(fn func(index int, value string) bool) {
 	}
 }
 
-// SetFieldTagsElem 设置切片 FieldTags 中 index 位置的元素
-func (this *AllTypes) SetFieldTagsElem(index int, elem string) {
+// HasFieldTags 返回切片 FieldTags 是否已初始化（非 nil）
+func (this *AllTypes) HasFieldTags() bool {
+	return this.FieldTags != nil
+}
+
+// GetFieldTagsCopy 返回切片 FieldTags 的浅拷贝
+func (this *AllTypes) GetFieldTagsCopy() Tags {
+	return slices.Clone(this.FieldTags)
+}
+
+// SetFieldTagsAt 设置切片 FieldTags 中 index 位置的元素
+func (this *AllTypes) SetFieldTagsAt(index int, elem string) {
 	this.FieldTags[index] = elem
 }
 
-// AddFieldTagsElem 向切片 FieldTags 追加元素
-func (this *AllTypes) AddFieldTagsElem(elem string) {
+// AppendFieldTags 向切片 FieldTags 追加元素
+func (this *AllTypes) AppendFieldTags(elem string) {
 	this.FieldTags = append(this.FieldTags, elem)
 }
 
-// DelFieldTagsElem 删除切片 FieldTags 中 index 位置的元素
+// RemoveFieldTags 删除切片 FieldTags 中 index 位置的元素
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *AllTypes) DelFieldTagsElem(index int) {
+func (this *AllTypes) RemoveFieldTags(index int) {
 	this.FieldTags = append(this.FieldTags[:index], this.FieldTags[index+1:]...)
 }
 
 // --- 数组类型（固定长度）---
-// GetFieldArray8Elem 获取数组 FieldArray8 中 index 位置的元素
-func (this *AllTypes) GetFieldArray8Elem(index int) int {
+// GetFieldArray8 获取数组 FieldArray8 的完整副本
+func (this *AllTypes) GetFieldArray8() [8]int {
+	return this.FieldArray8
+}
+
+// GetFieldArray8At 获取数组 FieldArray8 中 index 位置的元素
+func (this *AllTypes) GetFieldArray8At(index int) int {
 	return this.FieldArray8[index]
 }
 
@@ -446,13 +655,18 @@ func (this *AllTypes) RangeFieldArray8(fn func(index int, value int) bool) {
 	}
 }
 
-// SetFieldArray8Elem 设置数组 FieldArray8 中 index 位置的元素
-func (this *AllTypes) SetFieldArray8Elem(index int, elem int) {
+// SetFieldArray8At 设置数组 FieldArray8 中 index 位置的元素
+func (this *AllTypes) SetFieldArray8At(index int, elem int) {
 	this.FieldArray8[index] = elem
 }
 
-// GetFieldArrayStrElem 获取数组 FieldArrayStr 中 index 位置的元素
-func (this *AllTypes) GetFieldArrayStrElem(index int) string {
+// GetFieldArrayStr 获取数组 FieldArrayStr 的完整副本
+func (this *AllTypes) GetFieldArrayStr() [4]string {
+	return this.FieldArrayStr
+}
+
+// GetFieldArrayStrAt 获取数组 FieldArrayStr 中 index 位置的元素
+func (this *AllTypes) GetFieldArrayStrAt(index int) string {
 	return this.FieldArrayStr[index]
 }
 
@@ -470,8 +684,8 @@ func (this *AllTypes) RangeFieldArrayStr(fn func(index int, value string) bool) 
 	}
 }
 
-// SetFieldArrayStrElem 设置数组 FieldArrayStr 中 index 位置的元素
-func (this *AllTypes) SetFieldArrayStrElem(index int, elem string) {
+// SetFieldArrayStrAt 设置数组 FieldArrayStr 中 index 位置的元素
+func (this *AllTypes) SetFieldArrayStrAt(index int, elem string) {
 	this.FieldArrayStr[index] = elem
 }
 
@@ -480,6 +694,14 @@ func (this *AllTypes) SetFieldArrayStrElem(index int, elem string) {
 func (this *AllTypes) GetFieldMapStrIntVal(key string) (int, bool) {
 	val, ok := this.FieldMapStrInt[key]
 	return val, ok
+}
+
+// GetFieldMapStrIntValOrDefault 获取 FieldMapStrInt 中指定 key 的值，key 不存在时返回 def
+func (this *AllTypes) GetFieldMapStrIntValOrDefault(key string, def int) int {
+	if val, ok := this.FieldMapStrInt[key]; ok {
+		return val
+	}
+	return def
 }
 
 // RangeFieldMapStrInt 遍历 FieldMapStrInt，fn 返回 false 时终止遍历
@@ -491,13 +713,43 @@ func (this *AllTypes) RangeFieldMapStrInt(fn func(key string, value int) bool) {
 	}
 }
 
-// SetFieldMapStrIntKV 设置 FieldMapStrInt 中指定 key 的值
-func (this *AllTypes) SetFieldMapStrIntKV(key string, value int) {
+// HasFieldMapStrInt 返回 FieldMapStrInt 是否已初始化（非 nil）
+func (this *AllTypes) HasFieldMapStrInt() bool {
+	return this.FieldMapStrInt != nil
+}
+
+// HasFieldMapStrIntKey 检查 FieldMapStrInt 中指定 key 是否存在
+func (this *AllTypes) HasFieldMapStrIntKey(key string) bool {
+	_, ok := this.FieldMapStrInt[key]
+	return ok
+}
+
+// GetFieldMapStrIntLen 获取 FieldMapStrInt 的元素数量
+func (this *AllTypes) GetFieldMapStrIntLen() int {
+	return len(this.FieldMapStrInt)
+}
+
+// GetFieldMapStrIntKeys 返回 FieldMapStrInt 中所有 key 的切片（顺序不确定）
+func (this *AllTypes) GetFieldMapStrIntKeys() []string {
+	keys := make([]string, 0, len(this.FieldMapStrInt))
+	for k := range this.FieldMapStrInt {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+// GetFieldMapStrIntCopy 返回 FieldMapStrInt 的浅拷贝
+func (this *AllTypes) GetFieldMapStrIntCopy() map[string]int {
+	return maps.Clone(this.FieldMapStrInt)
+}
+
+// SetFieldMapStrIntVal 设置 FieldMapStrInt 中指定 key 的值
+func (this *AllTypes) SetFieldMapStrIntVal(key string, value int) {
 	this.FieldMapStrInt[key] = value
 }
 
-// DelFieldMapStrIntKV 删除 FieldMapStrInt 中指定 key
-func (this *AllTypes) DelFieldMapStrIntKV(key string) {
+// DelFieldMapStrIntKey 删除 FieldMapStrInt 中指定 key
+func (this *AllTypes) DelFieldMapStrIntKey(key string) {
 	delete(this.FieldMapStrInt, key)
 }
 
@@ -505,6 +757,14 @@ func (this *AllTypes) DelFieldMapStrIntKV(key string) {
 func (this *AllTypes) GetFieldMapStrStructVal(key string) (*BaseInfo, bool) {
 	val, ok := this.FieldMapStrStruct[key]
 	return val, ok
+}
+
+// GetFieldMapStrStructValOrDefault 获取 FieldMapStrStruct 中指定 key 的值，key 不存在时返回 def
+func (this *AllTypes) GetFieldMapStrStructValOrDefault(key string, def *BaseInfo) *BaseInfo {
+	if val, ok := this.FieldMapStrStruct[key]; ok {
+		return val
+	}
+	return def
 }
 
 // RangeFieldMapStrStruct 遍历 FieldMapStrStruct，fn 返回 false 时终止遍历
@@ -516,13 +776,43 @@ func (this *AllTypes) RangeFieldMapStrStruct(fn func(key string, value *BaseInfo
 	}
 }
 
-// SetFieldMapStrStructKV 设置 FieldMapStrStruct 中指定 key 的值
-func (this *AllTypes) SetFieldMapStrStructKV(key string, value *BaseInfo) {
+// HasFieldMapStrStruct 返回 FieldMapStrStruct 是否已初始化（非 nil）
+func (this *AllTypes) HasFieldMapStrStruct() bool {
+	return this.FieldMapStrStruct != nil
+}
+
+// HasFieldMapStrStructKey 检查 FieldMapStrStruct 中指定 key 是否存在
+func (this *AllTypes) HasFieldMapStrStructKey(key string) bool {
+	_, ok := this.FieldMapStrStruct[key]
+	return ok
+}
+
+// GetFieldMapStrStructLen 获取 FieldMapStrStruct 的元素数量
+func (this *AllTypes) GetFieldMapStrStructLen() int {
+	return len(this.FieldMapStrStruct)
+}
+
+// GetFieldMapStrStructKeys 返回 FieldMapStrStruct 中所有 key 的切片（顺序不确定）
+func (this *AllTypes) GetFieldMapStrStructKeys() []string {
+	keys := make([]string, 0, len(this.FieldMapStrStruct))
+	for k := range this.FieldMapStrStruct {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+// GetFieldMapStrStructCopy 返回 FieldMapStrStruct 的浅拷贝
+func (this *AllTypes) GetFieldMapStrStructCopy() map[string]*BaseInfo {
+	return maps.Clone(this.FieldMapStrStruct)
+}
+
+// SetFieldMapStrStructVal 设置 FieldMapStrStruct 中指定 key 的值
+func (this *AllTypes) SetFieldMapStrStructVal(key string, value *BaseInfo) {
 	this.FieldMapStrStruct[key] = value
 }
 
-// DelFieldMapStrStructKV 删除 FieldMapStrStruct 中指定 key
-func (this *AllTypes) DelFieldMapStrStructKV(key string) {
+// DelFieldMapStrStructKey 删除 FieldMapStrStruct 中指定 key
+func (this *AllTypes) DelFieldMapStrStructKey(key string) {
 	delete(this.FieldMapStrStruct, key)
 }
 
@@ -531,6 +821,14 @@ func (this *AllTypes) DelFieldMapStrStructKV(key string) {
 func (this *AllTypes) GetFieldMetadataVal(key string) (string, bool) {
 	val, ok := this.FieldMetadata[key]
 	return val, ok
+}
+
+// GetFieldMetadataValOrDefault 获取 FieldMetadata 中指定 key 的值，key 不存在时返回 def
+func (this *AllTypes) GetFieldMetadataValOrDefault(key string, def string) string {
+	if val, ok := this.FieldMetadata[key]; ok {
+		return val
+	}
+	return def
 }
 
 // RangeFieldMetadata 遍历 FieldMetadata，fn 返回 false 时终止遍历
@@ -542,13 +840,43 @@ func (this *AllTypes) RangeFieldMetadata(fn func(key string, value string) bool)
 	}
 }
 
-// SetFieldMetadataKV 设置 FieldMetadata 中指定 key 的值
-func (this *AllTypes) SetFieldMetadataKV(key string, value string) {
+// HasFieldMetadata 返回 FieldMetadata 是否已初始化（非 nil）
+func (this *AllTypes) HasFieldMetadata() bool {
+	return this.FieldMetadata != nil
+}
+
+// HasFieldMetadataKey 检查 FieldMetadata 中指定 key 是否存在
+func (this *AllTypes) HasFieldMetadataKey(key string) bool {
+	_, ok := this.FieldMetadata[key]
+	return ok
+}
+
+// GetFieldMetadataLen 获取 FieldMetadata 的元素数量
+func (this *AllTypes) GetFieldMetadataLen() int {
+	return len(this.FieldMetadata)
+}
+
+// GetFieldMetadataKeys 返回 FieldMetadata 中所有 key 的切片（顺序不确定）
+func (this *AllTypes) GetFieldMetadataKeys() []string {
+	keys := make([]string, 0, len(this.FieldMetadata))
+	for k := range this.FieldMetadata {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+// GetFieldMetadataCopy 返回 FieldMetadata 的浅拷贝
+func (this *AllTypes) GetFieldMetadataCopy() Metadata {
+	return maps.Clone(this.FieldMetadata)
+}
+
+// SetFieldMetadataVal 设置 FieldMetadata 中指定 key 的值
+func (this *AllTypes) SetFieldMetadataVal(key string, value string) {
 	this.FieldMetadata[key] = value
 }
 
-// DelFieldMetadataKV 删除 FieldMetadata 中指定 key
-func (this *AllTypes) DelFieldMetadataKV(key string) {
+// DelFieldMetadataKey 删除 FieldMetadata 中指定 key
+func (this *AllTypes) DelFieldMetadataKey(key string) {
 	delete(this.FieldMetadata, key)
 }
 
@@ -557,6 +885,14 @@ func (this *AllTypes) DelFieldMetadataKV(key string) {
 func (this *AllTypes) GetFieldMapSliceVal(key string) ([]string, bool) {
 	val, ok := this.FieldMapSlice[key]
 	return val, ok
+}
+
+// GetFieldMapSliceValOrDefault 获取 FieldMapSlice 中指定 key 的值，key 不存在时返回 def
+func (this *AllTypes) GetFieldMapSliceValOrDefault(key string, def []string) []string {
+	if val, ok := this.FieldMapSlice[key]; ok {
+		return val
+	}
+	return def
 }
 
 // RangeFieldMapSlice 遍历 FieldMapSlice，fn 返回 false 时终止遍历
@@ -568,30 +904,55 @@ func (this *AllTypes) RangeFieldMapSlice(fn func(key string, value []string) boo
 	}
 }
 
-// SetFieldMapSliceKV 设置 FieldMapSlice 中指定 key 的值
-func (this *AllTypes) SetFieldMapSliceKV(key string, value []string) {
+// HasFieldMapSlice 返回 FieldMapSlice 是否已初始化（非 nil）
+func (this *AllTypes) HasFieldMapSlice() bool {
+	return this.FieldMapSlice != nil
+}
+
+// HasFieldMapSliceKey 检查 FieldMapSlice 中指定 key 是否存在
+func (this *AllTypes) HasFieldMapSliceKey(key string) bool {
+	_, ok := this.FieldMapSlice[key]
+	return ok
+}
+
+// GetFieldMapSliceLen 获取 FieldMapSlice 的元素数量
+func (this *AllTypes) GetFieldMapSliceLen() int {
+	return len(this.FieldMapSlice)
+}
+
+// GetFieldMapSliceKeys 返回 FieldMapSlice 中所有 key 的切片（顺序不确定）
+func (this *AllTypes) GetFieldMapSliceKeys() []string {
+	keys := make([]string, 0, len(this.FieldMapSlice))
+	for k := range this.FieldMapSlice {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+// GetFieldMapSliceCopy 返回 FieldMapSlice 的浅拷贝
+func (this *AllTypes) GetFieldMapSliceCopy() map[string][]string {
+	return maps.Clone(this.FieldMapSlice)
+}
+
+// SetFieldMapSliceVal 设置 FieldMapSlice 中指定 key 的值
+func (this *AllTypes) SetFieldMapSliceVal(key string, value []string) {
 	this.FieldMapSlice[key] = value
 }
 
-// DelFieldMapSliceKV 删除 FieldMapSlice 中指定 key
-func (this *AllTypes) DelFieldMapSliceKV(key string) {
+// DelFieldMapSliceKey 删除 FieldMapSlice 中指定 key
+func (this *AllTypes) DelFieldMapSliceKey(key string) {
 	delete(this.FieldMapSlice, key)
 }
 
 // slice elem 是 map
-// GetFieldSliceMapElem 获取切片 FieldSliceMap 中 index 位置的元素
-func (this *AllTypes) GetFieldSliceMapElem(index int) map[string]int {
+// GetFieldSliceMapAt 获取切片 FieldSliceMap 中 index 位置的元素
+func (this *AllTypes) GetFieldSliceMapAt(index int) map[string]int {
 	return this.FieldSliceMap[index]
 }
 
 // GetFieldSliceMapLen 获取切片 FieldSliceMap 的长度
 func (this *AllTypes) GetFieldSliceMapLen() int {
 	return len(this.FieldSliceMap)
-}
-
-// GetFieldSliceMapCap 获取切片 FieldSliceMap 的容量
-func (this *AllTypes) GetFieldSliceMapCap() int {
-	return cap(this.FieldSliceMap)
 }
 
 // RangeFieldSliceMap 遍历切片 FieldSliceMap，fn 返回 false 时终止遍历
@@ -603,19 +964,29 @@ func (this *AllTypes) RangeFieldSliceMap(fn func(index int, value map[string]int
 	}
 }
 
-// SetFieldSliceMapElem 设置切片 FieldSliceMap 中 index 位置的元素
-func (this *AllTypes) SetFieldSliceMapElem(index int, elem map[string]int) {
+// HasFieldSliceMap 返回切片 FieldSliceMap 是否已初始化（非 nil）
+func (this *AllTypes) HasFieldSliceMap() bool {
+	return this.FieldSliceMap != nil
+}
+
+// GetFieldSliceMapCopy 返回切片 FieldSliceMap 的浅拷贝
+func (this *AllTypes) GetFieldSliceMapCopy() []map[string]int {
+	return slices.Clone(this.FieldSliceMap)
+}
+
+// SetFieldSliceMapAt 设置切片 FieldSliceMap 中 index 位置的元素
+func (this *AllTypes) SetFieldSliceMapAt(index int, elem map[string]int) {
 	this.FieldSliceMap[index] = elem
 }
 
-// AddFieldSliceMapElem 向切片 FieldSliceMap 追加元素
-func (this *AllTypes) AddFieldSliceMapElem(elem map[string]int) {
+// AppendFieldSliceMap 向切片 FieldSliceMap 追加元素
+func (this *AllTypes) AppendFieldSliceMap(elem map[string]int) {
 	this.FieldSliceMap = append(this.FieldSliceMap, elem)
 }
 
-// DelFieldSliceMapElem 删除切片 FieldSliceMap 中 index 位置的元素
+// RemoveFieldSliceMap 删除切片 FieldSliceMap 中 index 位置的元素
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *AllTypes) DelFieldSliceMapElem(index int) {
+func (this *AllTypes) RemoveFieldSliceMap(index int) {
 	this.FieldSliceMap = append(this.FieldSliceMap[:index], this.FieldSliceMap[index+1:]...)
 }
 
@@ -648,6 +1019,11 @@ func (this *AllTypes) SetFieldInterface(FieldInterface interface{}) {
 	this.FieldInterface = FieldInterface
 }
 
+// HasFieldInterface 返回 FieldInterface 是否已初始化（非 nil）
+func (this *AllTypes) HasFieldInterface() bool {
+	return this.FieldInterface != nil
+}
+
 // 生成 GetFieldFunc/SetFieldFunc
 // GetFieldFunc 获取 FieldFunc
 func (this *AllTypes) GetFieldFunc() func(int) string {
@@ -659,6 +1035,11 @@ func (this *AllTypes) SetFieldFunc(FieldFunc func(int) string) {
 	this.FieldFunc = FieldFunc
 }
 
+// HasFieldFunc 返回 FieldFunc 是否已初始化（非 nil）
+func (this *AllTypes) HasFieldFunc() bool {
+	return this.FieldFunc != nil
+}
+
 // 生成 GetFieldAny/SetFieldAny（any = interface{}）
 // GetFieldAny 获取 FieldAny
 func (this *AllTypes) GetFieldAny() any {
@@ -668,4 +1049,9 @@ func (this *AllTypes) GetFieldAny() any {
 // SetFieldAny 设置 FieldAny
 func (this *AllTypes) SetFieldAny(FieldAny any) {
 	this.FieldAny = FieldAny
+}
+
+// HasFieldAny 返回 FieldAny 是否已初始化（非 nil）
+func (this *AllTypes) HasFieldAny() bool {
+	return this.FieldAny != nil
 }

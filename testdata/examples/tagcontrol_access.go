@@ -26,6 +26,16 @@ func (this *TagControl) SetReadWrite(ReadWrite int) {
 	this.ReadWrite = ReadWrite
 }
 
+// AddReadWrite 将 ReadWrite 增加 delta
+func (this *TagControl) AddReadWrite(delta int) {
+	this.ReadWrite += delta
+}
+
+// SubReadWrite 将 ReadWrite 减少 delta
+func (this *TagControl) SubReadWrite(delta int) {
+	this.ReadWrite -= delta
+}
+
 // GetReadOnly 获取 ReadOnly
 func (this *TagControl) GetReadOnly() int {
 	return this.ReadOnly
@@ -34,4 +44,14 @@ func (this *TagControl) GetReadOnly() int {
 // SetWriteOnly 设置 WriteOnly
 func (this *TagControl) SetWriteOnly(WriteOnly int) {
 	this.WriteOnly = WriteOnly
+}
+
+// AddWriteOnly 将 WriteOnly 增加 delta
+func (this *TagControl) AddWriteOnly(delta int) {
+	this.WriteOnly += delta
+}
+
+// SubWriteOnly 将 WriteOnly 减少 delta
+func (this *TagControl) SubWriteOnly(delta int) {
+	this.WriteOnly -= delta
 }

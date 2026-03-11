@@ -26,9 +26,9 @@ import (
 const sliceTmplStr = `
 {{ if and .Any .Doc }}{{ .Doc }}
 {{ end -}}
-{{ if .GetElem -}}
-// Get{{ .MethodName }}Elem 获取切片 {{ .FieldName }} 中 index 位置的元素
-func (this *{{ .ReceiverType }}) Get{{ .MethodName }}Elem(index int) {{ .ElemType }} {
+{{ if .GetAt -}}
+// Get{{ .MethodName }}At 获取切片 {{ .FieldName }} 中 index 位置的元素
+func (this *{{ .ReceiverType }}) Get{{ .MethodName }}At(index int) {{ .ElemType }} {
 	return this.{{ .FieldName }}[index]
 }
 {{ end -}}
@@ -36,12 +36,6 @@ func (this *{{ .ReceiverType }}) Get{{ .MethodName }}Elem(index int) {{ .ElemTyp
 // Get{{ .MethodName }}Len 获取切片 {{ .FieldName }} 的长度
 func (this *{{ .ReceiverType }}) Get{{ .MethodName }}Len() int {
 	return len(this.{{ .FieldName }})
-}
-{{ end -}}
-{{ if .GetCap -}}
-// Get{{ .MethodName }}Cap 获取切片 {{ .FieldName }} 的容量
-func (this *{{ .ReceiverType }}) Get{{ .MethodName }}Cap() int {
-	return cap(this.{{ .FieldName }})
 }
 {{ end -}}
 {{ if .Range -}}
@@ -54,22 +48,34 @@ func (this *{{ .ReceiverType }}) Range{{ .MethodName }}(fn func(index int, value
 	}
 }
 {{ end -}}
-{{ if .SetElem -}}
-// Set{{ .MethodName }}Elem 设置切片 {{ .FieldName }} 中 index 位置的元素
-func (this *{{ .ReceiverType }}) Set{{ .MethodName }}Elem(index int, elem {{ .ElemType }}) {
+{{ if .Has -}}
+// Has{{ .MethodName }} 返回切片 {{ .FieldName }} 是否已初始化（非 nil）
+func (this *{{ .ReceiverType }}) Has{{ .MethodName }}() bool {
+	return this.{{ .FieldName }} != nil
+}
+{{ end -}}
+{{ if .GetCopy -}}
+// Get{{ .MethodName }}Copy 返回切片 {{ .FieldName }} 的浅拷贝
+func (this *{{ .ReceiverType }}) Get{{ .MethodName }}Copy() {{ .SliceType }} {
+	return slices.Clone(this.{{ .FieldName }})
+}
+{{ end -}}
+{{ if .SetAt -}}
+// Set{{ .MethodName }}At 设置切片 {{ .FieldName }} 中 index 位置的元素
+func (this *{{ .ReceiverType }}) Set{{ .MethodName }}At(index int, elem {{ .ElemType }}) {
 	this.{{ .FieldName }}[index] = elem
 }
 {{ end -}}
-{{ if .AddElem -}}
-// Add{{ .MethodName }}Elem 向切片 {{ .FieldName }} 追加元素
-func (this *{{ .ReceiverType }}) Add{{ .MethodName }}Elem(elem {{ .ElemType }}) {
+{{ if .Append -}}
+// Append{{ .MethodName }} 向切片 {{ .FieldName }} 追加元素
+func (this *{{ .ReceiverType }}) Append{{ .MethodName }}(elem {{ .ElemType }}) {
 	this.{{ .FieldName }} = append(this.{{ .FieldName }}, elem)
 }
 {{ end -}}
-{{ if .DelElem -}}
-// Del{{ .MethodName }}Elem 删除切片 {{ .FieldName }} 中 index 位置的元素
+{{ if .Remove -}}
+// Remove{{ .MethodName }} 删除切片 {{ .FieldName }} 中 index 位置的元素
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *{{ .ReceiverType }}) Del{{ .MethodName }}Elem(index int) {
+func (this *{{ .ReceiverType }}) Remove{{ .MethodName }}(index int) {
 	this.{{ .FieldName }} = append(this.{{ .FieldName }}[:index], this.{{ .FieldName }}[index+1:]...)
 }
 {{ end }}`
@@ -87,28 +93,31 @@ func (g *SliceGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte
 
 	fn := f.Name
 	r, w := f.IsReadable(), f.IsWritable()
-	getElem := r && s.CanGenerateMethod("Get"+fn+"Elem")
+	getAt := r && s.CanGenerateMethod("Get"+fn+"At")
 	getLen := r && s.CanGenerateMethod("Get"+fn+"Len")
-	getCap := r && s.CanGenerateMethod("Get"+fn+"Cap")
 	rang := r && s.CanGenerateMethod("Range"+fn)
-	setElem := w && s.CanGenerateMethod("Set"+fn+"Elem")
-	addElem := w && s.CanGenerateMethod("Add"+fn+"Elem")
-	delElem := w && s.CanGenerateMethod("Del"+fn+"Elem")
+	has := r && s.CanGenerateMethod("Has"+fn)
+	getCopy := r && s.CanGenerateMethod("Get"+fn+"Copy")
+	setAt := w && s.CanGenerateMethod("Set"+fn+"At")
+	appendFn := w && s.CanGenerateMethod("Append"+fn)
+	remove := w && s.CanGenerateMethod("Remove"+fn)
 	var buf bytes.Buffer
 	err := sliceTmpl.Execute(&buf, map[string]any{
 		"ReceiverType": s.ReceiverType(),
 		"MethodName":   fn,
 		"FieldName":    f.Name,
 		"ElemType":     elemType,
-		"Doc":        formatDoc(f.Doc),
-		"GetElem":    getElem,
-		"GetLen":     getLen,
-		"GetCap":     getCap,
-		"Range":      rang,
-		"SetElem":    setElem,
-		"AddElem":    addElem,
-		"DelElem":    delElem,
-		"Any":        getElem || getLen || getCap || rang || setElem || addElem || delElem,
+		"SliceType":    f.Type.TypeStr,
+		"Doc":          formatDoc(f.Doc),
+		"GetAt":        getAt,
+		"GetLen":       getLen,
+		"Range":        rang,
+		"Has":          has,
+		"GetCopy":      getCopy,
+		"SetAt":        setAt,
+		"Append":       appendFn,
+		"Remove":       remove,
+		"Any":          getAt || getLen || rang || has || getCopy || setAt || appendFn || remove,
 	})
 	if err != nil {
 		return nil, err
