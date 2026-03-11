@@ -20,6 +20,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/motocat46/gogen/pkg/loader"
@@ -101,6 +102,7 @@ func TestLoad_SingleGoFile(t *testing.T) {
 	var goFile string
 	for _, e := range entries {
 		if !e.IsDir() && filepath.Ext(e.Name()) == ".go" &&
+			!strings.HasSuffix(e.Name(), "_test.go") &&
 			e.Name() != "." && len(e.Name()) > 3 {
 			goFile = filepath.Join(dir, e.Name())
 			break

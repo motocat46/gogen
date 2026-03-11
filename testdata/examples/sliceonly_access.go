@@ -46,14 +46,6 @@ func (this *SliceOnly) GetNamesCopy() []string {
 	return slices.Clone(this.Names)
 }
 
-// EnsureNames 确保切片 Names 已初始化（nil 时自动创建空切片），返回字段引用
-func (this *SliceOnly) EnsureNames() []string {
-	if this.Names == nil {
-		this.Names = make([]string, 0)
-	}
-	return this.Names
-}
-
 // SetNamesAt 设置切片 Names 中 index 位置的元素
 func (this *SliceOnly) SetNamesAt(index int, elem string) {
 	this.Names[index] = elem
@@ -99,14 +91,6 @@ func (this *SliceOnly) GetScoresCopy() []float64 {
 	return slices.Clone(this.Scores)
 }
 
-// EnsureScores 确保切片 Scores 已初始化（nil 时自动创建空切片），返回字段引用
-func (this *SliceOnly) EnsureScores() []float64 {
-	if this.Scores == nil {
-		this.Scores = make([]float64, 0)
-	}
-	return this.Scores
-}
-
 // SetScoresAt 设置切片 Scores 中 index 位置的元素
 func (this *SliceOnly) SetScoresAt(index int, elem float64) {
 	this.Scores[index] = elem
@@ -150,14 +134,6 @@ func (this *SliceOnly) HasItems() bool {
 // GetItemsCopy 返回切片 Items 的浅拷贝
 func (this *SliceOnly) GetItemsCopy() []*BaseInfo {
 	return slices.Clone(this.Items)
-}
-
-// EnsureItems 确保切片 Items 已初始化（nil 时自动创建空切片），返回字段引用
-func (this *SliceOnly) EnsureItems() []*BaseInfo {
-	if this.Items == nil {
-		this.Items = make([]*BaseInfo, 0)
-	}
-	return this.Items
 }
 
 // SetItemsAt 设置切片 Items 中 index 位置的元素

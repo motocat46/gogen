@@ -104,14 +104,6 @@ func (this *TagControl) RangePlainSlice(fn func(index int, value string) bool) {
 	}
 }
 
-// EnsurePlainSlice 确保切片 PlainSlice 已初始化（nil 时自动创建空切片），返回字段引用
-func (this *TagControl) EnsurePlainSlice() []string {
-	if this.PlainSlice == nil {
-		this.PlainSlice = make([]string, 0)
-	}
-	return this.PlainSlice
-}
-
 // SetPlainSliceAt 设置切片 PlainSlice 中 index 位置的元素
 func (this *TagControl) SetPlainSliceAt(index int, elem string) {
 	this.PlainSlice[index] = elem

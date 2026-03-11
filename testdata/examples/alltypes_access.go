@@ -478,14 +478,6 @@ func (this *AllTypes) GetFieldSliceIntCopy() []int {
 	return slices.Clone(this.FieldSliceInt)
 }
 
-// EnsureFieldSliceInt 确保切片 FieldSliceInt 已初始化（nil 时自动创建空切片），返回字段引用
-func (this *AllTypes) EnsureFieldSliceInt() []int {
-	if this.FieldSliceInt == nil {
-		this.FieldSliceInt = make([]int, 0)
-	}
-	return this.FieldSliceInt
-}
-
 // SetFieldSliceIntAt 设置切片 FieldSliceInt 中 index 位置的元素
 func (this *AllTypes) SetFieldSliceIntAt(index int, elem int) {
 	this.FieldSliceInt[index] = elem
@@ -529,14 +521,6 @@ func (this *AllTypes) HasFieldSliceString() bool {
 // GetFieldSliceStringCopy 返回切片 FieldSliceString 的浅拷贝
 func (this *AllTypes) GetFieldSliceStringCopy() []string {
 	return slices.Clone(this.FieldSliceString)
-}
-
-// EnsureFieldSliceString 确保切片 FieldSliceString 已初始化（nil 时自动创建空切片），返回字段引用
-func (this *AllTypes) EnsureFieldSliceString() []string {
-	if this.FieldSliceString == nil {
-		this.FieldSliceString = make([]string, 0)
-	}
-	return this.FieldSliceString
 }
 
 // SetFieldSliceStringAt 设置切片 FieldSliceString 中 index 位置的元素
@@ -584,14 +568,6 @@ func (this *AllTypes) GetFieldSliceStructCopy() []*BaseInfo {
 	return slices.Clone(this.FieldSliceStruct)
 }
 
-// EnsureFieldSliceStruct 确保切片 FieldSliceStruct 已初始化（nil 时自动创建空切片），返回字段引用
-func (this *AllTypes) EnsureFieldSliceStruct() []*BaseInfo {
-	if this.FieldSliceStruct == nil {
-		this.FieldSliceStruct = make([]*BaseInfo, 0)
-	}
-	return this.FieldSliceStruct
-}
-
 // SetFieldSliceStructAt 设置切片 FieldSliceStruct 中 index 位置的元素
 func (this *AllTypes) SetFieldSliceStructAt(index int, elem *BaseInfo) {
 	this.FieldSliceStruct[index] = elem
@@ -636,14 +612,6 @@ func (this *AllTypes) HasFieldTags() bool {
 // GetFieldTagsCopy 返回切片 FieldTags 的浅拷贝
 func (this *AllTypes) GetFieldTagsCopy() Tags {
 	return slices.Clone(this.FieldTags)
-}
-
-// EnsureFieldTags 确保切片 FieldTags 已初始化（nil 时自动创建空切片），返回字段引用
-func (this *AllTypes) EnsureFieldTags() Tags {
-	if this.FieldTags == nil {
-		this.FieldTags = make(Tags, 0)
-	}
-	return this.FieldTags
 }
 
 // SetFieldTagsAt 设置切片 FieldTags 中 index 位置的元素
@@ -1036,14 +1004,6 @@ func (this *AllTypes) HasFieldSliceMap() bool {
 // GetFieldSliceMapCopy 返回切片 FieldSliceMap 的浅拷贝
 func (this *AllTypes) GetFieldSliceMapCopy() []map[string]int {
 	return slices.Clone(this.FieldSliceMap)
-}
-
-// EnsureFieldSliceMap 确保切片 FieldSliceMap 已初始化（nil 时自动创建空切片），返回字段引用
-func (this *AllTypes) EnsureFieldSliceMap() []map[string]int {
-	if this.FieldSliceMap == nil {
-		this.FieldSliceMap = make([]map[string]int, 0)
-	}
-	return this.FieldSliceMap
 }
 
 // SetFieldSliceMapAt 设置切片 FieldSliceMap 中 index 位置的元素
