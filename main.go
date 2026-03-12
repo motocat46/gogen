@@ -338,26 +338,6 @@ func init() {
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(checkCmd)
 
-	// 覆盖 cobra 自动生成的英文描述
-	rootCmd.InitDefaultHelpFlag()
-	rootCmd.Flags().Lookup("help").Usage = "显示帮助信息"
-	rootCmd.SetHelpCommand(&cobra.Command{
-		Use:   "help [command]",
-		Short: "查看命令帮助信息",
-		Long:  "查看任意命令的帮助信息。",
-		RunE: func(c *cobra.Command, args []string) error {
-			cmd, _, err := c.Root().Find(args)
-			if cmd == nil || err != nil {
-				return fmt.Errorf("未知命令 %q，运行 'gogen help' 查看可用命令", strings.Join(args, " "))
-			}
-			return cmd.Help()
-		},
-	})
-	// 汉化 completion 子命令描述（cobra 自动注册，通过 Find 取到后修改）
-	if compCmd, _, err := rootCmd.Find([]string{"completion"}); err == nil && compCmd != nil && compCmd.Use != rootCmd.Use {
-		compCmd.Short = "生成 shell 自动补全脚本（bash/zsh/fish/powershell）"
-	}
-
 	checkCmd.Flags().StringVarP(&outputDir, "output", "o", "", "输出目录（需与生成时保持一致）")
 	checkCmd.Flags().StringVar(&fileSuffix, "suffix", writer.DefaultSuffix, "生成文件名后缀（需与生成时保持一致）")
 	checkCmd.Flags().StringArrayVar(&excludePaths, "exclude", nil, "额外排除路径（可多次指定）")
@@ -623,12 +603,6 @@ func runCheck(cmd *cobra.Command, args []string) error {
 }
 
 func main() {
-	// cobra 懒注册 completion 命令，需在 Execute 前手动初始化后修改描述
-	rootCmd.InitDefaultCompletionCmd()
-	if compCmd, _, _ := rootCmd.Find([]string{"completion"}); compCmd != nil && compCmd != rootCmd {
-		compCmd.Short = "生成 shell 自动补全脚本（bash/zsh/fish/powershell）"
-	}
-
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "错误: %v\n", err)
 		os.Exit(1)
