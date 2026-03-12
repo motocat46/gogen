@@ -623,24 +623,10 @@ func runCheck(cmd *cobra.Command, args []string) error {
 }
 
 func main() {
-	// cobra 懒注册 completion 命令，需在 Execute 前手动初始化后汉化所有描述
+	// cobra 懒注册 completion 命令，需在 Execute 前手动初始化后修改描述
 	rootCmd.InitDefaultCompletionCmd()
 	if compCmd, _, _ := rootCmd.Find([]string{"completion"}); compCmd != nil && compCmd != rootCmd {
 		compCmd.Short = "生成 shell 自动补全脚本（bash/zsh/fish/powershell）"
-		compCmd.Long = "为指定的 shell 生成 gogen 的自动补全脚本。\n各 shell 的使用方法请参考对应子命令的帮助信息。"
-		compCmd.InitDefaultHelpFlag()
-		compCmd.Flags().Lookup("help").Usage = "显示帮助信息"
-		shellDesc := map[string]string{
-			"bash":       "生成 bash 自动补全脚本",
-			"zsh":        "生成 zsh 自动补全脚本",
-			"fish":       "生成 fish 自动补全脚本",
-			"powershell": "生成 powershell 自动补全脚本",
-		}
-		for _, sub := range compCmd.Commands() {
-			if zh, ok := shellDesc[sub.Name()]; ok {
-				sub.Short = zh
-			}
-		}
 	}
 
 	if err := rootCmd.Execute(); err != nil {
