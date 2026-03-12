@@ -156,8 +156,11 @@ func analyzeFile(pkg *packages.Package, file *ast.File, fileMap map[string]*ast.
 			// 解析结构体文档注释
 			doc := extractDoc(genDecl.Doc, typeSpec.Comment)
 
+			// 检测结构体是否含 gogen:plain 注解，传播到所有字段
+			structPlain := containsAnnotation(doc, "gogen:plain")
+
 			// 解析字段列表
-			fields := analyzeFields(pkg, astStructType, typesStruct, typesNamed)
+			fields := analyzeFields(pkg, astStructType, typesStruct, typesNamed, structPlain)
 
 			// 收集已在手写文件中定义的方法，避免生成时产生重复声明冲突
 			manualMethods := collectManualMethods(typesNamed, pkg, fileMap)
@@ -196,6 +199,7 @@ func analyzeFields(
 	astStruct *ast.StructType,
 	typesStruct *types.Struct,
 	_ *types.Named,
+	structPlain bool,
 ) []*model.FieldDef {
 	var result []*model.FieldDef
 
@@ -218,6 +222,10 @@ func analyzeFields(
 			rawTag = strings.Trim(astField.Tag.Value, "`")
 		}
 		cfg := model.ParseFieldConfig(rawTag)
+		// 结构体级 plain 标注向下传播（字段级 Skip 不受影响）
+		if structPlain && !cfg.Skip {
+			cfg.Plain = true
+		}
 
 		// 解析注释
 		doc := extractDoc(astField.Doc, astField.Comment)
@@ -480,4 +488,10 @@ func isExcluded(filename string, excludePaths []string) bool {
 		}
 	}
 	return false
+}
+
+// containsAnnotation 判断文档注释字符串中是否包含指定注解（如 "gogen:plain"）。
+// doc 已由 ast.CommentGroup.Text() 剥离 "//" 前缀，直接做字符串搜索即可。
+func containsAnnotation(doc, annotation string) bool {
+	return strings.Contains(doc, annotation)
 }

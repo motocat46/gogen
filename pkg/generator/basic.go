@@ -47,9 +47,10 @@ var basicTmpl = template.Must(template.New("basic").Parse(basicTmplStr))
 type BasicGenerator struct{}
 
 func (g *BasicGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte, error) {
+	canGen := resolveCanGen(s, f)
 	var buf bytes.Buffer
-	readable := f.IsReadable() && s.CanGenerateMethod("Get"+f.Name)
-	writable := f.IsWritable() && s.CanGenerateMethod("Set"+f.Name)
+	readable := f.IsReadable() && canGen("Get"+f.Name)
+	writable := f.IsWritable() && canGen("Set"+f.Name)
 	err := basicTmpl.Execute(&buf, map[string]any{
 		"ReceiverType": s.ReceiverType(),
 		"FieldName":    f.Name,

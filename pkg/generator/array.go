@@ -70,6 +70,7 @@ var arrayTmpl = template.Must(template.New("array").Parse(arrayTmplStr))
 type ArrayGenerator struct{}
 
 func (g *ArrayGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte, error) {
+	canGen := resolveCanGen(s, f)
 	elemType := ""
 	if f.Type.Elem != nil {
 		elemType = f.Type.Elem.TypeStr
@@ -77,11 +78,11 @@ func (g *ArrayGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte
 
 	fn := f.Name
 	r, w, plain := f.IsReadable(), f.IsWritable(), f.Config.Plain
-	getField := r && s.CanGenerateMethod("Get"+fn)
-	getAt := r && s.CanGenerateMethod("Get"+fn+"At")
-	getLen := !plain && r && s.CanGenerateMethod("Get"+fn+"Len")
-	rang := r && s.CanGenerateMethod("Range"+fn)
-	setAt := w && s.CanGenerateMethod("Set"+fn+"At")
+	getField := r && canGen("Get"+fn)
+	getAt := r && canGen("Get"+fn+"At")
+	getLen := !plain && r && canGen("Get"+fn+"Len")
+	rang := r && canGen("Range"+fn)
+	setAt := w && canGen("Set"+fn+"At")
 	var buf bytes.Buffer
 	err := arrayTmpl.Execute(&buf, map[string]any{
 		"ReceiverType": s.ReceiverType(),

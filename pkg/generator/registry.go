@@ -31,6 +31,16 @@ import (
 	"github.com/motocat46/gogen/pkg/model"
 )
 
+// resolveCanGen 根据字段是否标记 override，返回对应的方法生成判断函数。
+//   - 普通字段：使用 CanGenerateMethod（三层检查，含提升方法检查）
+//   - override 字段：使用 CanGenerateMethodOverride（两层检查，跳过提升方法）
+func resolveCanGen(s *model.StructDef, f *model.FieldDef) func(string) bool {
+	if f.Config.Override {
+		return s.CanGenerateMethodOverride
+	}
+	return s.CanGenerateMethod
+}
+
 // formatDoc 将多行文档文本转换为合法的 Go 注释块。
 // ast.CommentGroup.Text() 会剥离每行的 "//" 前缀，返回纯文本（含内嵌换行）。
 // 若直接用 "// {{ .Doc }}" 渲染，多行文本中第二行起缺少 "//"，会导致语法错误。

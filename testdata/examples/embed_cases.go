@@ -88,3 +88,14 @@ type EmbedWithInterface struct {
 // 编译时断言：EmbedWithInterface 满足 ISpeedProvider 接口。
 // 若 gogen 错误生成了单参数 SetSpeed，此断言会在编译时报错。
 var _ ISpeedProvider = (*EmbedWithInterface)(nil)
+
+// ── 第四类：override 强制覆盖提升方法 ────────────────────────────
+
+// OverrideEmbed 通过 gogen:"override" 强制覆盖提升方法。
+// Count 字段的 GetCount/SetCount 本会因提升而跳过，
+// 但 override tag 允许显式生成（覆盖提升语义）。
+type OverrideEmbed struct {
+	Count int `gogen:"override"`
+	Name  string
+	*BaseWithMethods
+}

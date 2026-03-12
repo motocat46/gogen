@@ -115,6 +115,7 @@ var mapTmpl = template.Must(template.New("map").Parse(mapTmplStr))
 type MapGenerator struct{}
 
 func (g *MapGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte, error) {
+	canGen := resolveCanGen(s, f)
 	keyType, valueType := "", ""
 	if f.Type.Key != nil {
 		keyType = f.Type.Key.TypeStr
@@ -125,17 +126,17 @@ func (g *MapGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte, 
 
 	fn := f.Name
 	r, w, plain := f.IsReadable(), f.IsWritable(), f.Config.Plain
-	getVal := r && s.CanGenerateMethod("Get"+fn+"Val")
-	getValOrDefault := !plain && r && s.CanGenerateMethod("Get"+fn+"ValOrDefault")
-	rang := r && s.CanGenerateMethod("Range"+fn)
-	has := !plain && r && s.CanGenerateMethod("Has"+fn)
-	hasKey := !plain && r && s.CanGenerateMethod("Has"+fn+"Key")
-	getLen := !plain && r && s.CanGenerateMethod("Get"+fn+"Len")
-	getKeys := !plain && r && s.CanGenerateMethod("Get"+fn+"Keys")
-	getCopy := !plain && r && s.CanGenerateMethod("Get"+fn+"Copy")
-	ensure := w && s.CanGenerateMethod("Ensure"+fn)
-	setVal := w && s.CanGenerateMethod("Set"+fn+"Val")
-	delKey := w && s.CanGenerateMethod("Del"+fn+"Key")
+	getVal := r && canGen("Get"+fn+"Val")
+	getValOrDefault := !plain && r && canGen("Get"+fn+"ValOrDefault")
+	rang := r && canGen("Range"+fn)
+	has := !plain && r && canGen("Has"+fn)
+	hasKey := !plain && r && canGen("Has"+fn+"Key")
+	getLen := !plain && r && canGen("Get"+fn+"Len")
+	getKeys := !plain && r && canGen("Get"+fn+"Keys")
+	getCopy := !plain && r && canGen("Get"+fn+"Copy")
+	ensure := w && canGen("Ensure"+fn)
+	setVal := w && canGen("Set"+fn+"Val")
+	delKey := w && canGen("Del"+fn+"Key")
 	var buf bytes.Buffer
 	err := mapTmpl.Execute(&buf, map[string]any{
 		"ReceiverType":    s.ReceiverType(),

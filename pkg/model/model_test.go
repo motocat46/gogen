@@ -94,6 +94,16 @@ func TestParseFieldConfig(t *testing.T) {
 	}
 }
 
+func TestParseFieldConfigOverride(t *testing.T) {
+	cfg := model.ParseFieldConfig(`gogen:"override"`)
+	if !cfg.Override {
+		t.Error("override tag 应设置 Override=true")
+	}
+	if cfg.Skip || cfg.Readonly || cfg.WriteOnly || cfg.Plain {
+		t.Error("override tag 不应影响其他字段")
+	}
+}
+
 // ─── IsReadable / IsWritable ──────────────────────────────────────────────────
 
 func TestIsReadableIsWritable(t *testing.T) {

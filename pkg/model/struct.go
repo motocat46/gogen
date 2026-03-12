@@ -52,6 +52,16 @@ func (s *StructDef) CanGenerateMethod(name string) bool {
 	return !s.FieldNames[name] && !s.ManualMethods[name] && !s.PromotedMethods[name]
 }
 
+// CanGenerateMethodOverride 判断指定方法名是否可以安全生成（override 模式，两层检查）：
+//  1. 与字段名相同（Go 编译器禁止方法名与字段名同名）
+//  2. 手写文件已有同名方法（避免重复声明编译错误）
+//
+// 与 CanGenerateMethod 的区别：跳过第三层「嵌入提升方法」检查，
+// 允许用户通过 gogen:"override" 显式覆盖嵌入提升的方法。
+func (s *StructDef) CanGenerateMethodOverride(name string) bool {
+	return !s.FieldNames[name] && !s.ManualMethods[name]
+}
+
 // ActiveFields 返回未被跳过（Skip=false）的字段列表
 func (s *StructDef) ActiveFields() []*FieldDef {
 	var result []*FieldDef

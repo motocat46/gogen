@@ -86,6 +86,7 @@ var sliceTmpl = template.Must(template.New("slice").Parse(sliceTmplStr))
 type SliceGenerator struct{}
 
 func (g *SliceGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte, error) {
+	canGen := resolveCanGen(s, f)
 	elemType := ""
 	if f.Type.Elem != nil {
 		elemType = f.Type.Elem.TypeStr
@@ -93,14 +94,14 @@ func (g *SliceGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte
 
 	fn := f.Name
 	r, w, plain := f.IsReadable(), f.IsWritable(), f.Config.Plain
-	getAt := r && s.CanGenerateMethod("Get"+fn+"At")
-	getLen := !plain && r && s.CanGenerateMethod("Get"+fn+"Len")
-	rang := r && s.CanGenerateMethod("Range"+fn)
-	has := !plain && r && s.CanGenerateMethod("Has"+fn)
-	getCopy := !plain && r && s.CanGenerateMethod("Get"+fn+"Copy")
-	setAt := w && s.CanGenerateMethod("Set"+fn+"At")
-	appendFn := w && s.CanGenerateMethod("Append"+fn)
-	remove := w && s.CanGenerateMethod("Remove"+fn)
+	getAt := r && canGen("Get"+fn+"At")
+	getLen := !plain && r && canGen("Get"+fn+"Len")
+	rang := r && canGen("Range"+fn)
+	has := !plain && r && canGen("Has"+fn)
+	getCopy := !plain && r && canGen("Get"+fn+"Copy")
+	setAt := w && canGen("Set"+fn+"At")
+	appendFn := w && canGen("Append"+fn)
+	remove := w && canGen("Remove"+fn)
 	var buf bytes.Buffer
 	err := sliceTmpl.Execute(&buf, map[string]any{
 		"ReceiverType": s.ReceiverType(),

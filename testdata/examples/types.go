@@ -142,3 +142,13 @@ type EmbedOther struct {
 	Base    BaseInfo   // 命名字段，应生成 GetBase/SetBase
 	BasePtr *BaseInfo  // 指针，应生成 GetBasePtr/SetBasePtr
 }
+
+// PlainStruct 测试结构体级 plain 注释：所有字段应以 plain 模式生成。
+//
+// gogen:plain
+type PlainStruct struct {
+	ID    int64
+	Score float64
+	Name  string
+	Flag  bool
+}

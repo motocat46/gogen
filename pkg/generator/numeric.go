@@ -59,12 +59,13 @@ var numericTmpl = template.Must(template.New("numeric").Parse(numericTmplStr))
 type NumericGenerator struct{}
 
 func (g *NumericGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte, error) {
+	canGen := resolveCanGen(s, f)
 	fn := f.Name
 	r, w, plain := f.IsReadable(), f.IsWritable(), f.Config.Plain
-	getField := r && s.CanGenerateMethod("Get"+fn)
-	setField := w && s.CanGenerateMethod("Set"+fn)
-	addField := !plain && w && s.CanGenerateMethod("Add"+fn)
-	subField := !plain && w && s.CanGenerateMethod("Sub"+fn)
+	getField := r && canGen("Get"+fn)
+	setField := w && canGen("Set"+fn)
+	addField := !plain && w && canGen("Add"+fn)
+	subField := !plain && w && canGen("Sub"+fn)
 	var buf bytes.Buffer
 	err := numericTmpl.Execute(&buf, map[string]any{
 		"ReceiverType": s.ReceiverType(),

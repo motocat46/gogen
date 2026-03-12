@@ -53,11 +53,12 @@ var boolTmpl = template.Must(template.New("bool").Parse(boolTmplStr))
 type BoolGenerator struct{}
 
 func (g *BoolGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte, error) {
+	canGen := resolveCanGen(s, f)
 	fn := f.Name
 	r, w := f.IsReadable(), f.IsWritable()
-	getField := r && s.CanGenerateMethod("Get"+fn)
-	setField := w && s.CanGenerateMethod("Set"+fn)
-	toggle := !f.Config.Plain && w && s.CanGenerateMethod("Toggle"+fn)
+	getField := r && canGen("Get"+fn)
+	setField := w && canGen("Set"+fn)
+	toggle := !f.Config.Plain && w && canGen("Toggle"+fn)
 	var buf bytes.Buffer
 	err := boolTmpl.Execute(&buf, map[string]any{
 		"ReceiverType": s.ReceiverType(),

@@ -100,6 +100,12 @@ func TestPromotedMethods(t *testing.T) {
 			structName:     "EmbedWithInterface",
 			expectPromoted: []string{"GetSpeed", "SetSpeed"},
 		},
+		// ── 第四类：override 覆盖提升方法 ──────────────────────────────
+		{
+			structName:        "OverrideEmbed",
+			expectPromoted:    []string{"GetCount", "SetCount"}, // 提升集合仍包含（override 是生成层行为）
+			expectNotPromoted: []string{"GetName", "SetName"},
+		},
 	}
 
 	for _, tc := range cases {
