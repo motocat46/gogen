@@ -81,6 +81,7 @@ type User struct {
 | `gogen:"readonly"` | 只生成读方法（Get/GetAt/Range/GetLen/GetVal 等） |
 | `gogen:"writeonly"` | 只生成写方法（Set/SetAt/Append/SetVal 等） |
 | `gogen:"plain"` | 简单模式：只保留核心访问器，跳过扩展方法（见下表） |
+| `gogen:"override"` | 覆盖模式：忽略嵌入提升方法检查，强制生成该字段的访问器 |
 
 **plain 模式各类型对比：**
 
@@ -94,6 +95,34 @@ type User struct {
 | map `map[K]V` | GetVal / **GetValOrDefault** / Range / **Has / HasKey / GetLen / GetKeys / GetCopy** / Ensure / SetVal / DelKey | GetVal / Range / Ensure / SetVal / DelKey |
 
 > `plain` 适合语义上不应暴露扩展操作的字段，如唯一 ID（不应 Add/Sub）、状态枚举（不应 Toggle）等。
+
+**结构体级 plain（批量应用）：**
+
+当一个结构体有多个字段都需要 plain 模式时，在结构体文档注释中加 `gogen:plain`，无需逐字段打 tag：
+
+```go
+// PlayerStats 玩家统计数据。
+//
+// gogen:plain
+type PlayerStats struct {
+    PlayerID int64   // 自动 plain → 只生成 Get/Set，不会有 Add/Sub
+    RoomID   int64
+    Score    float64 `gogen:"readonly"` // 字段级 tag 仍然有效
+}
+```
+
+**override — 强制覆盖提升方法：**
+
+默认情况下，gogen 不会为与嵌入提升方法同名的字段生成方法（保护接口实现）。若确实需要覆盖提升方法，使用 `gogen:"override"`：
+
+```go
+type Vehicle struct {
+    Speed float32 `gogen:"override"` // 强制生成 GetSpeed/SetSpeed，覆盖嵌入提升
+    *SpeedEntity
+}
+```
+
+> 注意：`override` 仅跳过提升方法检查，仍遵守字段名冲突和手写方法冲突规则。
 
 ## 命令行选项
 

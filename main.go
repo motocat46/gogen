@@ -77,13 +77,17 @@ var rootCmd = &cobra.Command{
   • 数组 [N]T                   → Get / GetAt / GetLen / Range / SetAt
   • map[K]V                     → GetVal / GetValOrDefault / Range / Has / HasKey / GetLen / GetKeys / GetCopy / Ensure / SetVal / DelKey
 
-struct tag 控制（在目标结构体字段上添加）：
+struct tag / 注释控制：
   gogen:"-"         跳过此字段，不生成任何方法
   gogen:"readonly"  只生成读方法（Get/Range/GetAt 等）
   gogen:"writeonly" 只生成写方法（Set/Append/SetVal 等）
   gogen:"plain"     简单模式：只保留核心访问器，跳过扩展方法
                     （bool 跳过 Toggle；数值跳过 Add/Sub；指针/接口跳过 Has；
                      切片跳过 GetLen/Has/GetCopy；map 跳过 Has/HasKey/GetLen/GetKeys/GetValOrDefault/GetCopy）
+  gogen:"override"  覆盖模式：忽略嵌入提升方法检查，强制生成该字段的访问器
+
+结构体注释控制（在结构体文档注释中添加）：
+  // gogen:plain    该结构体所有字段使用 plain 模式，无需逐字段打 tag
 
 patterns 格式（同 go/packages）：
   .          当前目录
