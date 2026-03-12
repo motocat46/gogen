@@ -73,9 +73,9 @@ func (this *{{ .ReceiverType }}) Append{{ .MethodName }}(elems ...{{ .ElemType }
 }
 {{ end -}}
 {{ if .Delete -}}
-// Delete{{ .MethodName }} 删除切片 {{ .FieldName }} 中 index 位置的元素，并清零释放的尾部槽位
+// Delete{{ .MethodName }}At 删除切片 {{ .FieldName }} 中 index 位置的元素，并清零释放的尾部槽位
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *{{ .ReceiverType }}) Delete{{ .MethodName }}(index int) {
+func (this *{{ .ReceiverType }}) Delete{{ .MethodName }}At(index int) {
 	this.{{ .FieldName }} = slices.Delete(this.{{ .FieldName }}, index, index+1)
 }
 {{ end }}`
@@ -101,7 +101,7 @@ func (g *SliceGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte
 	getCopy := !plain && r && canGen("Get"+fn+"Copy")
 	setAt := w && canGen("Set"+fn+"At")
 	appendFn := w && canGen("Append"+fn)
-	deleteFn := w && canGen("Delete"+fn)
+	deleteFn := w && canGen("Delete"+fn+"At")
 	var buf bytes.Buffer
 	err := sliceTmpl.Execute(&buf, map[string]any{
 		"ReceiverType": s.ReceiverType(),

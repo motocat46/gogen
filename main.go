@@ -73,7 +73,7 @@ var rootCmd = &cobra.Command{
   • interface{} / any / 接口    → Get / Set / Has
   • func 类型                   → Get / Set / Has
   • 结构体 T / 泛型实例 List[T] → Get / Set
-  • 切片 []T                    → GetAt / GetLen / Range / Has / GetCopy / SetAt / Append / Delete
+  • 切片 []T                    → GetAt / GetLen / Range / Has / GetCopy / SetAt / Append / DeleteAt
   • 数组 [N]T                   → Get / GetAt / GetLen / Range / SetAt
   • map[K]V                     → GetVal / GetValOrDefault / Range / Has / HasKey / GetLen / GetKeys / GetCopy / Ensure / SetVal / DeleteKey
 

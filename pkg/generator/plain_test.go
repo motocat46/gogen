@@ -91,7 +91,7 @@ func TestPlainMode(t *testing.T) {
 		"RangePlainSlice",     // slice plain：有 Range
 		"SetPlainSliceAt",     // slice plain：有 SetAt
 		"AppendPlainSlice",    // slice plain：有 Append
-		"DeletePlainSlice",    // slice plain：有 Delete
+		"DeletePlainSliceAt",  // slice plain：有 DeleteAt
 		"GetPlainMapVal",      // map plain：有 Val
 		"RangePlainMap",       // map plain：有 Range
 		"SetPlainMapVal",      // map plain：有 SetVal

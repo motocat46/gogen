@@ -54,7 +54,7 @@ gogen --verbose ./...
 | `func` 类型 | `GetField()`, `SetField()`, `HasField()` |
 | 结构体 `T` | `GetField()`, `SetField()` |
 | 泛型实例 `List[T]` | `GetField()`, `SetField()` |
-| 切片 `[]T` | `GetFieldAt()`, `GetFieldLen()`, `RangeField()`, `HasField()`, `GetFieldCopy()`, `SetFieldAt()`, `AppendField()`, `DeleteField()` |
+| 切片 `[]T` | `GetFieldAt()`, `GetFieldLen()`, `RangeField()`, `HasField()`, `GetFieldCopy()`, `SetFieldAt()`, `AppendField()`, `DeleteFieldAt()` |
 | 数组 `[N]T` | `GetField()`, `GetFieldAt()`, `GetFieldLen()`, `RangeField()`, `SetFieldAt()` |
 | Map `map[K]V` | `GetFieldVal()`, `GetFieldValOrDefault()`, `RangeField()`, `HasField()`, `HasFieldKey()`, `GetFieldLen()`, `GetFieldKeys()`, `GetFieldCopy()`, `EnsureField()`, `SetFieldVal()`, `DeleteFieldKey()` |
 | `chan` | 跳过，不生成 |
@@ -90,7 +90,7 @@ type User struct {
 | `bool` | Get / Set / **Toggle** | Get / Set |
 | 数值类型 | Get / Set / **Add / Sub** | Get / Set |
 | 指针 / 接口 / func | Get / Set / **Has** | Get / Set |
-| 切片 `[]T` | GetAt / **GetLen** / Range / **Has / GetCopy** / SetAt / Append / Delete | GetAt / Range / SetAt / Append / Delete |
+| 切片 `[]T` | GetAt / **GetLen** / Range / **Has / GetCopy** / SetAt / Append / DeleteAt | GetAt / Range / SetAt / Append / DeleteAt |
 | 数组 `[N]T` | Get / GetAt / **GetLen** / Range / SetAt | Get / GetAt / Range / SetAt |
 | map `map[K]V` | GetVal / **GetValOrDefault** / Range / **Has / HasKey / GetLen / GetKeys / GetCopy** / Ensure / SetVal / DeleteKey | GetVal / Range / Ensure / SetVal / DeleteKey |
 
