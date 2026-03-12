@@ -91,7 +91,7 @@ func (this *TagControl) SetPlainPtr(PlainPtr *BaseInfo) {
 	this.PlainPtr = PlainPtr
 }
 
-// At/Range/SetAt/Append/Remove，无 Len/Has/GetCopy
+// At/Range/SetAt/Append/Delete，无 Len/Has/GetCopy
 // GetPlainSliceAt 获取切片 PlainSlice 中 index 位置的元素
 func (this *TagControl) GetPlainSliceAt(index int) string {
 	return this.PlainSlice[index]
@@ -122,7 +122,7 @@ func (this *TagControl) DeletePlainSlice(index int) {
 	this.PlainSlice = slices.Delete(this.PlainSlice, index, index+1)
 }
 
-// Val/Range/SetVal/DelKey，无 Has 系列
+// Val/Range/SetVal/DeleteKey，无 Has 系列
 // GetPlainMapVal 获取 PlainMap 中指定 key 的值，ok 表示 key 是否存在
 func (this *TagControl) GetPlainMapVal(key string) (int, bool) {
 	val, ok := this.PlainMap[key]

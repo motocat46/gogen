@@ -66,7 +66,7 @@ func (this *{{ .ReceiverType }}) Set{{ .MethodName }}At(index int, elem {{ .Elem
 var arrayTmpl = template.Must(template.New("array").Parse(arrayTmplStr))
 
 // ArrayGenerator 为数组类型字段生成访问器方法。
-// 数组长度固定，不支持 Append/Remove 操作。
+// 数组长度固定，不支持 Append/Delete 操作。
 type ArrayGenerator struct{}
 
 func (g *ArrayGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte, error) {

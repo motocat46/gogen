@@ -346,7 +346,7 @@ func TestPlainModeFieldCorrectness(t *testing.T) {
 		t.Error("SetPlainBool 写入了错误字段")
 	}
 
-	// PlainSlice：验证 At/Range/Append/Remove 的字段隔离
+	// PlainSlice：验证 At/Range/Append/Delete 的字段隔离
 	s.AppendPlainSlice("x")
 	s.AppendPlainSlice("y")
 	if s.GetPlainSliceAt(0) != "x" {
