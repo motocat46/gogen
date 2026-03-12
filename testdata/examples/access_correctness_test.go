@@ -382,3 +382,42 @@ func TestPlainModeFieldCorrectness(t *testing.T) {
 		t.Error("DeletePlainMapKey 未正确删除")
 	}
 }
+
+// TestOverrideEmbedFieldCorrectness 验证 gogen:"override" 字段的运行时行为。
+//
+// OverrideEmbed.Count 标注了 override，强制生成 GetCount/SetCount/AddCount/SubCount，
+// 覆盖从 *BaseWithMethods 提升的 GetCount/SetCount。
+// 验证：override 字段的方法操作的是 OverrideEmbed 自身的 Count，而非 BaseWithMethods.Count。
+func TestOverrideEmbedFieldCorrectness(t *testing.T) {
+	s := &OverrideEmbed{}
+
+	// SetCount 写入 OverrideEmbed.Count
+	s.SetCount(42)
+	if s.Count != 42 {
+		t.Errorf("SetCount 写入了错误字段，Count = %v", s.Count)
+	}
+	if s.GetCount() != 42 {
+		t.Errorf("GetCount() = %v, want 42", s.GetCount())
+	}
+
+	// 嵌入的 BaseWithMethods.Count 不应受影响
+	if s.BaseWithMethods.Count != 0 {
+		t.Errorf("SetCount 误写了 BaseWithMethods.Count = %v", s.BaseWithMethods.Count)
+	}
+
+	// AddCount/SubCount 操作的是 OverrideEmbed.Count
+	s.AddCount(8)
+	if s.Count != 50 {
+		t.Errorf("AddCount 后 Count = %v, want 50", s.Count)
+	}
+	s.SubCount(10)
+	if s.Count != 40 {
+		t.Errorf("SubCount 后 Count = %v, want 40", s.Count)
+	}
+
+	// Name 字段无冲突，正常生成的方法也应可用
+	s.SetName("gogen")
+	if s.GetName() != "gogen" {
+		t.Errorf("GetName() = %q, want gogen", s.GetName())
+	}
+}

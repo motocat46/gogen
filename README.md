@@ -214,7 +214,7 @@ type Container[T any] struct {
 // 生成：
 func (this *Container[T]) GetItem() T           { return this.Item }
 func (this *Container[T]) SetItem(Item T)       { this.Item = Item }
-func (this *Container[T]) GetTagsElem(index int) string { ... }
+func (this *Container[T]) GetTagsAt(index int) string { ... }
 // ...
 ```
 
