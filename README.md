@@ -223,6 +223,7 @@ func (this *Container[T]) GetTagsAt(index int) string { ... }
 ```
 gogen/
 ├── main.go                  # CLI 入口（cobra）
+├── DECISIONS.md             # 设计决策记录（关键 trade-off 与方案选择依据）
 ├── pkg/
 │   ├── loader/              # go/packages 包加载 + 两阶段恢复
 │   ├── analyzer/            # go/types 语义分析 → model.StructDef
