@@ -65,19 +65,25 @@ var rootCmd = &cobra.Command{
 	Short: "Go 代码生成器 - 自动为结构体生成访问器方法",
 	Long: `gogen 自动分析 Go 结构体定义，生成 getter/setter 等访问器方法。
 
-支持的字段类型：
-  • 基础类型（int/string/bool 等）→ Get/Set
-  • 指针类型                      → Get/Set
-  • 切片类型                      → Elem/Len/Cap/Range/Add/Del
-  • 数组类型                      → Elem/Len/Range/Set
-  • Map 类型                      → Val/Range/Set/Del
-  • 结构体类型                    → Get/Set
-  • 泛型实例类型                  → Get/Set
+支持的字段类型及生成方法：
+  • bool 类型                   → Get / Set / Toggle
+  • 数值类型（int/float 等）    → Get / Set / Add / Sub
+  • string 等基础类型           → Get / Set
+  • 指针 *T                     → Get / Set / Has
+  • interface{} / any / 接口    → Get / Set / Has
+  • func 类型                   → Get / Set / Has
+  • 结构体 T / 泛型实例 List[T] → Get / Set
+  • 切片 []T                    → GetAt / GetLen / Range / Has / GetCopy / SetAt / Append / Remove
+  • 数组 [N]T                   → Get / GetAt / GetLen / Range / SetAt
+  • map[K]V                     → GetVal / GetValOrDefault / Range / Has / HasKey / GetLen / GetKeys / GetCopy / Ensure / SetVal / DelKey
 
 struct tag 控制（在目标结构体字段上添加）：
-  gogen:"-"         跳过此字段
-  gogen:"readonly"  只生成 getter
-  gogen:"writeonly" 只生成 setter
+  gogen:"-"         跳过此字段，不生成任何方法
+  gogen:"readonly"  只生成读方法（Get/Range/GetAt 等）
+  gogen:"writeonly" 只生成写方法（Set/Append/SetVal 等）
+  gogen:"plain"     简单模式：只保留核心访问器，跳过扩展方法
+                    （bool 跳过 Toggle；数值跳过 Add/Sub；指针/接口跳过 Has；
+                     切片跳过 GetLen/Has/GetCopy；map 跳过 Has/HasKey/GetLen/GetKeys/GetValOrDefault/GetCopy）
 
 patterns 格式（同 go/packages）：
   .          当前目录

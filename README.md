@@ -56,10 +56,10 @@ gogen --verbose ./...
 | 泛型实例 `List[T]` | `GetField()`, `SetField()` |
 | 切片 `[]T` | `GetFieldAt()`, `GetFieldLen()`, `RangeField()`, `HasField()`, `GetFieldCopy()`, `SetFieldAt()`, `AppendField()`, `RemoveField()` |
 | 数组 `[N]T` | `GetField()`, `GetFieldAt()`, `GetFieldLen()`, `RangeField()`, `SetFieldAt()` |
-| Map `map[K]V` | `GetFieldVal()`, `GetFieldValOrDefault()`, `RangeField()`, `HasField()`, `HasFieldKey()`, `GetFieldLen()`, `GetFieldKeys()`, `GetFieldCopy()`, `SetFieldVal()`, `DelFieldKey()` |
+| Map `map[K]V` | `GetFieldVal()`, `GetFieldValOrDefault()`, `RangeField()`, `HasField()`, `HasFieldKey()`, `GetFieldLen()`, `GetFieldKeys()`, `GetFieldCopy()`, `EnsureField()`, `SetFieldVal()`, `DelFieldKey()` |
 | `chan` | 跳过，不生成 |
 
-设计原则：切片和 map 不提供整体 getter（`GetEmails() []string`），只提供细粒度操作，强制封装。`GetFieldCopy()` 使用 `slices.Clone`/`maps.Clone` 返回浅拷贝，保护内部状态。
+设计原则：切片和 map 不提供整体 getter（`GetEmails() []string`），只提供细粒度操作，强制封装。`GetFieldCopy()` 使用 `slices.Clone`/`maps.Clone` 返回浅拷贝，保护内部状态。`EnsureField()` 对 map 字段做懒初始化，适合在 ORM `AfterFind` 等钩子中调用。
 
 ## struct tag 控制
 
@@ -67,18 +67,33 @@ gogen --verbose ./...
 
 ```go
 type User struct {
-    ID       int64  `gogen:"-"`        // 跳过，不生成任何方法
-    Name     string `gogen:"readonly"` // 只生成 getter
-    password string `gogen:"writeonly"`// 只生成 setter（小写字段默认跳过）
-    Age      int                       // 默认：生成 getter + setter
+    ID       int64  `gogen:"-"`         // 跳过，不生成任何方法
+    Name     string `gogen:"readonly"`  // 只生成读方法（Get/Range/GetAt 等）
+    Age      int    `gogen:"writeonly"` // 只生成写方法（Set/Append 等）
+    Score    int    `gogen:"plain"`     // 简单模式：只生成 Get/Set，跳过 Add/Sub
+    Tags     []string                   // 默认：生成全套方法
 }
 ```
 
 | Tag | 效果 |
 |---|---|
-| `gogen:"-"` | 跳过此字段 |
-| `gogen:"readonly"` | 只生成 getter（Get/Range/Elem/Len/Cap/Val） |
-| `gogen:"writeonly"` | 只生成 setter（Set/Add/Del/SetKV/DelKV） |
+| `gogen:"-"` | 跳过此字段，不生成任何方法 |
+| `gogen:"readonly"` | 只生成读方法（Get/GetAt/Range/GetLen/GetVal 等） |
+| `gogen:"writeonly"` | 只生成写方法（Set/SetAt/Append/SetVal 等） |
+| `gogen:"plain"` | 简单模式：只保留核心访问器，跳过扩展方法（见下表） |
+
+**plain 模式各类型对比：**
+
+| 字段类型 | 默认方法 | plain 模式 |
+|---|---|---|
+| `bool` | Get / Set / **Toggle** | Get / Set |
+| 数值类型 | Get / Set / **Add / Sub** | Get / Set |
+| 指针 / 接口 / func | Get / Set / **Has** | Get / Set |
+| 切片 `[]T` | GetAt / **GetLen** / Range / **Has / GetCopy** / SetAt / Append / Remove | GetAt / Range / SetAt / Append / Remove |
+| 数组 `[N]T` | Get / GetAt / **GetLen** / Range / SetAt | Get / GetAt / Range / SetAt |
+| map `map[K]V` | GetVal / **GetValOrDefault** / Range / **Has / HasKey / GetLen / GetKeys / GetCopy** / Ensure / SetVal / DelKey | GetVal / Range / Ensure / SetVal / DelKey |
+
+> `plain` 适合语义上不应暴露扩展操作的字段，如唯一 ID（不应 Add/Sub）、状态枚举（不应 Toggle）等。
 
 ## 命令行选项
 
