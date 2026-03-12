@@ -483,9 +483,9 @@ func (this *AllTypes) SetFieldSliceIntAt(index int, elem int) {
 	this.FieldSliceInt[index] = elem
 }
 
-// AppendFieldSliceInt 向切片 FieldSliceInt 追加元素
-func (this *AllTypes) AppendFieldSliceInt(elem int) {
-	this.FieldSliceInt = append(this.FieldSliceInt, elem)
+// AppendFieldSliceInt 向切片 FieldSliceInt 追加一个或多个元素
+func (this *AllTypes) AppendFieldSliceInt(elems ...int) {
+	this.FieldSliceInt = append(this.FieldSliceInt, elems...)
 }
 
 // DeleteFieldSliceInt 删除切片 FieldSliceInt 中 index 位置的元素，并清零释放的尾部槽位
@@ -528,9 +528,9 @@ func (this *AllTypes) SetFieldSliceStringAt(index int, elem string) {
 	this.FieldSliceString[index] = elem
 }
 
-// AppendFieldSliceString 向切片 FieldSliceString 追加元素
-func (this *AllTypes) AppendFieldSliceString(elem string) {
-	this.FieldSliceString = append(this.FieldSliceString, elem)
+// AppendFieldSliceString 向切片 FieldSliceString 追加一个或多个元素
+func (this *AllTypes) AppendFieldSliceString(elems ...string) {
+	this.FieldSliceString = append(this.FieldSliceString, elems...)
 }
 
 // DeleteFieldSliceString 删除切片 FieldSliceString 中 index 位置的元素，并清零释放的尾部槽位
@@ -573,9 +573,9 @@ func (this *AllTypes) SetFieldSliceStructAt(index int, elem *BaseInfo) {
 	this.FieldSliceStruct[index] = elem
 }
 
-// AppendFieldSliceStruct 向切片 FieldSliceStruct 追加元素
-func (this *AllTypes) AppendFieldSliceStruct(elem *BaseInfo) {
-	this.FieldSliceStruct = append(this.FieldSliceStruct, elem)
+// AppendFieldSliceStruct 向切片 FieldSliceStruct 追加一个或多个元素
+func (this *AllTypes) AppendFieldSliceStruct(elems ...*BaseInfo) {
+	this.FieldSliceStruct = append(this.FieldSliceStruct, elems...)
 }
 
 // DeleteFieldSliceStruct 删除切片 FieldSliceStruct 中 index 位置的元素，并清零释放的尾部槽位
@@ -619,9 +619,9 @@ func (this *AllTypes) SetFieldTagsAt(index int, elem string) {
 	this.FieldTags[index] = elem
 }
 
-// AppendFieldTags 向切片 FieldTags 追加元素
-func (this *AllTypes) AppendFieldTags(elem string) {
-	this.FieldTags = append(this.FieldTags, elem)
+// AppendFieldTags 向切片 FieldTags 追加一个或多个元素
+func (this *AllTypes) AppendFieldTags(elems ...string) {
+	this.FieldTags = append(this.FieldTags, elems...)
 }
 
 // DeleteFieldTags 删除切片 FieldTags 中 index 位置的元素，并清零释放的尾部槽位
@@ -1011,9 +1011,9 @@ func (this *AllTypes) SetFieldSliceMapAt(index int, elem map[string]int) {
 	this.FieldSliceMap[index] = elem
 }
 
-// AppendFieldSliceMap 向切片 FieldSliceMap 追加元素
-func (this *AllTypes) AppendFieldSliceMap(elem map[string]int) {
-	this.FieldSliceMap = append(this.FieldSliceMap, elem)
+// AppendFieldSliceMap 向切片 FieldSliceMap 追加一个或多个元素
+func (this *AllTypes) AppendFieldSliceMap(elems ...map[string]int) {
+	this.FieldSliceMap = append(this.FieldSliceMap, elems...)
 }
 
 // DeleteFieldSliceMap 删除切片 FieldSliceMap 中 index 位置的元素，并清零释放的尾部槽位

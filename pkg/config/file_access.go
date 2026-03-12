@@ -77,9 +77,9 @@ func (this *File) SetExcludesAt(index int, elem string) {
 	this.Excludes[index] = elem
 }
 
-// AppendExcludes 向切片 Excludes 追加元素
-func (this *File) AppendExcludes(elem string) {
-	this.Excludes = append(this.Excludes, elem)
+// AppendExcludes 向切片 Excludes 追加一个或多个元素
+func (this *File) AppendExcludes(elems ...string) {
+	this.Excludes = append(this.Excludes, elems...)
 }
 
 // DeleteExcludes 删除切片 Excludes 中 index 位置的元素，并清零释放的尾部槽位

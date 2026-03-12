@@ -110,9 +110,9 @@ func (this *StructDef) SetFieldsAt(index int, elem *FieldDef) {
 	this.Fields[index] = elem
 }
 
-// AppendFields 向切片 Fields 追加元素
-func (this *StructDef) AppendFields(elem *FieldDef) {
-	this.Fields = append(this.Fields, elem)
+// AppendFields 向切片 Fields 追加一个或多个元素
+func (this *StructDef) AppendFields(elems ...*FieldDef) {
+	this.Fields = append(this.Fields, elems...)
 }
 
 // DeleteFields 删除切片 Fields 中 index 位置的元素，并清零释放的尾部槽位

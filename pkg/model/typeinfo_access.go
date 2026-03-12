@@ -142,9 +142,9 @@ func (this *TypeInfo) SetTypeArgsAt(index int, elem *TypeInfo) {
 	this.TypeArgs[index] = elem
 }
 
-// AppendTypeArgs 向切片 TypeArgs 追加元素
-func (this *TypeInfo) AppendTypeArgs(elem *TypeInfo) {
-	this.TypeArgs = append(this.TypeArgs, elem)
+// AppendTypeArgs 向切片 TypeArgs 追加一个或多个元素
+func (this *TypeInfo) AppendTypeArgs(elems ...*TypeInfo) {
+	this.TypeArgs = append(this.TypeArgs, elems...)
 }
 
 // DeleteTypeArgs 删除切片 TypeArgs 中 index 位置的元素，并清零释放的尾部槽位

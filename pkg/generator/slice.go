@@ -67,9 +67,9 @@ func (this *{{ .ReceiverType }}) Set{{ .MethodName }}At(index int, elem {{ .Elem
 }
 {{ end -}}
 {{ if .Append -}}
-// Append{{ .MethodName }} 向切片 {{ .FieldName }} 追加元素
-func (this *{{ .ReceiverType }}) Append{{ .MethodName }}(elem {{ .ElemType }}) {
-	this.{{ .FieldName }} = append(this.{{ .FieldName }}, elem)
+// Append{{ .MethodName }} 向切片 {{ .FieldName }} 追加一个或多个元素
+func (this *{{ .ReceiverType }}) Append{{ .MethodName }}(elems ...{{ .ElemType }}) {
+	this.{{ .FieldName }} = append(this.{{ .FieldName }}, elems...)
 }
 {{ end -}}
 {{ if .Delete -}}

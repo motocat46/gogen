@@ -491,7 +491,13 @@ func isExcluded(filename string, excludePaths []string) bool {
 }
 
 // containsAnnotation 判断文档注释字符串中是否包含指定注解（如 "gogen:plain"）。
-// doc 已由 ast.CommentGroup.Text() 剥离 "//" 前缀，直接做字符串搜索即可。
+// doc 已由 ast.CommentGroup.Text() 剥离 "//" 前缀，逐行精确匹配，
+// 避免 "gogen:plaintext" 等含相同前缀的词误命中。
 func containsAnnotation(doc, annotation string) bool {
-	return strings.Contains(doc, annotation)
+	for line := range strings.SplitSeq(doc, "\n") {
+		if strings.TrimSpace(line) == annotation {
+			return true
+		}
+	}
+	return false
 }

@@ -111,9 +111,9 @@ func (this *TagControl) SetPlainSliceAt(index int, elem string) {
 	this.PlainSlice[index] = elem
 }
 
-// AppendPlainSlice 向切片 PlainSlice 追加元素
-func (this *TagControl) AppendPlainSlice(elem string) {
-	this.PlainSlice = append(this.PlainSlice, elem)
+// AppendPlainSlice 向切片 PlainSlice 追加一个或多个元素
+func (this *TagControl) AppendPlainSlice(elems ...string) {
+	this.PlainSlice = append(this.PlainSlice, elems...)
 }
 
 // DeletePlainSlice 删除切片 PlainSlice 中 index 位置的元素，并清零释放的尾部槽位

@@ -55,9 +55,9 @@ func (this *Config) SetExcludePathsAt(index int, elem string) {
 	this.ExcludePaths[index] = elem
 }
 
-// AppendExcludePaths 向切片 ExcludePaths 追加元素
-func (this *Config) AppendExcludePaths(elem string) {
-	this.ExcludePaths = append(this.ExcludePaths, elem)
+// AppendExcludePaths 向切片 ExcludePaths 追加一个或多个元素
+func (this *Config) AppendExcludePaths(elems ...string) {
+	this.ExcludePaths = append(this.ExcludePaths, elems...)
 }
 
 // DeleteExcludePaths 删除切片 ExcludePaths 中 index 位置的元素，并清零释放的尾部槽位
