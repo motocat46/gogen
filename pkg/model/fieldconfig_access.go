@@ -12,9 +12,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
-// 创建日期: 2026-03-06 16:49:47
-// 该文件为自动生成，请勿修改！
 
 package model
 
@@ -29,6 +26,11 @@ func (this *FieldConfig) SetSkip(Skip bool) {
 	this.Skip = Skip
 }
 
+// ToggleSkip 翻转 Skip 的布尔值
+func (this *FieldConfig) ToggleSkip() {
+	this.Skip = !this.Skip
+}
+
 // 只读：只生成 getter
 // GetReadonly 获取 Readonly
 func (this *FieldConfig) GetReadonly() bool {
@@ -40,6 +42,11 @@ func (this *FieldConfig) SetReadonly(Readonly bool) {
 	this.Readonly = Readonly
 }
 
+// ToggleReadonly 翻转 Readonly 的布尔值
+func (this *FieldConfig) ToggleReadonly() {
+	this.Readonly = !this.Readonly
+}
+
 // 只写：只生成 setter
 // GetWriteOnly 获取 WriteOnly
 func (this *FieldConfig) GetWriteOnly() bool {
@@ -49,4 +56,41 @@ func (this *FieldConfig) GetWriteOnly() bool {
 // SetWriteOnly 设置 WriteOnly
 func (this *FieldConfig) SetWriteOnly(WriteOnly bool) {
 	this.WriteOnly = WriteOnly
+}
+
+// ToggleWriteOnly 翻转 WriteOnly 的布尔值
+func (this *FieldConfig) ToggleWriteOnly() {
+	this.WriteOnly = !this.WriteOnly
+}
+
+// 简单模式：跳过扩展方法，只保留核心访问器
+// GetPlain 获取 Plain
+func (this *FieldConfig) GetPlain() bool {
+	return this.Plain
+}
+
+// SetPlain 设置 Plain
+func (this *FieldConfig) SetPlain(Plain bool) {
+	this.Plain = Plain
+}
+
+// TogglePlain 翻转 Plain 的布尔值
+func (this *FieldConfig) TogglePlain() {
+	this.Plain = !this.Plain
+}
+
+// 覆盖模式：忽略嵌入提升方法检查，强制生成（仍受字段名/手写方法约束）
+// GetOverride 获取 Override
+func (this *FieldConfig) GetOverride() bool {
+	return this.Override
+}
+
+// SetOverride 设置 Override
+func (this *FieldConfig) SetOverride(Override bool) {
+	this.Override = Override
+}
+
+// ToggleOverride 翻转 Override 的布尔值
+func (this *FieldConfig) ToggleOverride() {
+	this.Override = !this.Override
 }

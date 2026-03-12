@@ -12,9 +12,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
-// 创建日期: 2026-03-06 16:49:47
-// 该文件为自动生成，请勿修改！
 
 package model
 
@@ -38,6 +35,11 @@ func (this *FieldDef) GetType() *TypeInfo {
 // SetType 设置 Type
 func (this *FieldDef) SetType(Type *TypeInfo) {
 	this.Type = Type
+}
+
+// HasType 返回 Type 是否已初始化（非 nil）
+func (this *FieldDef) HasType() bool {
+	return this.Type != nil
 }
 
 // 从 struct tag 解析的生成配置

@@ -83,8 +83,8 @@ func (this *MapOnly) SetIndexVal(key int, value string) {
 	this.Index[key] = value
 }
 
-// DelIndexKey 删除 Index 中指定 key
-func (this *MapOnly) DelIndexKey(key int) {
+// DeleteIndexKey 删除 Index 中指定 key
+func (this *MapOnly) DeleteIndexKey(key int) {
 	delete(this.Index, key)
 }
 
@@ -155,8 +155,8 @@ func (this *MapOnly) SetConfigVal(key string, value interface{}) {
 	this.Config[key] = value
 }
 
-// DelConfigKey 删除 Config 中指定 key
-func (this *MapOnly) DelConfigKey(key string) {
+// DeleteConfigKey 删除 Config 中指定 key
+func (this *MapOnly) DeleteConfigKey(key string) {
 	delete(this.Config, key)
 }
 
@@ -227,7 +227,7 @@ func (this *MapOnly) SetNestedVal(key string, value []int) {
 	this.Nested[key] = value
 }
 
-// DelNestedKey 删除 Nested 中指定 key
-func (this *MapOnly) DelNestedKey(key string) {
+// DeleteNestedKey 删除 Nested 中指定 key
+func (this *MapOnly) DeleteNestedKey(key string) {
 	delete(this.Nested, key)
 }

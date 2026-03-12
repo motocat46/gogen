@@ -12,9 +12,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
-// 创建日期: 2026-03-06 16:49:47
-// 该文件为自动生成，请勿修改！
 
 package writer
 
@@ -29,6 +26,18 @@ func (this *Config) SetOutputDir(OutputDir string) {
 	this.OutputDir = OutputDir
 }
 
+// Suffix 是生成文件名中下划线后的部分，默认为 "access"（即 user_access.go）。
+// 自定义示例：Suffix="gen" → user_gen.go；Suffix="gogen" → user_gogen.go。
+// GetSuffix 获取 Suffix
+func (this *Config) GetSuffix() string {
+	return this.Suffix
+}
+
+// SetSuffix 设置 Suffix
+func (this *Config) SetSuffix(Suffix string) {
+	this.Suffix = Suffix
+}
+
 // DryRun 为 true 时只打印将要生成的文件路径，不实际写入。
 // GetDryRun 获取 DryRun
 func (this *Config) GetDryRun() bool {
@@ -40,6 +49,11 @@ func (this *Config) SetDryRun(DryRun bool) {
 	this.DryRun = DryRun
 }
 
+// ToggleDryRun 翻转 DryRun 的布尔值
+func (this *Config) ToggleDryRun() {
+	this.DryRun = !this.DryRun
+}
+
 // Verbose 为 true 时输出详细日志。
 // GetVerbose 获取 Verbose
 func (this *Config) GetVerbose() bool {
@@ -49,4 +63,9 @@ func (this *Config) GetVerbose() bool {
 // SetVerbose 设置 Verbose
 func (this *Config) SetVerbose(Verbose bool) {
 	this.Verbose = Verbose
+}
+
+// ToggleVerbose 翻转 Verbose 的布尔值
+func (this *Config) ToggleVerbose() {
+	this.Verbose = !this.Verbose
 }

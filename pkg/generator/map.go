@@ -102,9 +102,9 @@ func (this *{{ .ReceiverType }}) Set{{ .MethodName }}Val(key {{ .KeyType }}, val
 	this.{{ .FieldName }}[key] = value
 }
 {{ end -}}
-{{ if .DelKey -}}
-// Del{{ .MethodName }}Key 删除 {{ .FieldName }} 中指定 key
-func (this *{{ .ReceiverType }}) Del{{ .MethodName }}Key(key {{ .KeyType }}) {
+{{ if .DeleteKey -}}
+// Delete{{ .MethodName }}Key 删除 {{ .FieldName }} 中指定 key
+func (this *{{ .ReceiverType }}) Delete{{ .MethodName }}Key(key {{ .KeyType }}) {
 	delete(this.{{ .FieldName }}, key)
 }
 {{ end }}`
@@ -136,7 +136,7 @@ func (g *MapGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte, 
 	getCopy := !plain && r && canGen("Get"+fn+"Copy")
 	ensure := w && canGen("Ensure"+fn)
 	setVal := w && canGen("Set"+fn+"Val")
-	delKey := w && canGen("Del"+fn+"Key")
+	deleteKey := w && canGen("Delete"+fn+"Key")
 	var buf bytes.Buffer
 	err := mapTmpl.Execute(&buf, map[string]any{
 		"ReceiverType":    s.ReceiverType(),
@@ -156,8 +156,8 @@ func (g *MapGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte, 
 		"GetCopy":         getCopy,
 		"Ensure":          ensure,
 		"SetVal":          setVal,
-		"DelKey":          delKey,
-		"Any":             getVal || getValOrDefault || rang || has || hasKey || getLen || getKeys || getCopy || ensure || setVal || delKey,
+		"DeleteKey":       deleteKey,
+		"Any":             getVal || getValOrDefault || rang || has || hasKey || getLen || getKeys || getCopy || ensure || setVal || deleteKey,
 	})
 	if err != nil {
 		return nil, err

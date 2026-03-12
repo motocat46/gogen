@@ -756,8 +756,8 @@ func (this *AllTypes) SetFieldMapStrIntVal(key string, value int) {
 	this.FieldMapStrInt[key] = value
 }
 
-// DelFieldMapStrIntKey 删除 FieldMapStrInt 中指定 key
-func (this *AllTypes) DelFieldMapStrIntKey(key string) {
+// DeleteFieldMapStrIntKey 删除 FieldMapStrInt 中指定 key
+func (this *AllTypes) DeleteFieldMapStrIntKey(key string) {
 	delete(this.FieldMapStrInt, key)
 }
 
@@ -827,8 +827,8 @@ func (this *AllTypes) SetFieldMapStrStructVal(key string, value *BaseInfo) {
 	this.FieldMapStrStruct[key] = value
 }
 
-// DelFieldMapStrStructKey 删除 FieldMapStrStruct 中指定 key
-func (this *AllTypes) DelFieldMapStrStructKey(key string) {
+// DeleteFieldMapStrStructKey 删除 FieldMapStrStruct 中指定 key
+func (this *AllTypes) DeleteFieldMapStrStructKey(key string) {
 	delete(this.FieldMapStrStruct, key)
 }
 
@@ -899,8 +899,8 @@ func (this *AllTypes) SetFieldMetadataVal(key string, value string) {
 	this.FieldMetadata[key] = value
 }
 
-// DelFieldMetadataKey 删除 FieldMetadata 中指定 key
-func (this *AllTypes) DelFieldMetadataKey(key string) {
+// DeleteFieldMetadataKey 删除 FieldMetadata 中指定 key
+func (this *AllTypes) DeleteFieldMetadataKey(key string) {
 	delete(this.FieldMetadata, key)
 }
 
@@ -971,8 +971,8 @@ func (this *AllTypes) SetFieldMapSliceVal(key string, value []string) {
 	this.FieldMapSlice[key] = value
 }
 
-// DelFieldMapSliceKey 删除 FieldMapSlice 中指定 key
-func (this *AllTypes) DelFieldMapSliceKey(key string) {
+// DeleteFieldMapSliceKey 删除 FieldMapSlice 中指定 key
+func (this *AllTypes) DeleteFieldMapSliceKey(key string) {
 	delete(this.FieldMapSlice, key)
 }
 

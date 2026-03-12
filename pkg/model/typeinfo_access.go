@@ -12,11 +12,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
-// 创建日期: 2026-03-06 16:49:47
-// 该文件为自动生成，请勿修改！
 
 package model
+
+import "slices"
 
 // GetKind 获取 Kind
 func (this *TypeInfo) GetKind() TypeKind {
@@ -26,6 +25,16 @@ func (this *TypeInfo) GetKind() TypeKind {
 // SetKind 设置 Kind
 func (this *TypeInfo) SetKind(Kind TypeKind) {
 	this.Kind = Kind
+}
+
+// AddKind 将 Kind 增加 delta
+func (this *TypeInfo) AddKind(delta TypeKind) {
+	this.Kind += delta
+}
+
+// SubKind 将 Kind 减少 delta
+func (this *TypeInfo) SubKind(delta TypeKind) {
+	this.Kind -= delta
 }
 
 // 完整类型字符串，如 "[]string"、"map[string]int32"
@@ -50,6 +59,11 @@ func (this *TypeInfo) SetElem(Elem *TypeInfo) {
 	this.Elem = Elem
 }
 
+// HasElem 返回 Elem 是否已初始化（非 nil）
+func (this *TypeInfo) HasElem() bool {
+	return this.Elem != nil
+}
+
 // map 的 key 类型
 // GetKey 获取 Key
 func (this *TypeInfo) GetKey() *TypeInfo {
@@ -61,6 +75,11 @@ func (this *TypeInfo) SetKey(Key *TypeInfo) {
 	this.Key = Key
 }
 
+// HasKey 返回 Key 是否已初始化（非 nil）
+func (this *TypeInfo) HasKey() bool {
+	return this.Key != nil
+}
+
 // map 的 value 类型
 // GetValue 获取 Value
 func (this *TypeInfo) GetValue() *TypeInfo {
@@ -70,6 +89,11 @@ func (this *TypeInfo) GetValue() *TypeInfo {
 // SetValue 设置 Value
 func (this *TypeInfo) SetValue(Value *TypeInfo) {
 	this.Value = Value
+}
+
+// HasValue 返回 Value 是否已初始化（非 nil）
+func (this *TypeInfo) HasValue() bool {
+	return this.Value != nil
 }
 
 // array 的长度，如 "8"
@@ -84,19 +108,14 @@ func (this *TypeInfo) SetArrayLen(ArrayLen string) {
 }
 
 // 泛型类型参数，如 List[int] 中的 int
-// GetTypeArgsElem 获取切片 TypeArgs 中 index 位置的元素
-func (this *TypeInfo) GetTypeArgsElem(index int) *TypeInfo {
+// GetTypeArgsAt 获取切片 TypeArgs 中 index 位置的元素
+func (this *TypeInfo) GetTypeArgsAt(index int) *TypeInfo {
 	return this.TypeArgs[index]
 }
 
 // GetTypeArgsLen 获取切片 TypeArgs 的长度
 func (this *TypeInfo) GetTypeArgsLen() int {
 	return len(this.TypeArgs)
-}
-
-// GetTypeArgsCap 获取切片 TypeArgs 的容量
-func (this *TypeInfo) GetTypeArgsCap() int {
-	return cap(this.TypeArgs)
 }
 
 // RangeTypeArgs 遍历切片 TypeArgs，fn 返回 false 时终止遍历
@@ -108,20 +127,30 @@ func (this *TypeInfo) RangeTypeArgs(fn func(index int, value *TypeInfo) bool) {
 	}
 }
 
-// SetTypeArgsElem 设置切片 TypeArgs 中 index 位置的元素
-func (this *TypeInfo) SetTypeArgsElem(index int, elem *TypeInfo) {
+// HasTypeArgs 返回切片 TypeArgs 是否已初始化（非 nil）
+func (this *TypeInfo) HasTypeArgs() bool {
+	return this.TypeArgs != nil
+}
+
+// GetTypeArgsCopy 返回切片 TypeArgs 的浅拷贝
+func (this *TypeInfo) GetTypeArgsCopy() []*TypeInfo {
+	return slices.Clone(this.TypeArgs)
+}
+
+// SetTypeArgsAt 设置切片 TypeArgs 中 index 位置的元素
+func (this *TypeInfo) SetTypeArgsAt(index int, elem *TypeInfo) {
 	this.TypeArgs[index] = elem
 }
 
-// AddTypeArgsElem 向切片 TypeArgs 追加元素
-func (this *TypeInfo) AddTypeArgsElem(elem *TypeInfo) {
+// AppendTypeArgs 向切片 TypeArgs 追加元素
+func (this *TypeInfo) AppendTypeArgs(elem *TypeInfo) {
 	this.TypeArgs = append(this.TypeArgs, elem)
 }
 
-// DelTypeArgsElem 删除切片 TypeArgs 中 index 位置的元素
+// DeleteTypeArgs 删除切片 TypeArgs 中 index 位置的元素，并清零释放的尾部槽位
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *TypeInfo) DelTypeArgsElem(index int) {
-	this.TypeArgs = append(this.TypeArgs[:index], this.TypeArgs[index+1:]...)
+func (this *TypeInfo) DeleteTypeArgs(index int) {
+	this.TypeArgs = slices.Delete(this.TypeArgs, index, index+1)
 }
 
 // 是否为类型别名（type X = T）
@@ -133,4 +162,9 @@ func (this *TypeInfo) GetIsAlias() bool {
 // SetIsAlias 设置 IsAlias
 func (this *TypeInfo) SetIsAlias(IsAlias bool) {
 	this.IsAlias = IsAlias
+}
+
+// ToggleIsAlias 翻转 IsAlias 的布尔值
+func (this *TypeInfo) ToggleIsAlias() {
+	this.IsAlias = !this.IsAlias
 }

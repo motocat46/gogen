@@ -277,10 +277,10 @@ func TestMapMethodFieldCorrectness(t *testing.T) {
 		t.Errorf("GetIndexLen() = %d, want 2", s.GetIndexLen())
 	}
 
-	// DelIndexKey 删除正确 key
-	s.DelIndexKey(1)
+	// DeleteIndexKey 删除正确 key
+	s.DeleteIndexKey(1)
 	if _, exists := s.Index[1]; exists {
-		t.Error("DelIndexKey(1) 后 key 1 仍存在")
+		t.Error("DeleteIndexKey(1) 后 key 1 仍存在")
 	}
 	if s.GetIndexLen() != 1 {
 		t.Errorf("删除后 GetIndexLen() = %d, want 1", s.GetIndexLen())
@@ -366,7 +366,7 @@ func TestPlainModeFieldCorrectness(t *testing.T) {
 		t.Errorf("DeletePlainSlice(0) 后 PlainSlice = %v, want [z]", s.PlainSlice)
 	}
 
-	// PlainMap：验证 Val/SetVal/DelKey 的字段隔离
+	// PlainMap：验证 Val/SetVal/DeleteKey 的字段隔离
 	s.PlainMap = make(map[string]int)
 	s.SetPlainMapVal("a", 1)
 	v, ok := s.GetPlainMapVal("a")
@@ -377,8 +377,8 @@ func TestPlainModeFieldCorrectness(t *testing.T) {
 		t.Error("SetPlainMapVal 写入了错误字段")
 	}
 
-	s.DelPlainMapKey("a")
+	s.DeletePlainMapKey("a")
 	if _, exists := s.PlainMap["a"]; exists {
-		t.Error("DelPlainMapKey 未正确删除")
+		t.Error("DeletePlainMapKey 未正确删除")
 	}
 }

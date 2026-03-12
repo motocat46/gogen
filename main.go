@@ -75,7 +75,7 @@ var rootCmd = &cobra.Command{
   • 结构体 T / 泛型实例 List[T] → Get / Set
   • 切片 []T                    → GetAt / GetLen / Range / Has / GetCopy / SetAt / Append / Delete
   • 数组 [N]T                   → Get / GetAt / GetLen / Range / SetAt
-  • map[K]V                     → GetVal / GetValOrDefault / Range / Has / HasKey / GetLen / GetKeys / GetCopy / Ensure / SetVal / DelKey
+  • map[K]V                     → GetVal / GetValOrDefault / Range / Has / HasKey / GetLen / GetKeys / GetCopy / Ensure / SetVal / DeleteKey
 
 struct tag / 注释控制：
   gogen:"-"         跳过此字段，不生成任何方法

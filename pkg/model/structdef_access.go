@@ -12,13 +12,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
-// 创建日期: 2026-03-06 16:49:47
-// 该文件为自动生成，请勿修改！
 
 package model
 
-// 结构体名，如 "User"
+import (
+	"maps"
+	"slices"
+)
+
+// 结构体名，如 "Cache"
 // GetName 获取 Name
 func (this *StructDef) GetName() string {
 	return this.Name
@@ -27,6 +29,17 @@ func (this *StructDef) GetName() string {
 // SetName 设置 Name
 func (this *StructDef) SetName(Name string) {
 	this.Name = Name
+}
+
+// 泛型类型参数（仅含参数名），如 "[K, V]"；非泛型时为空字符串
+// GetTypeParams 获取 TypeParams
+func (this *StructDef) GetTypeParams() string {
+	return this.TypeParams
+}
+
+// SetTypeParams 设置 TypeParams
+func (this *StructDef) SetTypeParams(TypeParams string) {
+	this.TypeParams = TypeParams
 }
 
 // 所在包名，如 "model"
@@ -63,19 +76,14 @@ func (this *StructDef) SetDir(Dir string) {
 }
 
 // 字段列表（已过滤掉 Skip=true 的字段由生成层处理）
-// GetFieldsElem 获取切片 Fields 中 index 位置的元素
-func (this *StructDef) GetFieldsElem(index int) *FieldDef {
+// GetFieldsAt 获取切片 Fields 中 index 位置的元素
+func (this *StructDef) GetFieldsAt(index int) *FieldDef {
 	return this.Fields[index]
 }
 
 // GetFieldsLen 获取切片 Fields 的长度
 func (this *StructDef) GetFieldsLen() int {
 	return len(this.Fields)
-}
-
-// GetFieldsCap 获取切片 Fields 的容量
-func (this *StructDef) GetFieldsCap() int {
-	return cap(this.Fields)
 }
 
 // RangeFields 遍历切片 Fields，fn 返回 false 时终止遍历
@@ -87,20 +95,30 @@ func (this *StructDef) RangeFields(fn func(index int, value *FieldDef) bool) {
 	}
 }
 
-// SetFieldsElem 设置切片 Fields 中 index 位置的元素
-func (this *StructDef) SetFieldsElem(index int, elem *FieldDef) {
+// HasFields 返回切片 Fields 是否已初始化（非 nil）
+func (this *StructDef) HasFields() bool {
+	return this.Fields != nil
+}
+
+// GetFieldsCopy 返回切片 Fields 的浅拷贝
+func (this *StructDef) GetFieldsCopy() []*FieldDef {
+	return slices.Clone(this.Fields)
+}
+
+// SetFieldsAt 设置切片 Fields 中 index 位置的元素
+func (this *StructDef) SetFieldsAt(index int, elem *FieldDef) {
 	this.Fields[index] = elem
 }
 
-// AddFieldsElem 向切片 Fields 追加元素
-func (this *StructDef) AddFieldsElem(elem *FieldDef) {
+// AppendFields 向切片 Fields 追加元素
+func (this *StructDef) AppendFields(elem *FieldDef) {
 	this.Fields = append(this.Fields, elem)
 }
 
-// DelFieldsElem 删除切片 Fields 中 index 位置的元素
+// DeleteFields 删除切片 Fields 中 index 位置的元素，并清零释放的尾部槽位
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *StructDef) DelFieldsElem(index int) {
-	this.Fields = append(this.Fields[:index], this.Fields[index+1:]...)
+func (this *StructDef) DeleteFields(index int) {
+	this.Fields = slices.Delete(this.Fields, index, index+1)
 }
 
 // 结构体文档注释
@@ -112,4 +130,220 @@ func (this *StructDef) GetDoc() string {
 // SetDoc 设置 Doc
 func (this *StructDef) SetDoc(Doc string) {
 	this.Doc = Doc
+}
+
+// 已在手写（非生成）文件中定义的方法名集合
+// GetManualMethodsVal 获取 ManualMethods 中指定 key 的值，ok 表示 key 是否存在
+func (this *StructDef) GetManualMethodsVal(key string) (bool, bool) {
+	val, ok := this.ManualMethods[key]
+	return val, ok
+}
+
+// GetManualMethodsValOrDefault 获取 ManualMethods 中指定 key 的值，key 不存在时返回 def
+func (this *StructDef) GetManualMethodsValOrDefault(key string, def bool) bool {
+	if val, ok := this.ManualMethods[key]; ok {
+		return val
+	}
+	return def
+}
+
+// RangeManualMethods 遍历 ManualMethods，fn 返回 false 时终止遍历
+func (this *StructDef) RangeManualMethods(fn func(key string, value bool) bool) {
+	for k, v := range this.ManualMethods {
+		if !fn(k, v) {
+			break
+		}
+	}
+}
+
+// HasManualMethods 返回 ManualMethods 是否已初始化（非 nil）
+func (this *StructDef) HasManualMethods() bool {
+	return this.ManualMethods != nil
+}
+
+// HasManualMethodsKey 检查 ManualMethods 中指定 key 是否存在
+func (this *StructDef) HasManualMethodsKey(key string) bool {
+	_, ok := this.ManualMethods[key]
+	return ok
+}
+
+// GetManualMethodsLen 获取 ManualMethods 的元素数量
+func (this *StructDef) GetManualMethodsLen() int {
+	return len(this.ManualMethods)
+}
+
+// GetManualMethodsKeys 返回 ManualMethods 中所有 key 的切片（顺序不确定）
+func (this *StructDef) GetManualMethodsKeys() []string {
+	keys := make([]string, 0, len(this.ManualMethods))
+	for k := range this.ManualMethods {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+// GetManualMethodsCopy 返回 ManualMethods 的浅拷贝
+func (this *StructDef) GetManualMethodsCopy() map[string]bool {
+	return maps.Clone(this.ManualMethods)
+}
+
+// EnsureManualMethods 确保 ManualMethods 已初始化（nil 时自动创建空 map），返回字段引用
+func (this *StructDef) EnsureManualMethods() map[string]bool {
+	if this.ManualMethods == nil {
+		this.ManualMethods = make(map[string]bool)
+	}
+	return this.ManualMethods
+}
+
+// SetManualMethodsVal 设置 ManualMethods 中指定 key 的值
+func (this *StructDef) SetManualMethodsVal(key string, value bool) {
+	this.ManualMethods[key] = value
+}
+
+// DeleteManualMethodsKey 删除 ManualMethods 中指定 key
+func (this *StructDef) DeleteManualMethodsKey(key string) {
+	delete(this.ManualMethods, key)
+}
+
+// 结构体所有字段名集合（含不导出字段）
+// GetFieldNamesVal 获取 FieldNames 中指定 key 的值，ok 表示 key 是否存在
+func (this *StructDef) GetFieldNamesVal(key string) (bool, bool) {
+	val, ok := this.FieldNames[key]
+	return val, ok
+}
+
+// GetFieldNamesValOrDefault 获取 FieldNames 中指定 key 的值，key 不存在时返回 def
+func (this *StructDef) GetFieldNamesValOrDefault(key string, def bool) bool {
+	if val, ok := this.FieldNames[key]; ok {
+		return val
+	}
+	return def
+}
+
+// RangeFieldNames 遍历 FieldNames，fn 返回 false 时终止遍历
+func (this *StructDef) RangeFieldNames(fn func(key string, value bool) bool) {
+	for k, v := range this.FieldNames {
+		if !fn(k, v) {
+			break
+		}
+	}
+}
+
+// HasFieldNames 返回 FieldNames 是否已初始化（非 nil）
+func (this *StructDef) HasFieldNames() bool {
+	return this.FieldNames != nil
+}
+
+// HasFieldNamesKey 检查 FieldNames 中指定 key 是否存在
+func (this *StructDef) HasFieldNamesKey(key string) bool {
+	_, ok := this.FieldNames[key]
+	return ok
+}
+
+// GetFieldNamesLen 获取 FieldNames 的元素数量
+func (this *StructDef) GetFieldNamesLen() int {
+	return len(this.FieldNames)
+}
+
+// GetFieldNamesKeys 返回 FieldNames 中所有 key 的切片（顺序不确定）
+func (this *StructDef) GetFieldNamesKeys() []string {
+	keys := make([]string, 0, len(this.FieldNames))
+	for k := range this.FieldNames {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+// GetFieldNamesCopy 返回 FieldNames 的浅拷贝
+func (this *StructDef) GetFieldNamesCopy() map[string]bool {
+	return maps.Clone(this.FieldNames)
+}
+
+// EnsureFieldNames 确保 FieldNames 已初始化（nil 时自动创建空 map），返回字段引用
+func (this *StructDef) EnsureFieldNames() map[string]bool {
+	if this.FieldNames == nil {
+		this.FieldNames = make(map[string]bool)
+	}
+	return this.FieldNames
+}
+
+// SetFieldNamesVal 设置 FieldNames 中指定 key 的值
+func (this *StructDef) SetFieldNamesVal(key string, value bool) {
+	this.FieldNames[key] = value
+}
+
+// DeleteFieldNamesKey 删除 FieldNames 中指定 key
+func (this *StructDef) DeleteFieldNamesKey(key string) {
+	delete(this.FieldNames, key)
+}
+
+// 通过嵌入字段可访问的方法名集合（提升方法）
+// GetPromotedMethodsVal 获取 PromotedMethods 中指定 key 的值，ok 表示 key 是否存在
+func (this *StructDef) GetPromotedMethodsVal(key string) (bool, bool) {
+	val, ok := this.PromotedMethods[key]
+	return val, ok
+}
+
+// GetPromotedMethodsValOrDefault 获取 PromotedMethods 中指定 key 的值，key 不存在时返回 def
+func (this *StructDef) GetPromotedMethodsValOrDefault(key string, def bool) bool {
+	if val, ok := this.PromotedMethods[key]; ok {
+		return val
+	}
+	return def
+}
+
+// RangePromotedMethods 遍历 PromotedMethods，fn 返回 false 时终止遍历
+func (this *StructDef) RangePromotedMethods(fn func(key string, value bool) bool) {
+	for k, v := range this.PromotedMethods {
+		if !fn(k, v) {
+			break
+		}
+	}
+}
+
+// HasPromotedMethods 返回 PromotedMethods 是否已初始化（非 nil）
+func (this *StructDef) HasPromotedMethods() bool {
+	return this.PromotedMethods != nil
+}
+
+// HasPromotedMethodsKey 检查 PromotedMethods 中指定 key 是否存在
+func (this *StructDef) HasPromotedMethodsKey(key string) bool {
+	_, ok := this.PromotedMethods[key]
+	return ok
+}
+
+// GetPromotedMethodsLen 获取 PromotedMethods 的元素数量
+func (this *StructDef) GetPromotedMethodsLen() int {
+	return len(this.PromotedMethods)
+}
+
+// GetPromotedMethodsKeys 返回 PromotedMethods 中所有 key 的切片（顺序不确定）
+func (this *StructDef) GetPromotedMethodsKeys() []string {
+	keys := make([]string, 0, len(this.PromotedMethods))
+	for k := range this.PromotedMethods {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+// GetPromotedMethodsCopy 返回 PromotedMethods 的浅拷贝
+func (this *StructDef) GetPromotedMethodsCopy() map[string]bool {
+	return maps.Clone(this.PromotedMethods)
+}
+
+// EnsurePromotedMethods 确保 PromotedMethods 已初始化（nil 时自动创建空 map），返回字段引用
+func (this *StructDef) EnsurePromotedMethods() map[string]bool {
+	if this.PromotedMethods == nil {
+		this.PromotedMethods = make(map[string]bool)
+	}
+	return this.PromotedMethods
+}
+
+// SetPromotedMethodsVal 设置 PromotedMethods 中指定 key 的值
+func (this *StructDef) SetPromotedMethodsVal(key string, value bool) {
+	this.PromotedMethods[key] = value
+}
+
+// DeletePromotedMethodsKey 删除 PromotedMethods 中指定 key
+func (this *StructDef) DeletePromotedMethodsKey(key string) {
+	delete(this.PromotedMethods, key)
 }

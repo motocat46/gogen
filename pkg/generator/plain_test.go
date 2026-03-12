@@ -95,7 +95,7 @@ func TestPlainMode(t *testing.T) {
 		"GetPlainMapVal",      // map plain：有 Val
 		"RangePlainMap",       // map plain：有 Range
 		"SetPlainMapVal",      // map plain：有 SetVal
-		"DelPlainMapKey",      // map plain：有 DelKey
+		"DeletePlainMapKey",   // map plain：有 DeleteKey
 	}
 	for _, method := range shouldExist {
 		if !bytes.Contains(tagControlCode, []byte("func (this *TagControl) "+method)) {

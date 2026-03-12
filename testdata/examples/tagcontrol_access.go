@@ -151,7 +151,7 @@ func (this *TagControl) SetPlainMapVal(key string, value int) {
 	this.PlainMap[key] = value
 }
 
-// DelPlainMapKey 删除 PlainMap 中指定 key
-func (this *TagControl) DelPlainMapKey(key string) {
+// DeletePlainMapKey 删除 PlainMap 中指定 key
+func (this *TagControl) DeletePlainMapKey(key string) {
 	delete(this.PlainMap, key)
 }

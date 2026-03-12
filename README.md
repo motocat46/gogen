@@ -56,7 +56,7 @@ gogen --verbose ./...
 | 泛型实例 `List[T]` | `GetField()`, `SetField()` |
 | 切片 `[]T` | `GetFieldAt()`, `GetFieldLen()`, `RangeField()`, `HasField()`, `GetFieldCopy()`, `SetFieldAt()`, `AppendField()`, `DeleteField()` |
 | 数组 `[N]T` | `GetField()`, `GetFieldAt()`, `GetFieldLen()`, `RangeField()`, `SetFieldAt()` |
-| Map `map[K]V` | `GetFieldVal()`, `GetFieldValOrDefault()`, `RangeField()`, `HasField()`, `HasFieldKey()`, `GetFieldLen()`, `GetFieldKeys()`, `GetFieldCopy()`, `EnsureField()`, `SetFieldVal()`, `DelFieldKey()` |
+| Map `map[K]V` | `GetFieldVal()`, `GetFieldValOrDefault()`, `RangeField()`, `HasField()`, `HasFieldKey()`, `GetFieldLen()`, `GetFieldKeys()`, `GetFieldCopy()`, `EnsureField()`, `SetFieldVal()`, `DeleteFieldKey()` |
 | `chan` | 跳过，不生成 |
 
 设计原则：切片和 map 不提供整体 getter（`GetEmails() []string`），只提供细粒度操作，强制封装。`GetFieldCopy()` 使用 `slices.Clone`/`maps.Clone` 返回浅拷贝，保护内部状态。`EnsureField()` 对 map 字段做懒初始化，适合在 ORM `AfterFind` 等钩子中调用。
@@ -92,7 +92,7 @@ type User struct {
 | 指针 / 接口 / func | Get / Set / **Has** | Get / Set |
 | 切片 `[]T` | GetAt / **GetLen** / Range / **Has / GetCopy** / SetAt / Append / Delete | GetAt / Range / SetAt / Append / Delete |
 | 数组 `[N]T` | Get / GetAt / **GetLen** / Range / SetAt | Get / GetAt / Range / SetAt |
-| map `map[K]V` | GetVal / **GetValOrDefault** / Range / **Has / HasKey / GetLen / GetKeys / GetCopy** / Ensure / SetVal / DelKey | GetVal / Range / Ensure / SetVal / DelKey |
+| map `map[K]V` | GetVal / **GetValOrDefault** / Range / **Has / HasKey / GetLen / GetKeys / GetCopy** / Ensure / SetVal / DeleteKey | GetVal / Range / Ensure / SetVal / DeleteKey |
 
 > `plain` 适合语义上不应暴露扩展操作的字段，如唯一 ID（不应 Add/Sub）、状态枚举（不应 Toggle）等。
 
