@@ -77,6 +77,7 @@ gogen:"writeonly" 只生成 setter
 - 在修改代码前必须先用 Read 工具理解现有实现
 - 修改代码后主动运行 `go build ./...`、`go test ./... -count=1` 验证正确性
 - 对于复杂任务，使用 Agent 工具调用专门的 subagent
+- **git 操作：除非用户明确要求，不主动执行 git commit、git push、git tag 等写入操作**
 
 **回答风格要求:**
 - 请尽可能用中文回答技术问题
