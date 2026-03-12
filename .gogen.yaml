@@ -1,0 +1,18 @@
+# gogen 配置文件
+# 所有字段均可选，未填写时使用内置默认值。
+# CLI 参数优先级高于此文件。
+
+# suffix: 生成文件名后缀，默认 "access"（即 user_access.go）
+# suffix: access
+
+# output: 统一输出目录，默认空（与源文件同目录）
+# output: ""
+
+# excludes: 额外排除的路径，支持纯目录名（任意层级匹配）或路径前缀
+# excludes:
+#   - mock
+#   - proto
+#   - internal/generated
+
+# no-default-excludes: 是否禁用内置默认排除（vendor、testdata、mock、mocks）
+# no-default-excludes: false

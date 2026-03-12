@@ -56,10 +56,10 @@ func (this *SliceOnly) AppendNames(elem string) {
 	this.Names = append(this.Names, elem)
 }
 
-// RemoveNames 删除切片 Names 中 index 位置的元素
+// DeleteNames 删除切片 Names 中 index 位置的元素，并清零释放的尾部槽位
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *SliceOnly) RemoveNames(index int) {
-	this.Names = append(this.Names[:index], this.Names[index+1:]...)
+func (this *SliceOnly) DeleteNames(index int) {
+	this.Names = slices.Delete(this.Names, index, index+1)
 }
 
 // GetScoresAt 获取切片 Scores 中 index 位置的元素
@@ -101,10 +101,10 @@ func (this *SliceOnly) AppendScores(elem float64) {
 	this.Scores = append(this.Scores, elem)
 }
 
-// RemoveScores 删除切片 Scores 中 index 位置的元素
+// DeleteScores 删除切片 Scores 中 index 位置的元素，并清零释放的尾部槽位
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *SliceOnly) RemoveScores(index int) {
-	this.Scores = append(this.Scores[:index], this.Scores[index+1:]...)
+func (this *SliceOnly) DeleteScores(index int) {
+	this.Scores = slices.Delete(this.Scores, index, index+1)
 }
 
 // GetItemsAt 获取切片 Items 中 index 位置的元素
@@ -146,8 +146,8 @@ func (this *SliceOnly) AppendItems(elem *BaseInfo) {
 	this.Items = append(this.Items, elem)
 }
 
-// RemoveItems 删除切片 Items 中 index 位置的元素
+// DeleteItems 删除切片 Items 中 index 位置的元素，并清零释放的尾部槽位
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *SliceOnly) RemoveItems(index int) {
-	this.Items = append(this.Items[:index], this.Items[index+1:]...)
+func (this *SliceOnly) DeleteItems(index int) {
+	this.Items = slices.Delete(this.Items, index, index+1)
 }

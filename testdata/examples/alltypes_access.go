@@ -488,10 +488,10 @@ func (this *AllTypes) AppendFieldSliceInt(elem int) {
 	this.FieldSliceInt = append(this.FieldSliceInt, elem)
 }
 
-// RemoveFieldSliceInt 删除切片 FieldSliceInt 中 index 位置的元素
+// DeleteFieldSliceInt 删除切片 FieldSliceInt 中 index 位置的元素，并清零释放的尾部槽位
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *AllTypes) RemoveFieldSliceInt(index int) {
-	this.FieldSliceInt = append(this.FieldSliceInt[:index], this.FieldSliceInt[index+1:]...)
+func (this *AllTypes) DeleteFieldSliceInt(index int) {
+	this.FieldSliceInt = slices.Delete(this.FieldSliceInt, index, index+1)
 }
 
 // GetFieldSliceStringAt 获取切片 FieldSliceString 中 index 位置的元素
@@ -533,10 +533,10 @@ func (this *AllTypes) AppendFieldSliceString(elem string) {
 	this.FieldSliceString = append(this.FieldSliceString, elem)
 }
 
-// RemoveFieldSliceString 删除切片 FieldSliceString 中 index 位置的元素
+// DeleteFieldSliceString 删除切片 FieldSliceString 中 index 位置的元素，并清零释放的尾部槽位
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *AllTypes) RemoveFieldSliceString(index int) {
-	this.FieldSliceString = append(this.FieldSliceString[:index], this.FieldSliceString[index+1:]...)
+func (this *AllTypes) DeleteFieldSliceString(index int) {
+	this.FieldSliceString = slices.Delete(this.FieldSliceString, index, index+1)
 }
 
 // GetFieldSliceStructAt 获取切片 FieldSliceStruct 中 index 位置的元素
@@ -578,10 +578,10 @@ func (this *AllTypes) AppendFieldSliceStruct(elem *BaseInfo) {
 	this.FieldSliceStruct = append(this.FieldSliceStruct, elem)
 }
 
-// RemoveFieldSliceStruct 删除切片 FieldSliceStruct 中 index 位置的元素
+// DeleteFieldSliceStruct 删除切片 FieldSliceStruct 中 index 位置的元素，并清零释放的尾部槽位
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *AllTypes) RemoveFieldSliceStruct(index int) {
-	this.FieldSliceStruct = append(this.FieldSliceStruct[:index], this.FieldSliceStruct[index+1:]...)
+func (this *AllTypes) DeleteFieldSliceStruct(index int) {
+	this.FieldSliceStruct = slices.Delete(this.FieldSliceStruct, index, index+1)
 }
 
 // 具名切片类型
@@ -624,10 +624,10 @@ func (this *AllTypes) AppendFieldTags(elem string) {
 	this.FieldTags = append(this.FieldTags, elem)
 }
 
-// RemoveFieldTags 删除切片 FieldTags 中 index 位置的元素
+// DeleteFieldTags 删除切片 FieldTags 中 index 位置的元素，并清零释放的尾部槽位
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *AllTypes) RemoveFieldTags(index int) {
-	this.FieldTags = append(this.FieldTags[:index], this.FieldTags[index+1:]...)
+func (this *AllTypes) DeleteFieldTags(index int) {
+	this.FieldTags = slices.Delete(this.FieldTags, index, index+1)
 }
 
 // --- 数组类型（固定长度）---
@@ -1016,10 +1016,10 @@ func (this *AllTypes) AppendFieldSliceMap(elem map[string]int) {
 	this.FieldSliceMap = append(this.FieldSliceMap, elem)
 }
 
-// RemoveFieldSliceMap 删除切片 FieldSliceMap 中 index 位置的元素
+// DeleteFieldSliceMap 删除切片 FieldSliceMap 中 index 位置的元素，并清零释放的尾部槽位
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *AllTypes) RemoveFieldSliceMap(index int) {
-	this.FieldSliceMap = append(this.FieldSliceMap[:index], this.FieldSliceMap[index+1:]...)
+func (this *AllTypes) DeleteFieldSliceMap(index int) {
+	this.FieldSliceMap = slices.Delete(this.FieldSliceMap, index, index+1)
 }
 
 // 只生成 getter

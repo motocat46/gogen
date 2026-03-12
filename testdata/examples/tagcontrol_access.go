@@ -15,6 +15,8 @@
 
 package examples
 
+import "slices"
+
 // 无 tag：同时生成 getter + setter
 // GetReadWrite 获取 ReadWrite
 func (this *TagControl) GetReadWrite() int {
@@ -114,10 +116,10 @@ func (this *TagControl) AppendPlainSlice(elem string) {
 	this.PlainSlice = append(this.PlainSlice, elem)
 }
 
-// RemovePlainSlice 删除切片 PlainSlice 中 index 位置的元素
+// DeletePlainSlice 删除切片 PlainSlice 中 index 位置的元素，并清零释放的尾部槽位
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *TagControl) RemovePlainSlice(index int) {
-	this.PlainSlice = append(this.PlainSlice[:index], this.PlainSlice[index+1:]...)
+func (this *TagControl) DeletePlainSlice(index int) {
+	this.PlainSlice = slices.Delete(this.PlainSlice, index, index+1)
 }
 
 // Val/Range/SetVal/DelKey，无 Has 系列

@@ -190,10 +190,10 @@ func TestSliceMethodFieldCorrectness(t *testing.T) {
 		t.Errorf("AppendScores 结果错误: %v", s.Scores)
 	}
 
-	// RemoveNames 删除正确元素
-	s.RemoveNames(0) // 删除 "charlie"
+	// DeleteNames 删除正确元素
+	s.DeleteNames(0) // 删除 "charlie"
 	if len(s.Names) != 1 || s.Names[0] != "bob" {
-		t.Errorf("RemoveNames(0) 后 Names = %v, want [bob]", s.Names)
+		t.Errorf("DeleteNames(0) 后 Names = %v, want [bob]", s.Names)
 	}
 
 	// Range 遍历正确字段
@@ -361,9 +361,9 @@ func TestPlainModeFieldCorrectness(t *testing.T) {
 		t.Errorf("GetPlainSliceAt(1) = %q, want z", s.GetPlainSliceAt(1))
 	}
 
-	s.RemovePlainSlice(0)
+	s.DeletePlainSlice(0)
 	if len(s.PlainSlice) != 1 || s.PlainSlice[0] != "z" {
-		t.Errorf("RemovePlainSlice(0) 后 PlainSlice = %v, want [z]", s.PlainSlice)
+		t.Errorf("DeletePlainSlice(0) 后 PlainSlice = %v, want [z]", s.PlainSlice)
 	}
 
 	// PlainMap：验证 Val/SetVal/DelKey 的字段隔离

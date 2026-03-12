@@ -72,11 +72,11 @@ func (this *{{ .ReceiverType }}) Append{{ .MethodName }}(elem {{ .ElemType }}) {
 	this.{{ .FieldName }} = append(this.{{ .FieldName }}, elem)
 }
 {{ end -}}
-{{ if .Remove -}}
-// Remove{{ .MethodName }} 删除切片 {{ .FieldName }} 中 index 位置的元素
+{{ if .Delete -}}
+// Delete{{ .MethodName }} 删除切片 {{ .FieldName }} 中 index 位置的元素，并清零释放的尾部槽位
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *{{ .ReceiverType }}) Remove{{ .MethodName }}(index int) {
-	this.{{ .FieldName }} = append(this.{{ .FieldName }}[:index], this.{{ .FieldName }}[index+1:]...)
+func (this *{{ .ReceiverType }}) Delete{{ .MethodName }}(index int) {
+	this.{{ .FieldName }} = slices.Delete(this.{{ .FieldName }}, index, index+1)
 }
 {{ end }}`
 
@@ -101,7 +101,7 @@ func (g *SliceGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte
 	getCopy := !plain && r && canGen("Get"+fn+"Copy")
 	setAt := w && canGen("Set"+fn+"At")
 	appendFn := w && canGen("Append"+fn)
-	remove := w && canGen("Remove"+fn)
+	deleteFn := w && canGen("Delete"+fn)
 	var buf bytes.Buffer
 	err := sliceTmpl.Execute(&buf, map[string]any{
 		"ReceiverType": s.ReceiverType(),
@@ -117,8 +117,8 @@ func (g *SliceGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte
 		"GetCopy":      getCopy,
 		"SetAt":        setAt,
 		"Append":       appendFn,
-		"Remove":       remove,
-		"Any":          getAt || getLen || rang || has || getCopy || setAt || appendFn || remove,
+		"Delete":       deleteFn,
+		"Any":          getAt || getLen || rang || has || getCopy || setAt || appendFn || deleteFn,
 	})
 	if err != nil {
 		return nil, err
