@@ -2,6 +2,8 @@
 
 记录项目开发过程中的关键决策、方案对比与取舍依据，避免维护时重复思考已经解决过的问题。
 
+**与各模块文档的分工**：本文件聚焦"为什么做这个决策"；实现细节（代码、算法、陷阱）在各模块的 `DESIGN.md` 中：[analyzer](pkg/analyzer/DESIGN.md) · [generator](pkg/generator/DESIGN.md) · [loader](pkg/loader/DESIGN.md) · [writer](pkg/writer/DESIGN.md)。
+
 ---
 
 ## D-001 类型分析：go/types 替代手工 AST 解析
@@ -48,34 +50,9 @@ for i := range mset.Len() {
 **陷阱**：若旧的 `*_access.go` 文件已存在并生成了有冲突的 `GetSpeed()`，加载时外层类型的方法集会把它识别为**直接方法**（`Index` 长度为 1），提升来源被掩盖，gogen 无法自愈，每次运行都会重新生成错误代码。
 
 **正确方案：直接遍历嵌入字段的方法集**
-```go
-func collectPromotedMethods(named *types.Named) map[string]bool {
-    underlying := named.Underlying().(*types.Struct)
-    promoted := make(map[string]bool)
-    for i := range underlying.NumFields() {
-        field := underlying.Field(i)
-        if !field.Anonymous() {
-            continue
-        }
-        ft := field.Type()
-        if ptr, ok := ft.(*types.Pointer); ok {
-            ft = ptr.Elem()
-        }
-        // 查嵌入字段本身的方法集，完全不受外层直接方法干扰
-        mset := types.NewMethodSet(types.NewPointer(ft))
-        for j := range mset.Len() {
-            promoted[mset.At(j).Obj().Name()] = true
-        }
-    }
-    return promoted
-}
-```
+直接查每个嵌入字段（`Anonymous()`=true）的 `*T` 方法集，完全不受外层直接方法干扰。用 `*T` 而非 `T` 确保包含指针接收者方法（完整超集）；`go/types` 自动展开深层嵌入，无需递归。
 
-**为什么用 `*T` 的方法集而非 `T`**
-`*T` 的方法集 = T 的值接收者方法 + 指针接收者方法，是完整超集。若 `Entity.SetSpeed` 是指针接收者，用 `T` 的方法集会漏掉它。
-
-**深层嵌入的处理**
-`*Unit` 的方法集会自动包含从 `Entity` 提升上来的方法，无需递归手动处理，`go/types` 帮你展开。
+实现细节见 [`pkg/analyzer/DESIGN.md`](pkg/analyzer/DESIGN.md#提升方法检测的设计核心陷阱)。
 
 ---
 
@@ -138,15 +115,7 @@ func collectPromotedMethods(named *types.Named) map[string]bool {
 字段级 tag `gogen:"plain"` 或结构体文档注释中加 `// gogen:plain` 批量启用。
 
 **裁剪规则**
-
-| 类型 | 被裁剪的方法 |
-|---|---|
-| bool | Toggle |
-| 数值 | Add / Sub |
-| 指针/接口/func | Has |
-| 切片 | GetLen / Has / GetCopy |
-| 数组 | GetLen |
-| map | GetValOrDefault / Has / HasKey / GetLen / GetKeys / GetCopy |
+各类型在 plain 模式下保留的方法见 [README.md §plain 模式各类型对比](README.md#struct-tag-控制)。
 
 **Ensure 不裁剪**
 map 的 `EnsureField` 在 plain 模式下保留，因为惰性初始化是基础操作（常用于 ORM AfterFind 钩子），不属于"扩展查询能力"。

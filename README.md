@@ -224,7 +224,7 @@ func (this *Container[T]) GetTagsAt(index int) string { ... }
 gogen/
 ├── main.go                  # CLI 入口（cobra）
 ├── DECISIONS.md             # 设计决策记录（关键 trade-off 与方案选择依据）
-├── pkg/
+├── pkg/                     # 各功能子包（见 pkg/README.md）
 │   ├── loader/              # go/packages 包加载 + 两阶段恢复
 │   ├── analyzer/            # go/types 语义分析 → model.StructDef
 │   ├── model/               # 领域模型（TypeInfo / FieldDef / StructDef）
@@ -233,6 +233,19 @@ gogen/
 │   └── config/              # .gogen.yaml 配置文件加载
 └── testdata/examples/       # 测试用例 + 黄金文件
 ```
+
+## 开发者文档
+
+| 文档 | 内容 |
+|------|------|
+| [DECISIONS.md](DECISIONS.md) | 关键设计决策记录（D-001 ~ D-010），记录 trade-off 与方案选择依据 |
+| [pkg/README.md](pkg/README.md) | 各子包一览（loader / analyzer / model / generator / writer / config）|
+| [pkg/loader/DESIGN.md](pkg/loader/DESIGN.md) | 两阶段加载机制、以包为分析单元的原因 |
+| [pkg/analyzer/DESIGN.md](pkg/analyzer/DESIGN.md) | go/types 类型识别状态机、提升方法检测陷阱 |
+| [pkg/generator/DESIGN.md](pkg/generator/DESIGN.md) | Registry 模式、plain 过滤实现、扩展新类型生成器 |
+| [pkg/writer/DESIGN.md](pkg/writer/DESIGN.md) | 增量跳过算法、安全保护、goimports 集成 |
+| [pkg/generator/README.md](pkg/generator/README.md) | 各生成器方法完整列表（含 plain/权限控制列） |
+| [pkg/generator/TEST.md](pkg/generator/TEST.md) | 黄金文件清单及如何添加新测试场景 |
 
 ## 系统要求
 
