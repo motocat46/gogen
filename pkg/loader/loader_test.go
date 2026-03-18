@@ -255,3 +255,67 @@ BAD CODE
 		t.Fatal("期望加载到至少 1 个包")
 	}
 }
+
+// TestExtractFileFilter 验证从 patterns 中提取显式 .go 文件路径
+func TestExtractFileFilter(t *testing.T) {
+	dir := "/some/project"
+
+	cases := []struct {
+		name     string
+		patterns []string
+		want     []string
+	}{
+		{
+			name:     "无显式文件时返回空",
+			patterns: []string{"./..."},
+			want:     nil,
+		},
+		{
+			name:     "相对路径 .go 文件转绝对路径",
+			patterns: []string{"./foo.go"},
+			want:     []string{filepath.Join(dir, "./foo.go")},
+		},
+		{
+			name:     "绝对路径 .go 文件原样保留",
+			patterns: []string{"/abs/path/bar.go"},
+			want:     []string{"/abs/path/bar.go"},
+		},
+		{
+			name:     "file= 前缀格式，相对路径",
+			patterns: []string{"file=baz.go"},
+			want:     []string{filepath.Join(dir, "baz.go")},
+		},
+		{
+			name:     "file= 前缀格式，绝对路径",
+			patterns: []string{"file=/abs/baz.go"},
+			want:     []string{"/abs/baz.go"},
+		},
+		{
+			name:     "混合：.go 文件 + 包路径 + file= 格式",
+			patterns: []string{"./foo.go", "./...", "file=bar.go"},
+			want: []string{
+				filepath.Join(dir, "./foo.go"),
+				filepath.Join(dir, "bar.go"),
+			},
+		},
+		{
+			name:     "空 patterns",
+			patterns: []string{},
+			want:     nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := loader.ExtractFileFilter(dir, tc.patterns)
+			if len(got) != len(tc.want) {
+				t.Fatalf("长度不符：got %v，want %v", got, tc.want)
+			}
+			for i := range got {
+				if got[i] != tc.want[i] {
+					t.Errorf("[%d] got %q, want %q", i, got[i], tc.want[i])
+				}
+			}
+		})
+	}
+}
