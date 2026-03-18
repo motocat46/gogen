@@ -38,6 +38,16 @@
 
 **overlay 的安全性**：只替换**确认为 gogen 生成**的文件（通过 `readGogenFilePkg` 检查 `Code generated` 标记），不会影响用户手写的同名文件。
 
+### 两阶段加载：otherErrs 与 overlay 共存时的处理
+
+**情况描述：** 阶段1同时发现了 `*_access.go` 引起的错误（构建了 `overlay`）和其他错误（`otherErrs`）。
+
+**当前行为：** `otherErrs` 被丢弃，直接进入阶段2重新加载。
+
+**理由：** 阶段1的 `otherErrs` 通常是 cascade 错误——`*_access.go` 损坏后导致的连锁编译失败，而不是用户代码的真实错误。阶段2用空文件替换损坏的 `*_access.go` 后，这些 cascade 错误会自然消失。若阶段2结束后仍有错误，`remainErrs` 收集逻辑会捕获并上报。
+
+**已知风险：** 极少数情况下，用户代码可能同时存在真实编译错误和 `*_access.go` 损坏，此时阶段1的真实错误会被丢弃，阶段2的 `remainErrs` 过滤可能不完整地报告错误（仅报告非 overlay 包中的错误）。这属于"在复杂错误场景下优先完成生成，异常报告可能不完整"的设计取舍。
+
 ### 3. normalizePatterns：单文件模式的 file= 转换
 
 `go/packages` 对 `./foo.go` 路径的处理：作为合成包 `command-line-arguments`，只包含该单一文件，丢失完整包上下文，导致：
