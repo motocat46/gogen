@@ -40,9 +40,9 @@ type Config struct {
 	// 自定义示例：Suffix="gen" → user_gen.go；Suffix="gogen" → user_gogen.go。
 	Suffix string
 	// DryRun 为 true 时只打印将要生成的文件路径，不实际写入。
-	DryRun bool
+	DryRun bool `gogen:"plain"`
 	// Verbose 为 true 时输出详细日志。
-	Verbose bool
+	Verbose bool `gogen:"plain"`
 }
 
 // OutputFilename 返回结构体对应的生成文件名（含 .go 扩展名）。

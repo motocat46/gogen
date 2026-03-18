@@ -49,11 +49,6 @@ func (this *Config) SetDryRun(DryRun bool) {
 	this.DryRun = DryRun
 }
 
-// ToggleDryRun 翻转 DryRun 的布尔值
-func (this *Config) ToggleDryRun() {
-	this.DryRun = !this.DryRun
-}
-
 // Verbose 为 true 时输出详细日志。
 // GetVerbose 获取 Verbose
 func (this *Config) GetVerbose() bool {
@@ -63,9 +58,4 @@ func (this *Config) GetVerbose() bool {
 // SetVerbose 设置 Verbose
 func (this *Config) SetVerbose(Verbose bool) {
 	this.Verbose = Verbose
-}
-
-// ToggleVerbose 翻转 Verbose 的布尔值
-func (this *Config) ToggleVerbose() {
-	this.Verbose = !this.Verbose
 }

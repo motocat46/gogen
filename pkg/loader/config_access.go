@@ -60,9 +60,9 @@ func (this *Config) AppendExcludePaths(elems ...string) {
 	this.ExcludePaths = append(this.ExcludePaths, elems...)
 }
 
-// DeleteExcludePaths 删除切片 ExcludePaths 中 index 位置的元素，并清零释放的尾部槽位
+// DeleteExcludePathsAt 删除切片 ExcludePaths 中 index 位置的元素，并清零释放的尾部槽位
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *Config) DeleteExcludePaths(index int) {
+func (this *Config) DeleteExcludePathsAt(index int) {
 	this.ExcludePaths = slices.Delete(this.ExcludePaths, index, index+1)
 }
 

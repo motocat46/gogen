@@ -115,9 +115,9 @@ func (this *StructDef) AppendFields(elems ...*FieldDef) {
 	this.Fields = append(this.Fields, elems...)
 }
 
-// DeleteFields 删除切片 Fields 中 index 位置的元素，并清零释放的尾部槽位
+// DeleteFieldsAt 删除切片 Fields 中 index 位置的元素，并清零释放的尾部槽位
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *StructDef) DeleteFields(index int) {
+func (this *StructDef) DeleteFieldsAt(index int) {
 	this.Fields = slices.Delete(this.Fields, index, index+1)
 }
 

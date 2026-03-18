@@ -31,11 +31,11 @@ import (
 //	`gogen:"plain"`     简单模式：只生成核心 Get/Set，跳过 Add/Sub/Toggle/Has 等扩展方法
 //	`gogen:"override"` 覆盖模式：忽略嵌入提升方法检查，强制生成该字段的访问器
 type FieldConfig struct {
-	Skip      bool // 跳过此字段
-	Readonly  bool // 只读：只生成 getter
-	WriteOnly bool // 只写：只生成 setter
-	Plain     bool // 简单模式：跳过扩展方法，只保留核心访问器
-	Override  bool // 覆盖模式：忽略嵌入提升方法检查，强制生成（仍受字段名/手写方法约束）
+	Skip      bool `gogen:"plain"` // 跳过此字段
+	Readonly  bool `gogen:"plain"` // 只读：只生成 getter
+	WriteOnly bool `gogen:"plain"` // 只写：只生成 setter
+	Plain     bool `gogen:"plain"` // 简单模式：跳过扩展方法，只保留核心访问器
+	Override  bool `gogen:"plain"` // 覆盖模式：忽略嵌入提升方法检查，强制生成（仍受字段名/手写方法约束）
 }
 
 // ParseFieldConfig 从原始 struct tag 字符串解析 FieldConfig。

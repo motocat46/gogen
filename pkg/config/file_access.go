@@ -82,9 +82,9 @@ func (this *File) AppendExcludes(elems ...string) {
 	this.Excludes = append(this.Excludes, elems...)
 }
 
-// DeleteExcludes 删除切片 Excludes 中 index 位置的元素，并清零释放的尾部槽位
+// DeleteExcludesAt 删除切片 Excludes 中 index 位置的元素，并清零释放的尾部槽位
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *File) DeleteExcludes(index int) {
+func (this *File) DeleteExcludesAt(index int) {
 	this.Excludes = slices.Delete(this.Excludes, index, index+1)
 }
 
@@ -98,9 +98,4 @@ func (this *File) GetNoDefaultExcludes() bool {
 // SetNoDefaultExcludes 设置 NoDefaultExcludes
 func (this *File) SetNoDefaultExcludes(NoDefaultExcludes bool) {
 	this.NoDefaultExcludes = NoDefaultExcludes
-}
-
-// ToggleNoDefaultExcludes 翻转 NoDefaultExcludes 的布尔值
-func (this *File) ToggleNoDefaultExcludes() {
-	this.NoDefaultExcludes = !this.NoDefaultExcludes
 }

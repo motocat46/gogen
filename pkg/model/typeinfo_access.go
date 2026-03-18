@@ -147,9 +147,9 @@ func (this *TypeInfo) AppendTypeArgs(elems ...*TypeInfo) {
 	this.TypeArgs = append(this.TypeArgs, elems...)
 }
 
-// DeleteTypeArgs 删除切片 TypeArgs 中 index 位置的元素，并清零释放的尾部槽位
+// DeleteTypeArgsAt 删除切片 TypeArgs 中 index 位置的元素，并清零释放的尾部槽位
 // 注意：会改变被删除元素之后所有元素的下标
-func (this *TypeInfo) DeleteTypeArgs(index int) {
+func (this *TypeInfo) DeleteTypeArgsAt(index int) {
 	this.TypeArgs = slices.Delete(this.TypeArgs, index, index+1)
 }
 
