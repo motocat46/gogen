@@ -277,6 +277,46 @@ func (this *AllTypes) SubFieldFloat64(delta float64) {
 	this.FieldFloat64 -= delta
 }
 
+// GetFieldComplex64 获取 FieldComplex64
+func (this *AllTypes) GetFieldComplex64() complex64 {
+	return this.FieldComplex64
+}
+
+// SetFieldComplex64 设置 FieldComplex64
+func (this *AllTypes) SetFieldComplex64(FieldComplex64 complex64) {
+	this.FieldComplex64 = FieldComplex64
+}
+
+// AddFieldComplex64 将 FieldComplex64 增加 delta
+func (this *AllTypes) AddFieldComplex64(delta complex64) {
+	this.FieldComplex64 += delta
+}
+
+// SubFieldComplex64 将 FieldComplex64 减少 delta
+func (this *AllTypes) SubFieldComplex64(delta complex64) {
+	this.FieldComplex64 -= delta
+}
+
+// GetFieldComplex128 获取 FieldComplex128
+func (this *AllTypes) GetFieldComplex128() complex128 {
+	return this.FieldComplex128
+}
+
+// SetFieldComplex128 设置 FieldComplex128
+func (this *AllTypes) SetFieldComplex128(FieldComplex128 complex128) {
+	this.FieldComplex128 = FieldComplex128
+}
+
+// AddFieldComplex128 将 FieldComplex128 增加 delta
+func (this *AllTypes) AddFieldComplex128(delta complex128) {
+	this.FieldComplex128 += delta
+}
+
+// SubFieldComplex128 将 FieldComplex128 减少 delta
+func (this *AllTypes) SubFieldComplex128(delta complex128) {
+	this.FieldComplex128 -= delta
+}
+
 // GetFieldString 获取 FieldString
 func (this *AllTypes) GetFieldString() string {
 	return this.FieldString

@@ -57,8 +57,8 @@ reg.Register(model.KindBasic, &MyCustomGenerator{})
 |------|------|-----------|
 | `GetField()` | `GetXxx() T` | ✓ 生成 |
 | `SetField()` | `SetXxx(v T)` | ✓ 生成 |
-| `AddField()` | `AddXxx(delta T) T` | ✗ 跳过 |
-| `SubField()` | `SubXxx(delta T) T` | ✗ 跳过 |
+| `AddField()` | `AddXxx(delta T)` | ✗ 跳过 |
+| `SubField()` | `SubXxx(delta T)` | ✗ 跳过 |
 
 ### NilableGenerator（KindPointer / KindInterface / KindFunc）
 

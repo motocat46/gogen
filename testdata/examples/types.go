@@ -35,22 +35,24 @@ type BaseInfo struct {
 // AllTypes 覆盖所有支持的字段类型
 type AllTypes struct {
 	// --- 基础类型 ---
-	FieldBool    bool
-	FieldInt     int
-	FieldInt8    int8
-	FieldInt16   int16
-	FieldInt32   int32
-	FieldInt64   int64
-	FieldUint    uint
-	FieldUint8   uint8
-	FieldUint16  uint16
-	FieldUint32  uint32
-	FieldUint64  uint64
-	FieldFloat32 float32
-	FieldFloat64 float64
-	FieldString  string
-	FieldByte    byte   // byte = uint8
-	FieldRune    rune   // rune = int32
+	FieldBool       bool
+	FieldInt        int
+	FieldInt8       int8
+	FieldInt16      int16
+	FieldInt32      int32
+	FieldInt64      int64
+	FieldUint       uint
+	FieldUint8      uint8
+	FieldUint16     uint16
+	FieldUint32     uint32
+	FieldUint64     uint64
+	FieldFloat32    float32
+	FieldFloat64    float64
+	FieldComplex64  complex64
+	FieldComplex128 complex128
+	FieldString     string
+	FieldByte       byte // byte = uint8
+	FieldRune       rune // rune = int32
 
 	// --- 指针类型 ---
 	FieldPtrInt    *int
