@@ -34,6 +34,9 @@ go.work.sum
 ehthumbs.db
 Thumbs.db
 
+# Superpowers workflow artifacts (local process files, not project docs)
+docs/superpowers/
+
 # Project specific
 # Built binary (same name as the project)
 gogen
