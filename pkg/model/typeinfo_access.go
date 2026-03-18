@@ -163,8 +163,3 @@ func (this *TypeInfo) GetIsAlias() bool {
 func (this *TypeInfo) SetIsAlias(IsAlias bool) {
 	this.IsAlias = IsAlias
 }
-
-// ToggleIsAlias 翻转 IsAlias 的布尔值
-func (this *TypeInfo) ToggleIsAlias() {
-	this.IsAlias = !this.IsAlias
-}

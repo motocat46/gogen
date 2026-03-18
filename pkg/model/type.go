@@ -81,5 +81,5 @@ type TypeInfo struct {
 	Value    *TypeInfo   // map 的 value 类型
 	ArrayLen string      // array 的长度，如 "8"
 	TypeArgs []*TypeInfo // 泛型类型参数，如 List[int] 中的 int
-	IsAlias  bool        // 是否为类型别名（type X = T）
+	IsAlias  bool        `gogen:"plain"` // 是否为类型别名（type X = T）
 }
