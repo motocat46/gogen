@@ -86,6 +86,9 @@ func (g *NumericGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]by
 	setIdempotent := false
 	if setField {
 		setDirtyMethod = effectiveDM
+		// IsComparable 由 go/types.Comparable() 判断，float64/complex 返回 true。
+		// float 的 NaN != NaN（IEEE 754），若新旧值均为 NaN 会出现 false positive：
+		// 幂等检查不成立，MakeDirty() 被多余调用。这是可接受的权衡（over-notify 不漏通知）。
 		setIdempotent = setDirtyMethod != "" && f.Type.IsComparable
 	}
 	if addField {
