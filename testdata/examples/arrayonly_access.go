@@ -101,3 +101,9 @@ func (this *ArrayOnly) RangeFixed256(fn func(index int, value int32) bool) {
 func (this *ArrayOnly) SetFixed256At(index int, elem int32) {
 	this.Fixed256[index] = elem
 }
+
+// Reset 将所有字段重置为零值。
+// slice 和 map 字段重置为 nil，释放底层内存。
+func (this *ArrayOnly) Reset() {
+	*this = ArrayOnly{}
+}

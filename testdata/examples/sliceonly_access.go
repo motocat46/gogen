@@ -151,3 +151,9 @@ func (this *SliceOnly) AppendItems(elems ...*BaseInfo) {
 func (this *SliceOnly) DeleteItemsAt(index int) {
 	this.Items = slices.Delete(this.Items, index, index+1)
 }
+
+// Reset 将所有字段重置为零值。
+// slice 和 map 字段重置为 nil，释放底层内存。
+func (this *SliceOnly) Reset() {
+	*this = SliceOnly{}
+}

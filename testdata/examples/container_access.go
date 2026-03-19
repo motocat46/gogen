@@ -46,3 +46,9 @@ func (this *Container[T]) AddSize(delta int) {
 func (this *Container[T]) SubSize(delta int) {
 	this.Size -= delta
 }
+
+// Reset 将所有字段重置为零值。
+// slice 和 map 字段重置为 nil，释放底层内存。
+func (this *Container[T]) Reset() {
+	*this = Container[T]{}
+}

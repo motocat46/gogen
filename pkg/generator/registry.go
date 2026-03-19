@@ -67,9 +67,17 @@ type MethodGenerator interface {
 	Generate(s *model.StructDef, f *model.FieldDef) ([]byte, error)
 }
 
+// StructGenerator 是结构体级方法生成器接口，与 MethodGenerator 并列注册。
+// 生成阶段在字段级方法之后执行，结果追加至同一 *_access.go 文件。
+type StructGenerator interface {
+	Name() string                                // 生成器标识，如 "reset"
+	Generate(s *model.StructDef) ([]byte, error) // 返回类型与 MethodGenerator 一致
+}
+
 // Registry 管理 TypeKind 到 MethodGenerator 的映射。
 type Registry struct {
-	generators map[model.TypeKind]MethodGenerator
+	generators       map[model.TypeKind]MethodGenerator
+	structGenerators []StructGenerator
 }
 
 // NewRegistry 创建并返回已注册所有内置生成器的 Registry。
@@ -87,6 +95,7 @@ func NewRegistry() *Registry {
 	r.Register(model.KindArray, &ArrayGenerator{})
 	r.Register(model.KindMap, &MapGenerator{})
 	// KindUnsupported 不注册，自动跳过
+	r.RegisterStruct(&ResetGenerator{}) // Phase 1: Reset
 	return r
 }
 
@@ -95,17 +104,22 @@ func (r *Registry) Register(kind model.TypeKind, g MethodGenerator) {
 	r.generators[kind] = g
 }
 
+// RegisterStruct 注册一个结构体级生成器，按注册顺序执行。
+func (r *Registry) RegisterStruct(g StructGenerator) {
+	r.structGenerators = append(r.structGenerators, g)
+}
+
 // GenerateStruct 为一个结构体生成完整的访问器文件内容（包含文件头）。
 //
-// 若所有字段均无需生成任何方法（字段全被跳过，或所有方法均已有手写实现），
-// 返回 nil，调用方应跳过文件写入。
+// 空结果判断规则（Phase 1 更新）：
+//   - 字段级方法体为空 且 结构体级方法体也为空 → 返回 nil，不生成文件
+//   - 即使所有字段被跳过，只要有结构体级方法（如 Reset），仍生成文件
 func (r *Registry) GenerateStruct(s *model.StructDef) ([]byte, error) {
-	// 先生成方法体，若体为空则无需创建文件
+	// 生成字段级方法体
 	var body bytes.Buffer
 	for _, field := range s.ActiveFields() {
 		g, ok := r.generators[field.Type.Kind]
 		if !ok {
-			// 不支持的类型直接跳过，不产生错误
 			continue
 		}
 		code, err := g.Generate(s, field)
@@ -115,12 +129,22 @@ func (r *Registry) GenerateStruct(s *model.StructDef) ([]byte, error) {
 		body.Write(code)
 	}
 
-	// 方法体为空（全部跳过）→ 返回 nil，通知调用方不必写文件
-	if len(bytes.TrimSpace(body.Bytes())) == 0 {
+	// 生成结构体级方法体（如 Reset）
+	var structBody bytes.Buffer
+	for _, sg := range r.structGenerators {
+		code, err := sg.Generate(s)
+		if err != nil {
+			return nil, fmt.Errorf("生成结构体 %s 的 %s 方法失败: %w", s.Name, sg.Name(), err)
+		}
+		structBody.Write(code)
+	}
+
+	// 两者均为空 → 不生成文件
+	if len(bytes.TrimSpace(body.Bytes())) == 0 && len(bytes.TrimSpace(structBody.Bytes())) == 0 {
 		return nil, nil
 	}
 
-	// 拼装完整文件：头部 + 方法体
+	// 拼装完整文件：头部 + 字段方法体 + 结构体方法体
 	header, err := renderFileHeader(s)
 	if err != nil {
 		return nil, err
@@ -128,6 +152,7 @@ func (r *Registry) GenerateStruct(s *model.StructDef) ([]byte, error) {
 	var buf bytes.Buffer
 	buf.Write(header)
 	buf.Write(body.Bytes())
+	buf.Write(structBody.Bytes())
 	return buf.Bytes(), nil
 }
 

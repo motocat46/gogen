@@ -36,3 +36,9 @@ func (this *Pair[K, V]) GetValue() V {
 func (this *Pair[K, V]) SetValue(Value V) {
 	this.Value = Value
 }
+
+// Reset 将所有字段重置为零值。
+// slice 和 map 字段重置为 nil，释放底层内存。
+func (this *Pair[K, V]) Reset() {
+	*this = Pair[K, V]{}
+}

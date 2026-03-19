@@ -231,3 +231,9 @@ func (this *MapOnly) SetNestedVal(key string, value []int) {
 func (this *MapOnly) DeleteNestedKey(key string) {
 	delete(this.Nested, key)
 }
+
+// Reset 将所有字段重置为零值。
+// slice 和 map 字段重置为 nil，释放底层内存。
+func (this *MapOnly) Reset() {
+	*this = MapOnly{}
+}

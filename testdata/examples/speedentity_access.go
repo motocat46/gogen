@@ -24,3 +24,9 @@ func (this *SpeedEntity) AddSpeed(delta float32) {
 func (this *SpeedEntity) SubSpeed(delta float32) {
 	this.Speed -= delta
 }
+
+// Reset 将所有字段重置为零值。
+// slice 和 map 字段重置为 nil，释放底层内存。
+func (this *SpeedEntity) Reset() {
+	*this = SpeedEntity{}
+}

@@ -155,3 +155,9 @@ func (this *TagControl) SetPlainMapVal(key string, value int) {
 func (this *TagControl) DeletePlainMapKey(key string) {
 	delete(this.PlainMap, key)
 }
+
+// Reset 将所有字段重置为零值。
+// slice 和 map 字段重置为 nil，释放底层内存。
+func (this *TagControl) Reset() {
+	*this = TagControl{}
+}
