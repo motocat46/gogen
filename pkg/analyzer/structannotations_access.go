@@ -16,49 +16,49 @@
 package analyzer
 
 // GetPlain 获取 Plain
-func (this *StructAnnotations) GetPlain() bool {
+func (this *structAnnotations) GetPlain() bool {
 	return this.Plain
 }
 
 // SetPlain 设置 Plain
-func (this *StructAnnotations) SetPlain(Plain bool) {
+func (this *structAnnotations) SetPlain(Plain bool) {
 	this.Plain = Plain
 }
 
 // TogglePlain 翻转 Plain 的布尔值
-func (this *StructAnnotations) TogglePlain() {
+func (this *structAnnotations) TogglePlain() {
 	this.Plain = !this.Plain
 }
 
 // "" 表示不注入；"MakeDirty" 为默认；自定义名为指定值
 // GetDirtyMethod 获取 DirtyMethod
-func (this *StructAnnotations) GetDirtyMethod() string {
+func (this *structAnnotations) GetDirtyMethod() string {
 	return this.DirtyMethod
 }
 
 // SetDirtyMethod 设置 DirtyMethod
-func (this *StructAnnotations) SetDirtyMethod(DirtyMethod string) {
+func (this *structAnnotations) SetDirtyMethod(DirtyMethod string) {
 	this.DirtyMethod = DirtyMethod
 }
 
 // gogen:nodirty 显式禁用
 // GetNoDirty 获取 NoDirty
-func (this *StructAnnotations) GetNoDirty() bool {
+func (this *structAnnotations) GetNoDirty() bool {
 	return this.NoDirty
 }
 
 // SetNoDirty 设置 NoDirty
-func (this *StructAnnotations) SetNoDirty(NoDirty bool) {
+func (this *structAnnotations) SetNoDirty(NoDirty bool) {
 	this.NoDirty = NoDirty
 }
 
 // ToggleNoDirty 翻转 NoDirty 的布尔值
-func (this *StructAnnotations) ToggleNoDirty() {
+func (this *structAnnotations) ToggleNoDirty() {
 	this.NoDirty = !this.NoDirty
 }
 
 // Reset 将所有字段重置为零值。
 // slice 和 map 字段重置为 nil，释放底层内存。
-func (this *StructAnnotations) Reset() {
-	*this = StructAnnotations{}
+func (this *structAnnotations) Reset() {
+	*this = structAnnotations{}
 }

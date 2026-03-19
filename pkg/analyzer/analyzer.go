@@ -507,8 +507,9 @@ func isExcluded(filename string, excludePaths []string) bool {
 	return false
 }
 
-// StructAnnotations 保存从结构体文档注释解析出的所有 gogen 注解。
-type StructAnnotations struct {
+// structAnnotations 保存从结构体文档注释解析出的所有 gogen 注解。
+// 包私有类型，只在 analyzeFile 内使用，不对外暴露。
+type structAnnotations struct {
 	Plain       bool
 	DirtyMethod string // "" 表示不注入；"MakeDirty" 为默认；自定义名为指定值
 	NoDirty     bool   // gogen:nodirty 显式禁用
@@ -517,8 +518,8 @@ type StructAnnotations struct {
 // parseStructAnnotations 统一解析结构体文档注释中的 gogen 注解，
 // 支持 plain/dirty/nodirty 三类注解。
 // doc 已由 ast.CommentGroup.Text() 剥离 "//" 前缀，每行独立匹配，避免前缀误判。
-func parseStructAnnotations(doc string) StructAnnotations {
-	var ann StructAnnotations
+func parseStructAnnotations(doc string) structAnnotations {
+	var ann structAnnotations
 	for line := range strings.SplitSeq(doc, "\n") {
 		line = strings.TrimSpace(line)
 		switch {
