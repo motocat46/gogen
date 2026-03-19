@@ -68,10 +68,10 @@ type Config struct {
 //
 // 内部采用两阶段加载，解决"旧生成文件有错误 → 包无法编译 → gogen 无法重新生成"的死锁：
 //
-//  阶段1：无 overlay 正常加载，收集所有错误
-//        ↓ 若发现某些 *_{suffix}.go 文件直接导致了错误
-//  阶段2：仅对那些有问题的文件使用 overlay（替换为空包声明）再次加载
-//        → 其余正常的 *_{suffix}.go 保持原样，不影响依赖它们的代码
+//	阶段1：无 overlay 正常加载，收集所有错误
+//	      ↓ 若发现某些 *_{suffix}.go 文件直接导致了错误
+//	阶段2：仅对那些有问题的文件使用 overlay（替换为空包声明）再次加载
+//	      → 其余正常的 *_{suffix}.go 保持原样，不影响依赖它们的代码
 func Load(dir string, cfg Config, patterns ...string) ([]*packages.Package, error) {
 	if cfg.GeneratedSuffix == "" {
 		cfg.GeneratedSuffix = "access"
@@ -298,7 +298,6 @@ func ExtractFileFilter(dir string, patterns []string) []string {
 	}
 	return files
 }
-
 
 // readGogenFilePkg 读取文件头部，返回 package 名称和是否为 gogen 生成文件。
 func readGogenFilePkg(path string) (pkgName string, isGogen bool) {

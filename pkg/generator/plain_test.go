@@ -59,19 +59,19 @@ func TestPlainMode(t *testing.T) {
 
 	// ── plain 模式：不应出现的扩展方法 ──────────────────────────────────────
 	shouldNotExist := []string{
-		"TogglePlainBool",       // bool plain：无 Toggle
-		"AddPlainInt",           // numeric plain：无 Add
-		"SubPlainInt",           // numeric plain：无 Sub
-		"HasPlainPtr",           // pointer plain：无 Has
-		"GetPlainSliceLen",      // slice plain：无 Len
-		"HasPlainSlice",         // slice plain：无 Has
-		"GetPlainSliceCopy",     // slice plain：无 GetCopy
-		"HasPlainMap",           // map plain：无 Has
-		"HasPlainMapKey",        // map plain：无 HasKey
-		"GetPlainMapLen",        // map plain：无 GetLen
-		"GetPlainMapKeys",       // map plain：无 GetKeys
+		"TogglePlainBool",         // bool plain：无 Toggle
+		"AddPlainInt",             // numeric plain：无 Add
+		"SubPlainInt",             // numeric plain：无 Sub
+		"HasPlainPtr",             // pointer plain：无 Has
+		"GetPlainSliceLen",        // slice plain：无 Len
+		"HasPlainSlice",           // slice plain：无 Has
+		"GetPlainSliceCopy",       // slice plain：无 GetCopy
+		"HasPlainMap",             // map plain：无 Has
+		"HasPlainMapKey",          // map plain：无 HasKey
+		"GetPlainMapLen",          // map plain：无 GetLen
+		"GetPlainMapKeys",         // map plain：无 GetKeys
 		"GetPlainMapValOrDefault", // map plain：无 ValOrDefault
-		"GetPlainMapCopy",       // map plain：无 GetCopy
+		"GetPlainMapCopy",         // map plain：无 GetCopy
 	}
 	for _, method := range shouldNotExist {
 		if bytes.Contains(tagControlCode, []byte("func (this *TagControl) "+method)) {
@@ -81,21 +81,21 @@ func TestPlainMode(t *testing.T) {
 
 	// ── plain 模式：应该存在的核心方法 ──────────────────────────────────────
 	shouldExist := []string{
-		"GetPlainBool",        // bool plain：有 Get
-		"SetPlainBool",        // bool plain：有 Set
-		"GetPlainInt",         // numeric plain：有 Get
-		"SetPlainInt",         // numeric plain：有 Set
-		"GetPlainPtr",         // pointer plain：有 Get
-		"SetPlainPtr",         // pointer plain：有 Set
-		"GetPlainSliceAt",     // slice plain：有 At
-		"RangePlainSlice",     // slice plain：有 Range
-		"SetPlainSliceAt",     // slice plain：有 SetAt
-		"AppendPlainSlice",    // slice plain：有 Append
-		"DeletePlainSliceAt",  // slice plain：有 DeleteAt
-		"GetPlainMapVal",      // map plain：有 Val
-		"RangePlainMap",       // map plain：有 Range
-		"SetPlainMapVal",      // map plain：有 SetVal
-		"DeletePlainMapKey",   // map plain：有 DeleteKey
+		"GetPlainBool",       // bool plain：有 Get
+		"SetPlainBool",       // bool plain：有 Set
+		"GetPlainInt",        // numeric plain：有 Get
+		"SetPlainInt",        // numeric plain：有 Set
+		"GetPlainPtr",        // pointer plain：有 Get
+		"SetPlainPtr",        // pointer plain：有 Set
+		"GetPlainSliceAt",    // slice plain：有 At
+		"RangePlainSlice",    // slice plain：有 Range
+		"SetPlainSliceAt",    // slice plain：有 SetAt
+		"AppendPlainSlice",   // slice plain：有 Append
+		"DeletePlainSliceAt", // slice plain：有 DeleteAt
+		"GetPlainMapVal",     // map plain：有 Val
+		"RangePlainMap",      // map plain：有 Range
+		"SetPlainMapVal",     // map plain：有 SetVal
+		"DeletePlainMapKey",  // map plain：有 DeleteKey
 	}
 	for _, method := range shouldExist {
 		if !bytes.Contains(tagControlCode, []byte("func (this *TagControl) "+method)) {

@@ -108,10 +108,10 @@ func TestParseFieldConfigOverride(t *testing.T) {
 
 func TestIsReadableIsWritable(t *testing.T) {
 	tests := []struct {
-		name      string
-		cfg       model.FieldConfig
-		readable  bool
-		writable  bool
+		name     string
+		cfg      model.FieldConfig
+		readable bool
+		writable bool
 	}{
 		{
 			name:     "默认（无 tag）：读写均可",

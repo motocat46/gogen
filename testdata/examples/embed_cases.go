@@ -81,8 +81,8 @@ func (e *SpeedEntity) SetSpeed(speed, acceleration float32) { e.Speed = speed }
 // 修复前：gogen 生成单参数 SetSpeed，覆盖提升，破坏 ISpeedProvider 实现（编译失败）。
 // 修复后：gogen 跳过 GetSpeed/SetSpeed，接口由提升方法满足（编译通过）。
 type EmbedWithInterface struct {
-	Speed float32  // 与提升方法同名：GetSpeed/SetSpeed 均应跳过
-	*SpeedEntity   // 提升 GetSpeed()/SetSpeed(float32, float32)
+	Speed        float32 // 与提升方法同名：GetSpeed/SetSpeed 均应跳过
+	*SpeedEntity         // 提升 GetSpeed()/SetSpeed(float32, float32)
 }
 
 // 编译时断言：EmbedWithInterface 满足 ISpeedProvider 接口。

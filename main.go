@@ -212,8 +212,8 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	type dirStat struct{ files, methods int }
 	var (
 		mu            sync.Mutex
-		totalFiles    int   // 实际写入的文件数（内容有变化）
-		skippedFiles  int   // 内容未变、增量跳过的文件数
+		totalFiles    int // 实际写入的文件数（内容有变化）
+		skippedFiles  int // 内容未变、增量跳过的文件数
 		totalMethods  int
 		dirStats      = make(map[string]dirStat)
 		processedDirs = make(map[string]bool) // 本次运行实际写入的目录（用于孤儿文件扫描）
@@ -486,11 +486,10 @@ func cleanOrphans(processedDirs, validPaths map[string]bool, cfg writer.Config, 
 	return nil
 }
 
-
 // checkCmd 验证生成文件是否最新，不写入任何内容，适用于 CI 和 pre-commit hook。
 var checkCmd = &cobra.Command{
-	Use:          "check [patterns...]",
-	Short:        "验证生成文件是否最新，不写入任何内容（适用于 CI）",
+	Use:           "check [patterns...]",
+	Short:         "验证生成文件是否最新，不写入任何内容（适用于 CI）",
 	SilenceUsage:  true, // "文件过期"是业务错误，不是用法错误，不打印 Usage
 	SilenceErrors: true, // 错误由 runCheck 自行打印，避免 cobra 重复输出
 	Long: `check 运行与 gogen 相同的生成流程，但不写入任何文件。

@@ -83,14 +83,14 @@ type Registry struct {
 // NewRegistry 创建并返回已注册所有内置生成器的 Registry。
 func NewRegistry() *Registry {
 	r := &Registry{generators: make(map[model.TypeKind]MethodGenerator)}
-	r.Register(model.KindBasic, &BasicGenerator{})    // string、TypeParam 等：Get/Set
-	r.Register(model.KindBool, &BoolGenerator{})      // bool：Get/Set/Toggle
-	r.Register(model.KindNumeric, &NumericGenerator{}) // int/float/uint/complex：Get/Set/Add/Sub
-	r.Register(model.KindPointer, &NilableGenerator{}) // *T：Get/Set/Has
+	r.Register(model.KindBasic, &BasicGenerator{})       // string、TypeParam 等：Get/Set
+	r.Register(model.KindBool, &BoolGenerator{})         // bool：Get/Set/Toggle
+	r.Register(model.KindNumeric, &NumericGenerator{})   // int/float/uint/complex：Get/Set/Add/Sub
+	r.Register(model.KindPointer, &NilableGenerator{})   // *T：Get/Set/Has
 	r.Register(model.KindInterface, &NilableGenerator{}) // interface{}：Get/Set/Has
-	r.Register(model.KindFunc, &NilableGenerator{})   // func：Get/Set/Has
-	r.Register(model.KindStruct, &BasicGenerator{})   // 结构体字段：Get/Set
-	r.Register(model.KindGeneric, &BasicGenerator{})  // 泛型类型：Get/Set
+	r.Register(model.KindFunc, &NilableGenerator{})      // func：Get/Set/Has
+	r.Register(model.KindStruct, &BasicGenerator{})      // 结构体字段：Get/Set
+	r.Register(model.KindGeneric, &BasicGenerator{})     // 泛型类型：Get/Set
 	r.Register(model.KindSlice, &SliceGenerator{})
 	r.Register(model.KindArray, &ArrayGenerator{})
 	r.Register(model.KindMap, &MapGenerator{})

@@ -56,7 +56,7 @@ func (e *CustomDirtyEntity) MarkChanged() {}
 // 且字段带有 gogen:"dirty=X" tag，也不注入。
 type NoDirtyPlayer struct {
 	DirtyBase
-	Gold  int64   `gogen:"dirty=MarkGold"` // nodirty 最高优先级，此 tag 无效
+	Gold  int64 `gogen:"dirty=MarkGold"` // nodirty 最高优先级，此 tag 无效
 	Score float64
 }
 
@@ -70,7 +70,7 @@ type FieldOverrideEntity struct {
 	ModuleScore int64 `gogen:"dirty=MarkModule"` // 覆盖结构体级
 }
 
-func (e *FieldOverrideEntity) MakeDirty()   {}
+func (e *FieldOverrideEntity) MakeDirty()  {}
 func (e *FieldOverrideEntity) MarkModule() {}
 
 // ── 场景 5：slice/map 写方法（无幂等检查，直接注入）──────────────────────

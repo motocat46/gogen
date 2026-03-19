@@ -67,18 +67,18 @@ type AllTypes struct {
 	FieldMyTime MyTime
 
 	// --- 跨包具体类型 ---
-	FieldTime    time.Time
+	FieldTime     time.Time
 	FieldDuration time.Duration
 
 	// --- 切片类型 ---
 	FieldSliceInt    []int
 	FieldSliceString []string
 	FieldSliceStruct []*BaseInfo
-	FieldTags        Tags   // 具名切片类型
+	FieldTags        Tags // 具名切片类型
 
 	// --- 数组类型（固定长度）---
-	FieldArray8    [8]int
-	FieldArrayStr  [4]string
+	FieldArray8   [8]int
+	FieldArrayStr [4]string
 
 	// --- Map 类型 ---
 	FieldMapStrInt    map[string]int
@@ -86,14 +86,14 @@ type AllTypes struct {
 	FieldMetadata     Metadata // 具名 map 类型
 
 	// --- 嵌套复合类型 ---
-	FieldMapSlice  map[string][]string       // map value 是 slice
-	FieldSliceMap  []map[string]int          // slice elem 是 map
+	FieldMapSlice map[string][]string // map value 是 slice
+	FieldSliceMap []map[string]int    // slice elem 是 map
 
 	// --- struct tag 控制 ---
-	FieldSkip      string    `gogen:"-"`          // 应跳过，不生成任何方法
-	FieldReadonly  string    `gogen:"readonly"`   // 只生成 getter
-	FieldWriteOnly string    `gogen:"writeonly"`  // 只生成 setter
-	FieldWithJSON  string    `json:"name" gogen:"readonly"` // 多个 tag 共存
+	FieldSkip      string `gogen:"-"`                    // 应跳过，不生成任何方法
+	FieldReadonly  string `gogen:"readonly"`             // 只生成 getter
+	FieldWriteOnly string `gogen:"writeonly"`            // 只生成 setter
+	FieldWithJSON  string `json:"name" gogen:"readonly"` // 多个 tag 共存
 
 	// --- interface / func 类型：生成 Get/Set ---
 	FieldInterface interface{}      // 生成 GetFieldInterface/SetFieldInterface
@@ -113,9 +113,9 @@ type SliceOnly struct {
 
 // MapOnly 只有 map 字段，测试 map 生成器的完整性
 type MapOnly struct {
-	Index   map[int]string
-	Config  map[string]interface{}  // value 是 interface，生成 key/value 类型要正确
-	Nested  map[string][]int        // value 是 slice
+	Index  map[int]string
+	Config map[string]interface{} // value 是 interface，生成 key/value 类型要正确
+	Nested map[string][]int       // value 是 slice
 }
 
 // ArrayOnly 测试各种数组长度写法（go/types 会将长度解析为整数）
@@ -127,22 +127,22 @@ type ArrayOnly struct {
 
 // TagControl 专门测试 struct tag 控制逻辑
 type TagControl struct {
-	ReadWrite  int    // 无 tag：同时生成 getter + setter
-	ReadOnly   int    `gogen:"readonly"`
-	WriteOnly  int    `gogen:"writeonly"`
-	Skip       int    `gogen:"-"`
+	ReadWrite int // 无 tag：同时生成 getter + setter
+	ReadOnly  int `gogen:"readonly"`
+	WriteOnly int `gogen:"writeonly"`
+	Skip      int `gogen:"-"`
 	// plain 模式测试：只生成核心 Get/Set，跳过扩展方法
-	PlainBool    bool                `gogen:"plain"` // Get/Set，无 Toggle
-	PlainInt     int                 `gogen:"plain"` // Get/Set，无 Add/Sub
-	PlainPtr     *BaseInfo           `gogen:"plain"` // Get/Set，无 Has
-	PlainSlice   []string            `gogen:"plain"` // At/Range/SetAt/Append/Delete，无 Len/Has/GetCopy
-	PlainMap     map[string]int      `gogen:"plain"` // Val/Range/SetVal/DeleteKey，无 Has 系列
+	PlainBool  bool           `gogen:"plain"` // Get/Set，无 Toggle
+	PlainInt   int            `gogen:"plain"` // Get/Set，无 Add/Sub
+	PlainPtr   *BaseInfo      `gogen:"plain"` // Get/Set，无 Has
+	PlainSlice []string       `gogen:"plain"` // At/Range/SetAt/Append/Delete，无 Len/Has/GetCopy
+	PlainMap   map[string]int `gogen:"plain"` // Val/Range/SetVal/DeleteKey，无 Has 系列
 }
 
 // EmbedOther 测试嵌入其他结构体的字段（命名嵌入，非匿名）
 type EmbedOther struct {
-	Base    BaseInfo   // 命名字段，应生成 GetBase/SetBase
-	BasePtr *BaseInfo  // 指针，应生成 GetBasePtr/SetBasePtr
+	Base    BaseInfo  // 命名字段，应生成 GetBase/SetBase
+	BasePtr *BaseInfo // 指针，应生成 GetBasePtr/SetBasePtr
 }
 
 // PlainStruct 测试结构体级 plain 注释：所有字段应以 plain 模式生成。

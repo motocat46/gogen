@@ -60,7 +60,6 @@ type File struct {
 	// NoDefaultExcludes 禁用内置默认排除（vendor、testdata 等）。
 	// 对应 --no-default-excludes 标志。
 	NoDefaultExcludes bool `yaml:"no-default-excludes" gogen:"plain"`
-
 }
 
 // Load 从指定目录加载 .gogen.yaml 配置文件。

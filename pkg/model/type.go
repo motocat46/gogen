@@ -74,13 +74,13 @@ func (k TypeKind) String() string {
 //   - IsAlias 区分 type X = T（别名）和 type X T（新类型），
 //     别名可以展开底层类型，新类型必须保留原名以通过编译
 type TypeInfo struct {
-	Kind     TypeKind
-	TypeStr  string      // 完整类型字符串，如 "[]string"、"map[string]int32"
-	Elem     *TypeInfo   // slice/array/pointer 的元素类型
-	Key      *TypeInfo   // map 的 key 类型
-	Value    *TypeInfo   // map 的 value 类型
-	ArrayLen string      // array 的长度，如 "8"
-	TypeArgs []*TypeInfo // 泛型类型参数，如 List[int] 中的 int
-	IsAlias      bool   `gogen:"plain"` // 是否为类型别名（type X = T）
-	IsComparable bool   `gogen:"plain"` // 是否可比较（由 go/types.Comparable() 在分析阶段填充）
+	Kind         TypeKind
+	TypeStr      string      // 完整类型字符串，如 "[]string"、"map[string]int32"
+	Elem         *TypeInfo   // slice/array/pointer 的元素类型
+	Key          *TypeInfo   // map 的 key 类型
+	Value        *TypeInfo   // map 的 value 类型
+	ArrayLen     string      // array 的长度，如 "8"
+	TypeArgs     []*TypeInfo // 泛型类型参数，如 List[int] 中的 int
+	IsAlias      bool        `gogen:"plain"` // 是否为类型别名（type X = T）
+	IsComparable bool        `gogen:"plain"` // 是否可比较（由 go/types.Comparable() 在分析阶段填充）
 }
