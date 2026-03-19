@@ -69,3 +69,20 @@ func (this *FieldConfig) GetOverride() bool {
 func (this *FieldConfig) SetOverride(Override bool) {
 	this.Override = Override
 }
+
+// 字段级覆盖，优先于 StructDef.DirtyMethod
+// GetDirtyMethod 获取 DirtyMethod
+func (this *FieldConfig) GetDirtyMethod() string {
+	return this.DirtyMethod
+}
+
+// SetDirtyMethod 设置 DirtyMethod
+func (this *FieldConfig) SetDirtyMethod(DirtyMethod string) {
+	this.DirtyMethod = DirtyMethod
+}
+
+// Reset 将所有字段重置为零值。
+// slice 和 map 字段重置为 nil，释放底层内存。
+func (this *FieldConfig) Reset() {
+	*this = FieldConfig{}
+}

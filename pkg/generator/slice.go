@@ -63,13 +63,24 @@ func (this *{{ .ReceiverType }}) Get{{ .MethodName }}Copy() {{ .SliceType }} {
 {{ if .SetAt -}}
 // Set{{ .MethodName }}At 设置切片 {{ .FieldName }} 中 index 位置的元素
 func (this *{{ .ReceiverType }}) Set{{ .MethodName }}At(index int, elem {{ .ElemType }}) {
+{{- if .SetAtIdempotent }}
+	if this.{{ .FieldName }}[index] == elem {
+		return
+	}
+{{- end }}
 	this.{{ .FieldName }}[index] = elem
+{{- if .SetAtDirtyMethod }}
+	this.{{ .SetAtDirtyMethod }}() // 需业务层实现此方法
+{{- end }}
 }
 {{ end -}}
 {{ if .Append -}}
 // Append{{ .MethodName }} 向切片 {{ .FieldName }} 追加一个或多个元素
 func (this *{{ .ReceiverType }}) Append{{ .MethodName }}(elems ...{{ .ElemType }}) {
 	this.{{ .FieldName }} = append(this.{{ .FieldName }}, elems...)
+{{- if .AppendDirtyMethod }}
+	this.{{ .AppendDirtyMethod }}() // 需业务层实现此方法
+{{- end }}
 }
 {{ end -}}
 {{ if .Delete -}}
@@ -77,6 +88,9 @@ func (this *{{ .ReceiverType }}) Append{{ .MethodName }}(elems ...{{ .ElemType }
 // 注意：会改变被删除元素之后所有元素的下标
 func (this *{{ .ReceiverType }}) Delete{{ .MethodName }}At(index int) {
 	this.{{ .FieldName }} = slices.Delete(this.{{ .FieldName }}, index, index+1)
+{{- if .DeleteAtDirtyMethod }}
+	this.{{ .DeleteAtDirtyMethod }}() // 需业务层实现此方法
+{{- end }}
 }
 {{ end }}`
 
@@ -102,23 +116,43 @@ func (g *SliceGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte
 	setAt := w && canGen("Set"+fn+"At")
 	appendFn := w && canGen("Append"+fn)
 	deleteFn := w && canGen("Delete"+fn+"At")
+
+	// dirty 注入：SetAt 使用元素类型的可比较性做幂等检查
+	effectiveDM := model.EffectiveDirtyMethod(f, s)
+	setAtDirtyMethod, appendDirtyMethod, deleteAtDirtyMethod := "", "", ""
+	setAtIdempotent := false
+	if setAt {
+		setAtDirtyMethod = effectiveDM
+		setAtIdempotent = setAtDirtyMethod != "" && f.Type.Elem != nil && f.Type.Elem.IsComparable
+	}
+	if appendFn {
+		appendDirtyMethod = effectiveDM
+	}
+	if deleteFn {
+		deleteAtDirtyMethod = effectiveDM
+	}
+
 	var buf bytes.Buffer
 	err := sliceTmpl.Execute(&buf, map[string]any{
-		"ReceiverType": s.ReceiverType(),
-		"MethodName":   fn,
-		"FieldName":    f.Name,
-		"ElemType":     elemType,
-		"SliceType":    f.Type.TypeStr,
-		"Doc":          formatDoc(f.Doc),
-		"GetAt":        getAt,
-		"GetLen":       getLen,
-		"Range":        rang,
-		"Has":          has,
-		"GetCopy":      getCopy,
-		"SetAt":        setAt,
-		"Append":       appendFn,
-		"Delete":       deleteFn,
-		"Any":          getAt || getLen || rang || has || getCopy || setAt || appendFn || deleteFn,
+		"ReceiverType":        s.ReceiverType(),
+		"MethodName":          fn,
+		"FieldName":           f.Name,
+		"ElemType":            elemType,
+		"SliceType":           f.Type.TypeStr,
+		"Doc":                 formatDoc(f.Doc),
+		"GetAt":               getAt,
+		"GetLen":              getLen,
+		"Range":               rang,
+		"Has":                 has,
+		"GetCopy":             getCopy,
+		"SetAt":               setAt,
+		"Append":              appendFn,
+		"Delete":              deleteFn,
+		"Any":                 getAt || getLen || rang || has || getCopy || setAt || appendFn || deleteFn,
+		"SetAtDirtyMethod":    setAtDirtyMethod,
+		"SetAtIdempotent":     setAtIdempotent,
+		"AppendDirtyMethod":   appendDirtyMethod,
+		"DeleteAtDirtyMethod": deleteAtDirtyMethod,
 	})
 	if err != nil {
 		return nil, err

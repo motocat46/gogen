@@ -37,7 +37,15 @@ func (this *{{ .ReceiverType }}) Get{{ .FieldName }}() {{ .TypeStr }} {
 {{ if .Writable -}}
 // Set{{ .FieldName }} 设置 {{ .FieldName }}
 func (this *{{ .ReceiverType }}) Set{{ .FieldName }}({{ .FieldName }} {{ .TypeStr }}) {
+{{- if .SetIdempotent }}
+	if this.{{ .FieldName }} == {{ .FieldName }} {
+		return
+	}
+{{- end }}
 	this.{{ .FieldName }} = {{ .FieldName }}
+{{- if .SetDirtyMethod }}
+	this.{{ .SetDirtyMethod }}() // 需业务层实现此方法
+{{- end }}
 }
 {{ end }}`
 
@@ -48,17 +56,27 @@ type BasicGenerator struct{}
 
 func (g *BasicGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte, error) {
 	canGen := resolveCanGen(s, f)
-	var buf bytes.Buffer
 	readable := f.IsReadable() && canGen("Get"+f.Name)
 	writable := f.IsWritable() && canGen("Set"+f.Name)
+
+	setDirtyMethod := ""
+	setIdempotent := false
+	if writable {
+		setDirtyMethod = model.EffectiveDirtyMethod(f, s)
+		setIdempotent = setDirtyMethod != "" && f.Type.IsComparable
+	}
+
+	var buf bytes.Buffer
 	err := basicTmpl.Execute(&buf, map[string]any{
-		"ReceiverType": s.ReceiverType(),
-		"FieldName":    f.Name,
-		"TypeStr":      f.Type.TypeStr,
-		"Doc":          formatDoc(f.Doc),
-		"Readable":     readable,
-		"Writable":     writable,
-		"Any":          readable || writable,
+		"ReceiverType":   s.ReceiverType(),
+		"FieldName":      f.Name,
+		"TypeStr":        f.Type.TypeStr,
+		"Doc":            formatDoc(f.Doc),
+		"Readable":       readable,
+		"Writable":       writable,
+		"Any":            readable || writable,
+		"SetDirtyMethod": setDirtyMethod,
+		"SetIdempotent":  setIdempotent,
 	})
 	if err != nil {
 		return nil, err

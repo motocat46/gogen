@@ -143,9 +143,71 @@ type MethodGenerator interface {
 
 实现此接口并调用 `Register` 即可支持新的 TypeKind。
 
+### ResetGenerator（结构体级）
+
+适用于所有结构体，生成 `Reset()` 方法（语义与 `proto.Reset()` 一致）。
+
+| 方法 | 签名 | 说明 |
+|------|------|------|
+| `Reset()` | `Reset()` | `*this = T{}`，slice/map 重置为 nil；若结构体启用了 dirty 注入，末尾追加 dirty 调用 |
+
+已有手写或提升的 `Reset()` 时，静默跳过，不覆盖。
+
+## Dirty 注入
+
+为写方法末尾自动注入业务层脏标记调用，减少手写样板。**默认不注入**（opt-out 语义）。
+
+### 触发条件（三选一）
+
+1. **自动检测**：结构体方法集中包含 `MakeDirty()` 方法（通过嵌入提升或手写）
+2. **显式配置**：结构体文档注释含 `// gogen:dirty`（使用 `MakeDirty()`）
+3. **自定义方法名**：文档注释含 `// gogen:dirty=MarkChanged`
+
+### 三层优先级（高→低）
+
+| 优先级 | 配置方式 | 说明 |
+|--------|---------|------|
+| 1 | `// gogen:nodirty`（结构体注解）| 禁用所有注入，字段级 tag 也失效 |
+| 2 | `gogen:"dirty=XXX"`（字段 tag）| 该字段使用指定方法名覆盖结构体级 |
+| 3 | 结构体级 dirty 方法 | 所有字段共享 |
+
+### 幂等检查
+
+- **Set 类方法**（SetField/SetFieldAt）：若字段类型可比较（`IsComparable`），有 dirty 方法时，生成 `if current == new { return }` 前置检查
+- **集合写方法**（Append/Delete/SetVal/DeleteKey）：不做幂等检查，语义上必须更新
+- **Ensure**：不注入 dirty（惰性初始化自身具有幂等性）
+
+### 示例
+
+```go
+// 自动检测：嵌入含 MakeDirty() 的类型
+type Player struct {
+    DirtyBase      // 持有 MakeDirty()
+    Gold  int64
+    Tags  []string
+}
+// 生成：SetGold 含幂等检查 + MakeDirty()；AppendTags 直接 MakeDirty()
+
+// gogen:dirty=MarkChanged
+// 自定义方法名
+type Entity struct {
+    Name string
+}
+func (e *Entity) MarkChanged() {}
+
+// gogen:nodirty
+// 禁用注入
+type ReadOnlyView struct {
+    DirtyBase
+    Score float64
+}
+// 生成：SetScore 无任何 dirty 调用
+```
+
 ## 注意事项
 
 - 生成的代码**不含** `package` 声明和 `import`，由 `GenerateStruct` 统一添加文件头，由 `writer` 层通过 `goimports` 自动推断 import
 - 生成文件不含时间戳，确保相同输入在任何环境产生相同字节（幂等性）
 - 方法名冲突检查（字段名、手写方法、提升方法）由 `model.StructDef.CanGenerateMethod` 完成，生成器通过 `resolveCanGen` 调用
 - `KindUnsupported`（chan）不注册任何生成器，会被静默跳过
+- 嵌入 dirty 基础类型时，若基础类型自身也生成了 `Reset()`，其提升方法会阻止嵌入结构体生成自己的 `Reset()`。解决方案：为基础类型手写空的 `Reset()` 或让结构体自行实现 `MakeDirty()` 而不依赖嵌入

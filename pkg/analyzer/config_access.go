@@ -109,3 +109,9 @@ func (this *Config) AppendExcludePaths(elems ...string) {
 func (this *Config) DeleteExcludePathsAt(index int) {
 	this.ExcludePaths = slices.Delete(this.ExcludePaths, index, index+1)
 }
+
+// Reset 将所有字段重置为零值。
+// slice 和 map 字段重置为 nil，释放底层内存。
+func (this *Config) Reset() {
+	*this = Config{}
+}

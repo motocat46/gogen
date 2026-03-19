@@ -99,3 +99,9 @@ func (this *File) GetNoDefaultExcludes() bool {
 func (this *File) SetNoDefaultExcludes(NoDefaultExcludes bool) {
 	this.NoDefaultExcludes = NoDefaultExcludes
 }
+
+// Reset 将所有字段重置为零值。
+// slice 和 map 字段重置为 nil，释放底层内存。
+func (this *File) Reset() {
+	*this = File{}
+}

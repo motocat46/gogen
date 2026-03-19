@@ -31,9 +31,9 @@ const resetTmplStr = `
 // slice 和 map 字段重置为 nil，释放底层内存。
 func (this *{{ .ReceiverType }}) Reset() {
 	*this = {{ .ReceiverType }}{}
-{{ if .DirtyMethod -}}
+{{- if .DirtyMethod }}
 	this.{{ .DirtyMethod }}() // 需业务层实现此方法
-{{ end -}}
+{{- end }}
 }
 `
 
@@ -53,9 +53,13 @@ func (g *ResetGenerator) Generate(s *model.StructDef) ([]byte, error) {
 		return nil, nil
 	}
 	var buf bytes.Buffer
+	dirtyMethod := s.DirtyMethod
+	if s.NoDirty {
+		dirtyMethod = ""
+	}
 	err := resetTmpl.Execute(&buf, map[string]any{
 		"ReceiverType": s.ReceiverType(),
-		"DirtyMethod":  "", // Phase 1：固定为空；Phase 2 Task 4 之后改为 s.DirtyMethod
+		"DirtyMethod":  dirtyMethod, // 由 analyzer 在分析阶段填充；NoDirty=true 时强制为空
 	})
 	if err != nil {
 		return nil, err

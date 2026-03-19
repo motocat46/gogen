@@ -156,8 +156,9 @@ func analyzeFile(pkg *packages.Package, file *ast.File, fileMap map[string]*ast.
 			// 解析结构体文档注释
 			doc := extractDoc(genDecl.Doc, typeSpec.Comment)
 
-			// 检测结构体是否含 gogen:plain 注解，传播到所有字段
-			structPlain := containsAnnotation(doc, "gogen:plain")
+			// 统一解析文档注释中的所有 gogen 注解
+			annotations := parseStructAnnotations(doc)
+			structPlain := annotations.Plain
 
 			// 解析字段列表
 			fields := analyzeFields(pkg, astStructType, typesStruct, typesNamed, structPlain)
@@ -175,6 +176,16 @@ func analyzeFile(pkg *packages.Package, file *ast.File, fileMap map[string]*ast.
 			// 收集通过嵌入字段可访问的提升方法名，防止生成同名方法覆盖提升语义
 			promotedMethods := collectPromotedMethods(typesNamed)
 
+			// 确定结构体级 dirty 方法名（优先级：nodirty > 显式 > 自动检测）
+			dirtyMethod := ""
+			if !annotations.NoDirty {
+				if annotations.DirtyMethod != "" {
+					dirtyMethod = annotations.DirtyMethod
+				} else if methodSetContains(typesNamed, "MakeDirty") {
+					dirtyMethod = "MakeDirty"
+				}
+			}
+
 			result = append(result, &model.StructDef{
 				Name:            typeSpec.Name.Name,
 				TypeParams:      extractTypeParams(typesNamed),
@@ -186,6 +197,8 @@ func analyzeFile(pkg *packages.Package, file *ast.File, fileMap map[string]*ast.
 				ManualMethods:   manualMethods,
 				FieldNames:      fieldNames,
 				PromotedMethods: promotedMethods,
+				DirtyMethod:     dirtyMethod,
+				NoDirty:         annotations.NoDirty,
 			})
 		}
 	}
@@ -266,6 +279,7 @@ func analyzeFields(
 //   - 类型别名
 func buildTypeInfo(t types.Type, qualifier types.Qualifier) *model.TypeInfo {
 	typeStr := types.TypeString(t, qualifier)
+	isComparable := types.Comparable(t)
 
 	switch u := t.(type) {
 	case *types.Basic:
@@ -277,29 +291,30 @@ func buildTypeInfo(t types.Type, qualifier types.Qualifier) *model.TypeInfo {
 		case info&(types.IsInteger|types.IsFloat|types.IsComplex) != 0:
 			kind = model.KindNumeric
 		}
-		return &model.TypeInfo{Kind: kind, TypeStr: typeStr}
+		return &model.TypeInfo{Kind: kind, TypeStr: typeStr, IsComparable: isComparable}
 
 	case *types.Pointer:
 		elem := buildTypeInfo(u.Elem(), qualifier)
-		return &model.TypeInfo{Kind: model.KindPointer, TypeStr: typeStr, Elem: elem}
+		return &model.TypeInfo{Kind: model.KindPointer, TypeStr: typeStr, Elem: elem, IsComparable: isComparable}
 
 	case *types.Slice:
 		elem := buildTypeInfo(u.Elem(), qualifier)
-		return &model.TypeInfo{Kind: model.KindSlice, TypeStr: typeStr, Elem: elem}
+		return &model.TypeInfo{Kind: model.KindSlice, TypeStr: typeStr, Elem: elem, IsComparable: isComparable}
 
 	case *types.Array:
 		elem := buildTypeInfo(u.Elem(), qualifier)
 		return &model.TypeInfo{
-			Kind:     model.KindArray,
-			TypeStr:  typeStr,
-			Elem:     elem,
-			ArrayLen: fmt.Sprintf("%d", u.Len()),
+			Kind:         model.KindArray,
+			TypeStr:      typeStr,
+			Elem:         elem,
+			ArrayLen:     fmt.Sprintf("%d", u.Len()),
+			IsComparable: isComparable,
 		}
 
 	case *types.Map:
 		key := buildTypeInfo(u.Key(), qualifier)
 		val := buildTypeInfo(u.Elem(), qualifier)
-		return &model.TypeInfo{Kind: model.KindMap, TypeStr: typeStr, Key: key, Value: val}
+		return &model.TypeInfo{Kind: model.KindMap, TypeStr: typeStr, Key: key, Value: val, IsComparable: isComparable}
 
 	case *types.Alias:
 		// Go 1.22+ 中类型别名（type X = T）由独立的 *types.Alias 节点表示。
@@ -310,6 +325,7 @@ func buildTypeInfo(t types.Type, qualifier types.Qualifier) *model.TypeInfo {
 		copy := *info
 		copy.TypeStr = typeStr
 		copy.IsAlias = true
+		copy.IsComparable = isComparable
 		return &copy
 
 	case *types.Named:
@@ -319,11 +335,11 @@ func buildTypeInfo(t types.Type, qualifier types.Qualifier) *model.TypeInfo {
 			for arg := range u.TypeArgs().Types() {
 				typeArgs = append(typeArgs, buildTypeInfo(arg, qualifier))
 			}
-			return &model.TypeInfo{Kind: model.KindGeneric, TypeStr: typeStr, TypeArgs: typeArgs}
+			return &model.TypeInfo{Kind: model.KindGeneric, TypeStr: typeStr, TypeArgs: typeArgs, IsComparable: isComparable}
 		}
 		// 底层为结构体的具名类型（如 time.Time、自定义结构体）
 		if _, ok := u.Underlying().(*types.Struct); ok {
-			return &model.TypeInfo{Kind: model.KindStruct, TypeStr: typeStr, IsAlias: u.Obj().IsAlias()}
+			return &model.TypeInfo{Kind: model.KindStruct, TypeStr: typeStr, IsAlias: u.Obj().IsAlias(), IsComparable: isComparable}
 		}
 		// 其他具名类型（如 type Status string、type UserID int64、type Tags []string）
 		// 递归解析底层类型确定 Kind，TypeStr 保留具名类型名称
@@ -331,27 +347,28 @@ func buildTypeInfo(t types.Type, qualifier types.Qualifier) *model.TypeInfo {
 		result := *underlying // 复制，避免修改
 		result.TypeStr = typeStr
 		result.IsAlias = u.Obj().IsAlias()
+		result.IsComparable = isComparable
 		return &result
 
 	case *types.Interface:
 		// interface{}/any 及具名接口（如 io.Reader）：生成 Get/Set/Has，nil 表示未初始化
-		return &model.TypeInfo{Kind: model.KindInterface, TypeStr: typeStr}
+		return &model.TypeInfo{Kind: model.KindInterface, TypeStr: typeStr, IsComparable: isComparable}
 
 	case *types.Signature:
 		// func 类型字段（如 func(int) string）：生成 Get/Set/Has，nil 表示未设置
-		return &model.TypeInfo{Kind: model.KindFunc, TypeStr: typeStr}
+		return &model.TypeInfo{Kind: model.KindFunc, TypeStr: typeStr, IsComparable: isComparable}
 
 	case *types.Chan:
-		return &model.TypeInfo{Kind: model.KindUnsupported, TypeStr: typeStr}
+		return &model.TypeInfo{Kind: model.KindUnsupported, TypeStr: typeStr, IsComparable: isComparable}
 
 	case *types.TypeParam:
 		// 泛型类型参数（如 T、K、V）：在泛型结构体的接收者范围内是合法类型。
 		// 复用 KindBasic 生成 Get/Set，TypeStr 即类型参数名（如 "T"）。
 		// 生成代码：func (this *Cache[K, V]) GetItem() T { return this.Item }
-		return &model.TypeInfo{Kind: model.KindBasic, TypeStr: typeStr}
+		return &model.TypeInfo{Kind: model.KindBasic, TypeStr: typeStr, IsComparable: isComparable}
 
 	default:
-		return &model.TypeInfo{Kind: model.KindUnsupported, TypeStr: typeStr}
+		return &model.TypeInfo{Kind: model.KindUnsupported, TypeStr: typeStr, IsComparable: isComparable}
 	}
 }
 
@@ -490,14 +507,47 @@ func isExcluded(filename string, excludePaths []string) bool {
 	return false
 }
 
-// containsAnnotation 判断文档注释字符串中是否包含指定注解（如 "gogen:plain"）。
-// doc 已由 ast.CommentGroup.Text() 剥离 "//" 前缀，逐行精确匹配，
-// 避免 "gogen:plaintext" 等含相同前缀的词误命中。
-func containsAnnotation(doc, annotation string) bool {
+// StructAnnotations 保存从结构体文档注释解析出的所有 gogen 注解。
+type StructAnnotations struct {
+	Plain       bool
+	DirtyMethod string // "" 表示不注入；"MakeDirty" 为默认；自定义名为指定值
+	NoDirty     bool   // gogen:nodirty 显式禁用
+}
+
+// parseStructAnnotations 统一解析结构体文档注释中的 gogen 注解，
+// 支持 plain/dirty/nodirty 三类注解。
+// doc 已由 ast.CommentGroup.Text() 剥离 "//" 前缀，每行独立匹配，避免前缀误判。
+func parseStructAnnotations(doc string) StructAnnotations {
+	var ann StructAnnotations
 	for line := range strings.SplitSeq(doc, "\n") {
-		if strings.TrimSpace(line) == annotation {
-			return true
+		line = strings.TrimSpace(line)
+		switch {
+		case line == "gogen:plain":
+			ann.Plain = true
+		case line == "gogen:nodirty":
+			ann.NoDirty = true
+		case line == "gogen:dirty":
+			ann.DirtyMethod = "MakeDirty"
+		case strings.HasPrefix(line, "gogen:dirty="):
+			if name, _ := strings.CutPrefix(line, "gogen:dirty="); name != "" {
+				ann.DirtyMethod = name
+			}
 		}
 	}
-	return false
+	return ann
+}
+
+// methodSetContains 检查 *named 类型的方法集是否包含签名为"无参数、无返回值"的方法。
+// 用于 dirty 自动检测：方法集含 MakeDirty() 时自动注入。
+func methodSetContains(named *types.Named, methodName string) bool {
+	mset := types.NewMethodSet(types.NewPointer(named))
+	sel := mset.Lookup(nil, methodName)
+	if sel == nil {
+		return false
+	}
+	sig, ok := sel.Type().(*types.Signature)
+	if !ok {
+		return false
+	}
+	return sig.Params().Len() == 0 && sig.Results().Len() == 0
 }

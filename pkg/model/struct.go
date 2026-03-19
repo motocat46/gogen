@@ -32,6 +32,8 @@ type StructDef struct {
 	ManualMethods   map[string]bool // 已在手写（非生成）文件中定义的方法名集合
 	FieldNames      map[string]bool // 结构体所有字段名集合（含不导出字段）
 	PromotedMethods map[string]bool // 通过嵌入字段可访问的方法名集合（提升方法）
+	DirtyMethod     string          // 结构体级 dirty 方法名；"" 表示无标注或未检测到
+	NoDirty         bool            `gogen:"plain"` // true = 显式禁用（gogen:nodirty），优先级最高，压过字段级 dirty tag
 }
 
 // ReceiverType 返回方法接收者中使用的类型名称：

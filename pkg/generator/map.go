@@ -100,12 +100,18 @@ func (this *{{ .ReceiverType }}) Ensure{{ .MethodName }}() {{ .MapType }} {
 // Set{{ .MethodName }}Val 设置 {{ .FieldName }} 中指定 key 的值
 func (this *{{ .ReceiverType }}) Set{{ .MethodName }}Val(key {{ .KeyType }}, value {{ .ValueType }}) {
 	this.{{ .FieldName }}[key] = value
+{{- if .SetValDirtyMethod }}
+	this.{{ .SetValDirtyMethod }}() // 需业务层实现此方法
+{{- end }}
 }
 {{ end -}}
 {{ if .DeleteKey -}}
 // Delete{{ .MethodName }}Key 删除 {{ .FieldName }} 中指定 key
 func (this *{{ .ReceiverType }}) Delete{{ .MethodName }}Key(key {{ .KeyType }}) {
 	delete(this.{{ .FieldName }}, key)
+{{- if .DeleteKeyDirtyMethod }}
+	this.{{ .DeleteKeyDirtyMethod }}() // 需业务层实现此方法
+{{- end }}
 }
 {{ end }}`
 
@@ -137,27 +143,40 @@ func (g *MapGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte, 
 	ensure := w && canGen("Ensure"+fn)
 	setVal := w && canGen("Set"+fn+"Val")
 	deleteKey := w && canGen("Delete"+fn+"Key")
+
+	// Ensure 不注入 dirty（nil→空集合是初始化，不是数据变更）
+	effectiveDM := model.EffectiveDirtyMethod(f, s)
+	setValDirtyMethod, deleteKeyDirtyMethod := "", ""
+	if setVal {
+		setValDirtyMethod = effectiveDM
+	}
+	if deleteKey {
+		deleteKeyDirtyMethod = effectiveDM
+	}
+
 	var buf bytes.Buffer
 	err := mapTmpl.Execute(&buf, map[string]any{
-		"ReceiverType":    s.ReceiverType(),
-		"MethodName":      fn,
-		"FieldName":       f.Name,
-		"KeyType":         keyType,
-		"ValueType":       valueType,
-		"MapType":         f.Type.TypeStr,
-		"Doc":             formatDoc(f.Doc),
-		"GetVal":          getVal,
-		"GetValOrDefault": getValOrDefault,
-		"Range":           rang,
-		"Has":             has,
-		"HasKey":          hasKey,
-		"GetLen":          getLen,
-		"GetKeys":         getKeys,
-		"GetCopy":         getCopy,
-		"Ensure":          ensure,
-		"SetVal":          setVal,
-		"DeleteKey":       deleteKey,
-		"Any":             getVal || getValOrDefault || rang || has || hasKey || getLen || getKeys || getCopy || ensure || setVal || deleteKey,
+		"ReceiverType":         s.ReceiverType(),
+		"MethodName":           fn,
+		"FieldName":            f.Name,
+		"KeyType":              keyType,
+		"ValueType":            valueType,
+		"MapType":              f.Type.TypeStr,
+		"Doc":                  formatDoc(f.Doc),
+		"GetVal":               getVal,
+		"GetValOrDefault":      getValOrDefault,
+		"Range":                rang,
+		"Has":                  has,
+		"HasKey":               hasKey,
+		"GetLen":               getLen,
+		"GetKeys":              getKeys,
+		"GetCopy":              getCopy,
+		"Ensure":               ensure,
+		"SetVal":               setVal,
+		"DeleteKey":            deleteKey,
+		"Any":                  getVal || getValOrDefault || rang || has || hasKey || getLen || getKeys || getCopy || ensure || setVal || deleteKey,
+		"SetValDirtyMethod":    setValDirtyMethod,
+		"DeleteKeyDirtyMethod": deleteKeyDirtyMethod,
 	})
 	if err != nil {
 		return nil, err

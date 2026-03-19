@@ -241,6 +241,59 @@ func TestCanGenerateMethod(t *testing.T) {
 	}
 }
 
+// ─── ParseFieldConfig_dirty ───────────────────────────────────────────────────
+
+func TestParseFieldConfig_dirty(t *testing.T) {
+	cases := []struct {
+		name   string
+		rawTag string
+		wantDM string
+	}{
+		{"空 tag", ``, ""},
+		{"dirty 默认", `gogen:"dirty"`, "MakeDirty"},
+		{"dirty=自定义名", `gogen:"dirty=MarkScore"`, "MarkScore"},
+		{"readonly,dirty 组合", `gogen:"readonly,dirty=MarkName"`, "MarkName"},
+		{"plain,dirty 组合", `gogen:"plain,dirty=Foo"`, "Foo"},
+		{"dirty= 空值忽略", `gogen:"dirty="`, ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := model.ParseFieldConfig(tc.rawTag)
+			if got.DirtyMethod != tc.wantDM {
+				t.Errorf("DirtyMethod = %q, want %q", got.DirtyMethod, tc.wantDM)
+			}
+		})
+	}
+}
+
+// ─── EffectiveDirtyMethod ─────────────────────────────────────────────────────
+
+func TestEffectiveDirtyMethod(t *testing.T) {
+	cases := []struct {
+		name     string
+		fieldDM  string
+		structDM string
+		nodirty  bool
+		want     string
+	}{
+		{"nodirty 压过字段级", "MarkField", "MakeDirty", true, ""},
+		{"nodirty 无结构体 dm", "MarkField", "", true, ""},
+		{"字段级覆盖结构体级", "MarkField", "MakeDirty", false, "MarkField"},
+		{"结构体级默认", "", "MakeDirty", false, "MakeDirty"},
+		{"均为空", "", "", false, ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			field := &model.FieldDef{Config: model.FieldConfig{DirtyMethod: tc.fieldDM}}
+			s := &model.StructDef{DirtyMethod: tc.structDM, NoDirty: tc.nodirty}
+			got := model.EffectiveDirtyMethod(field, s)
+			if got != tc.want {
+				t.Errorf("got %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
 // ─── TypeKind.String ──────────────────────────────────────────────────────────
 
 func TestTypeKindString(t *testing.T) {

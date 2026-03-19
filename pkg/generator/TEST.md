@@ -31,6 +31,12 @@
 | `pair_access.go` | `Pair` | 泛型结构体 `Pair[K, V]` |
 | `container_access.go` | `Container` | 泛型结构体（含 slice/map 字段） |
 | `speedentity_access.go` | `SpeedEntity` | 数值类型的 Add/Sub 方法 |
+| `autodirtyplayer_access.go` | `AutoDirtyPlayer` | 自动检测 dirty（嵌入含 MakeDirty），数值/slice/map 写方法注入；数值 Set 幂等检查，slice SetAt 幂等检查（string 可比较），Append/Delete/SetVal/DeleteKey 无幂等检查 |
+| `customdirtyentity_access.go` | `CustomDirtyEntity` | 自定义 dirty 方法名 `gogen:dirty=MarkChanged` |
+| `nodirtyplayer_access.go` | `NoDirtyPlayer` | `gogen:nodirty` 最高优先级：禁用所有注入，字段级 tag 失效 |
+| `fieldoverrideentity_access.go` | `FieldOverrideEntity` | 字段级覆盖：`ModuleScore` 使用 `MarkModule()`，`Gold` 使用结构体级 `MakeDirty()` |
+| `autodirtycollections_access.go` | `AutoDirtyCollections` | 集合类型 dirty 注入：slice/map 写方法直接注入；数组 SetAt 有幂等检查（int32 可比较）|
+| `resetwithdirtyplayer_access.go` | `ResetWithDirtyPlayer` | Reset + dirty 交互：`Reset()` 末尾注入 dirty 调用 |
 
 ## 可执行测试命令
 
@@ -63,11 +69,13 @@ go run . --no-default-excludes ./testdata/examples
 
 ## 如何添加新的测试场景
 
-1. 在 `testdata/examples/types.go` 中添加测试结构体
+1. 在 `testdata/examples/types.go`（通用类型）或对应主题文件（如 `dirty_cases.go`）中添加测试结构体
 2. 运行 `go run . --no-default-excludes ./testdata/examples` 生成对应的 `*_access.go`
 3. 检查生成内容是否符合预期
 4. 运行 `go test ./pkg/generator/... -count=1 -run TestGoldenFiles` 确认通过
-5. 提交 `types.go` 和新生成的 `*_access.go`
+5. 提交源文件和新生成的 `*_access.go`
+
+> **dirty 场景注意事项**：含 `MakeDirty()` 的嵌入类型（如 `DirtyBase`）若被 gogen 处理，会为其生成 `Reset()` 方法，进而通过提升机制阻止嵌入结构体生成自己的 `Reset()`。解决方案：在源文件中为该基础类型手写一个空的 `Reset()` 方法，阻止 gogen 生成。
 
 ## 黄金文件比对规则
 

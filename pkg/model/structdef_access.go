@@ -347,3 +347,31 @@ func (this *StructDef) SetPromotedMethodsVal(key string, value bool) {
 func (this *StructDef) DeletePromotedMethodsKey(key string) {
 	delete(this.PromotedMethods, key)
 }
+
+// 结构体级 dirty 方法名；"" 表示无标注或未检测到
+// GetDirtyMethod 获取 DirtyMethod
+func (this *StructDef) GetDirtyMethod() string {
+	return this.DirtyMethod
+}
+
+// SetDirtyMethod 设置 DirtyMethod
+func (this *StructDef) SetDirtyMethod(DirtyMethod string) {
+	this.DirtyMethod = DirtyMethod
+}
+
+// true = 显式禁用（gogen:nodirty），优先级最高，压过字段级 dirty tag
+// GetNoDirty 获取 NoDirty
+func (this *StructDef) GetNoDirty() bool {
+	return this.NoDirty
+}
+
+// SetNoDirty 设置 NoDirty
+func (this *StructDef) SetNoDirty(NoDirty bool) {
+	this.NoDirty = NoDirty
+}
+
+// Reset 将所有字段重置为零值。
+// slice 和 map 字段重置为 nil，释放底层内存。
+func (this *StructDef) Reset() {
+	*this = StructDef{}
+}
