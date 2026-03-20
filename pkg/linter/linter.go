@@ -23,7 +23,7 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
-	"sort"
+	"slices"
 
 	"golang.org/x/tools/go/packages"
 
@@ -82,43 +82,68 @@ func Lint(dir string, cfg Config, patterns ...string) ([]Issue, error) {
 		issues = append(issues, lintPackage(pkg)...)
 	}
 
-	sort.Slice(issues, func(i, j int) bool {
-		pi, pj := issues[i].Pos, issues[j].Pos
-		if pi.Filename != pj.Filename {
-			return pi.Filename < pj.Filename
+	slices.SortFunc(issues, func(a, b Issue) int {
+		pa, pb := a.Pos, b.Pos
+		if pa.Filename != pb.Filename {
+			if pa.Filename < pb.Filename {
+				return -1
+			}
+			return 1
 		}
-		if pi.Line != pj.Line {
-			return pi.Line < pj.Line
+		if pa.Line != pb.Line {
+			return pa.Line - pb.Line
 		}
-		return pi.Column < pj.Column
+		return pa.Column - pb.Column
 	})
 	return issues, nil
 }
 
-// lintPackage 对单个包中的所有 struct 声明做检查。
+// lintPackage 对单个包中的所有包级 struct 声明做检查。
+// 只遍历 file.Decls（包级声明），不进入函数体内的局部类型声明，
+// 与 analyzer 的处理范围保持一致（gogen 不为局部 struct 生成代码）。
 func lintPackage(pkg *packages.Package) []Issue {
 	var issues []Issue
 	for _, file := range pkg.Syntax {
-		ast.Inspect(file, func(n ast.Node) bool {
-			typeSpec, ok := n.(*ast.TypeSpec)
-			if !ok {
-				return true
+		for _, decl := range file.Decls {
+			genDecl, ok := decl.(*ast.GenDecl)
+			if !ok || genDecl.Tok != token.TYPE {
+				continue
 			}
-			if _, ok = typeSpec.Type.(*ast.StructType); !ok {
-				return true
+			for _, spec := range genDecl.Specs {
+				typeSpec, ok := spec.(*ast.TypeSpec)
+				if !ok {
+					continue
+				}
+				if _, ok = typeSpec.Type.(*ast.StructType); !ok {
+					continue
+				}
+				// 获取 *types.Named（用于 dirty 方法集检查）
+				obj, ok := pkg.TypesInfo.Defs[typeSpec.Name]
+				if !ok || obj == nil {
+					continue
+				}
+				named, ok := obj.Type().(*types.Named)
+				if !ok {
+					continue
+				}
+				// genDecl.Doc 是常见的 "type Foo struct {}" 写法中注释所在节点；
+				// typeSpec.Comment 是 type (...) 块中各 spec 的独立注释（优先级低）。
+				docText := extractDocText(genDecl.Doc, typeSpec.Comment)
+				issues = append(issues, checkStruct(pkg.Fset, typeSpec, named, docText)...)
 			}
-			// 获取 *types.Named（用于 dirty 方法集检查）
-			obj, ok := pkg.TypesInfo.Defs[typeSpec.Name]
-			if !ok || obj == nil {
-				return true
-			}
-			named, ok := obj.Type().(*types.Named)
-			if !ok {
-				return true
-			}
-			issues = append(issues, checkStruct(pkg.Fset, typeSpec, named)...)
-			return true
-		})
+		}
 	}
 	return issues
+}
+
+// extractDocText 返回 genDecl 级注释文本；若为空则回退到 typeSpec 的行尾注释。
+// 与 analyzer.extractDoc 语义一致。
+func extractDocText(genDoc, specComment *ast.CommentGroup) string {
+	if genDoc != nil {
+		return genDoc.Text()
+	}
+	if specComment != nil {
+		return specComment.Text()
+	}
+	return ""
 }

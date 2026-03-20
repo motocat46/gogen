@@ -36,17 +36,10 @@ var knownOptions = map[string]bool{
 }
 
 // checkStruct 对一个 struct 的所有字段做所有 lint 检查，返回发现的问题列表。
-func checkStruct(fset *token.FileSet, typeSpec *ast.TypeSpec, named *types.Named) []Issue {
+// docText 由调用方（lintPackage）从 genDecl.Doc 提取，确保常见的
+// "type Foo struct {}" 写法中注释能被正确读取。
+func checkStruct(fset *token.FileSet, typeSpec *ast.TypeSpec, named *types.Named, docText string) []Issue {
 	structType := typeSpec.Type.(*ast.StructType)
-
-	// 解析结构体文档注释中的 gogen 注解（优先使用 Doc，其次 Comment）
-	docText := ""
-	if typeSpec.Comment != nil {
-		docText = typeSpec.Comment.Text()
-	}
-	if typeSpec.Doc != nil {
-		docText = typeSpec.Doc.Text()
-	}
 	ann := parseDocAnnotations(docText)
 
 	var issues []Issue
@@ -254,10 +247,10 @@ func splitOptions(tagVal string) []string {
 }
 
 // suggest 为未知选项给出"你是否指的是"建议（Levenshtein 距离 ≤ 3）。
+// candidates 直接从 knownOptions 派生，保证与合法选项列表单点维护。
 func suggest(unknown string) string {
-	candidates := []string{"readonly", "writeonly", "plain", "override", "dirty", "-"}
 	best, bestDist := "", 4
-	for _, c := range candidates {
+	for c := range knownOptions {
 		if d := editDistance(unknown, c); d < bestDist {
 			best, bestDist = c, d
 		}
