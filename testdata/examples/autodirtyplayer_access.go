@@ -27,9 +27,6 @@ func (this *AutoDirtyPlayer) GetGold() int64 {
 
 // SetGold 设置 Gold
 func (this *AutoDirtyPlayer) SetGold(Gold int64) {
-	if this.Gold == Gold {
-		return
-	}
 	this.Gold = Gold
 	this.MakeDirty() // 需业务层实现此方法
 }
@@ -53,9 +50,6 @@ func (this *AutoDirtyPlayer) GetScore() float64 {
 
 // SetScore 设置 Score
 func (this *AutoDirtyPlayer) SetScore(Score float64) {
-	if this.Score == Score {
-		return
-	}
 	this.Score = Score
 	this.MakeDirty() // 需业务层实现此方法
 }
@@ -103,9 +97,6 @@ func (this *AutoDirtyPlayer) GetTagsCopy() []string {
 
 // SetTagsAt 设置切片 Tags 中 index 位置的元素
 func (this *AutoDirtyPlayer) SetTagsAt(index int, elem string) {
-	if this.Tags[index] == elem {
-		return
-	}
 	this.Tags[index] = elem
 	this.MakeDirty() // 需业务层实现此方法
 }

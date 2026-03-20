@@ -164,17 +164,6 @@ func (this *TypeInfo) SetIsAlias(IsAlias bool) {
 	this.IsAlias = IsAlias
 }
 
-// 是否可比较（由 go/types.Comparable() 在分析阶段填充）
-// GetIsComparable 获取 IsComparable
-func (this *TypeInfo) GetIsComparable() bool {
-	return this.IsComparable
-}
-
-// SetIsComparable 设置 IsComparable
-func (this *TypeInfo) SetIsComparable(IsComparable bool) {
-	this.IsComparable = IsComparable
-}
-
 // Reset 将所有字段重置为零值。
 // slice 和 map 字段重置为 nil，释放底层内存。
 func (this *TypeInfo) Reset() {

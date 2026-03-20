@@ -22,9 +22,6 @@ func (this *FieldOverrideEntity) GetGold() int64 {
 
 // SetGold 设置 Gold
 func (this *FieldOverrideEntity) SetGold(Gold int64) {
-	if this.Gold == Gold {
-		return
-	}
 	this.Gold = Gold
 	this.MakeDirty() // 需业务层实现此方法
 }
@@ -49,9 +46,6 @@ func (this *FieldOverrideEntity) GetModuleScore() int64 {
 
 // SetModuleScore 设置 ModuleScore
 func (this *FieldOverrideEntity) SetModuleScore(ModuleScore int64) {
-	if this.ModuleScore == ModuleScore {
-		return
-	}
 	this.ModuleScore = ModuleScore
 	this.MarkModule() // 需业务层实现此方法
 }

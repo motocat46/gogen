@@ -22,9 +22,6 @@ func (this *CustomDirtyEntity) GetName() string {
 
 // SetName 设置 Name
 func (this *CustomDirtyEntity) SetName(Name string) {
-	if this.Name == Name {
-		return
-	}
 	this.Name = Name
 	this.MarkChanged() // 需业务层实现此方法
 }
@@ -36,9 +33,6 @@ func (this *CustomDirtyEntity) GetLevel() int32 {
 
 // SetLevel 设置 Level
 func (this *CustomDirtyEntity) SetLevel(Level int32) {
-	if this.Level == Level {
-		return
-	}
 	this.Level = Level
 	this.MarkChanged() // 需业务层实现此方法
 }

@@ -37,11 +37,6 @@ func (this *{{ .ReceiverType }}) Get{{ .FieldName }}() {{ .TypeStr }} {
 {{ if .Writable -}}
 // Set{{ .FieldName }} 设置 {{ .FieldName }}
 func (this *{{ .ReceiverType }}) Set{{ .FieldName }}({{ .FieldName }} {{ .TypeStr }}) {
-{{- if .SetIdempotent }}
-	if this.{{ .FieldName }} == {{ .FieldName }} {
-		return
-	}
-{{- end }}
 	this.{{ .FieldName }} = {{ .FieldName }}
 {{- if .SetDirtyMethod }}
 	this.{{ .SetDirtyMethod }}() // 需业务层实现此方法
@@ -60,10 +55,8 @@ func (g *BasicGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte
 	writable := f.IsWritable() && canGen("Set"+f.Name)
 
 	setDirtyMethod := ""
-	setIdempotent := false
 	if writable {
 		setDirtyMethod = model.EffectiveDirtyMethod(f, s)
-		setIdempotent = setDirtyMethod != "" && f.Type.IsComparable
 	}
 
 	var buf bytes.Buffer
@@ -76,7 +69,6 @@ func (g *BasicGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte
 		"Writable":       writable,
 		"Any":            readable || writable,
 		"SetDirtyMethod": setDirtyMethod,
-		"SetIdempotent":  setIdempotent,
 	})
 	if err != nil {
 		return nil, err

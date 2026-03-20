@@ -22,9 +22,6 @@ func (this *ResetWithDirtyPlayer) GetName() string {
 
 // SetName 设置 Name
 func (this *ResetWithDirtyPlayer) SetName(Name string) {
-	if this.Name == Name {
-		return
-	}
 	this.Name = Name
 	this.MakeDirty() // 需业务层实现此方法
 }
@@ -36,9 +33,6 @@ func (this *ResetWithDirtyPlayer) GetLevel() int32 {
 
 // SetLevel 设置 Level
 func (this *ResetWithDirtyPlayer) SetLevel(Level int32) {
-	if this.Level == Level {
-		return
-	}
 	this.Level = Level
 	this.MakeDirty() // 需业务层实现此方法
 }

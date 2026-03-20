@@ -279,7 +279,6 @@ func analyzeFields(
 //   - 类型别名
 func buildTypeInfo(t types.Type, qualifier types.Qualifier) *model.TypeInfo {
 	typeStr := types.TypeString(t, qualifier)
-	isComparable := types.Comparable(t)
 
 	switch u := t.(type) {
 	case *types.Basic:
@@ -291,30 +290,29 @@ func buildTypeInfo(t types.Type, qualifier types.Qualifier) *model.TypeInfo {
 		case info&(types.IsInteger|types.IsFloat|types.IsComplex) != 0:
 			kind = model.KindNumeric
 		}
-		return &model.TypeInfo{Kind: kind, TypeStr: typeStr, IsComparable: isComparable}
+		return &model.TypeInfo{Kind: kind, TypeStr: typeStr}
 
 	case *types.Pointer:
 		elem := buildTypeInfo(u.Elem(), qualifier)
-		return &model.TypeInfo{Kind: model.KindPointer, TypeStr: typeStr, Elem: elem, IsComparable: isComparable}
+		return &model.TypeInfo{Kind: model.KindPointer, TypeStr: typeStr, Elem: elem}
 
 	case *types.Slice:
 		elem := buildTypeInfo(u.Elem(), qualifier)
-		return &model.TypeInfo{Kind: model.KindSlice, TypeStr: typeStr, Elem: elem, IsComparable: isComparable}
+		return &model.TypeInfo{Kind: model.KindSlice, TypeStr: typeStr, Elem: elem}
 
 	case *types.Array:
 		elem := buildTypeInfo(u.Elem(), qualifier)
 		return &model.TypeInfo{
-			Kind:         model.KindArray,
-			TypeStr:      typeStr,
-			Elem:         elem,
-			ArrayLen:     fmt.Sprintf("%d", u.Len()),
-			IsComparable: isComparable,
+			Kind:     model.KindArray,
+			TypeStr:  typeStr,
+			Elem:     elem,
+			ArrayLen: fmt.Sprintf("%d", u.Len()),
 		}
 
 	case *types.Map:
 		key := buildTypeInfo(u.Key(), qualifier)
 		val := buildTypeInfo(u.Elem(), qualifier)
-		return &model.TypeInfo{Kind: model.KindMap, TypeStr: typeStr, Key: key, Value: val, IsComparable: isComparable}
+		return &model.TypeInfo{Kind: model.KindMap, TypeStr: typeStr, Key: key, Value: val}
 
 	case *types.Alias:
 		// Go 1.22+ 中类型别名（type X = T）由独立的 *types.Alias 节点表示。
@@ -325,7 +323,6 @@ func buildTypeInfo(t types.Type, qualifier types.Qualifier) *model.TypeInfo {
 		copy := *info
 		copy.TypeStr = typeStr
 		copy.IsAlias = true
-		copy.IsComparable = isComparable
 		return &copy
 
 	case *types.Named:
@@ -335,11 +332,11 @@ func buildTypeInfo(t types.Type, qualifier types.Qualifier) *model.TypeInfo {
 			for arg := range u.TypeArgs().Types() {
 				typeArgs = append(typeArgs, buildTypeInfo(arg, qualifier))
 			}
-			return &model.TypeInfo{Kind: model.KindGeneric, TypeStr: typeStr, TypeArgs: typeArgs, IsComparable: isComparable}
+			return &model.TypeInfo{Kind: model.KindGeneric, TypeStr: typeStr, TypeArgs: typeArgs}
 		}
 		// 底层为结构体的具名类型（如 time.Time、自定义结构体）
 		if _, ok := u.Underlying().(*types.Struct); ok {
-			return &model.TypeInfo{Kind: model.KindStruct, TypeStr: typeStr, IsAlias: u.Obj().IsAlias(), IsComparable: isComparable}
+			return &model.TypeInfo{Kind: model.KindStruct, TypeStr: typeStr, IsAlias: u.Obj().IsAlias()}
 		}
 		// 其他具名类型（如 type Status string、type UserID int64、type Tags []string）
 		// 递归解析底层类型确定 Kind，TypeStr 保留具名类型名称
@@ -347,28 +344,27 @@ func buildTypeInfo(t types.Type, qualifier types.Qualifier) *model.TypeInfo {
 		result := *underlying // 复制，避免修改
 		result.TypeStr = typeStr
 		result.IsAlias = u.Obj().IsAlias()
-		result.IsComparable = isComparable
 		return &result
 
 	case *types.Interface:
 		// interface{}/any 及具名接口（如 io.Reader）：生成 Get/Set/Has，nil 表示未初始化
-		return &model.TypeInfo{Kind: model.KindInterface, TypeStr: typeStr, IsComparable: isComparable}
+		return &model.TypeInfo{Kind: model.KindInterface, TypeStr: typeStr}
 
 	case *types.Signature:
 		// func 类型字段（如 func(int) string）：生成 Get/Set/Has，nil 表示未设置
-		return &model.TypeInfo{Kind: model.KindFunc, TypeStr: typeStr, IsComparable: isComparable}
+		return &model.TypeInfo{Kind: model.KindFunc, TypeStr: typeStr}
 
 	case *types.Chan:
-		return &model.TypeInfo{Kind: model.KindUnsupported, TypeStr: typeStr, IsComparable: isComparable}
+		return &model.TypeInfo{Kind: model.KindUnsupported, TypeStr: typeStr}
 
 	case *types.TypeParam:
 		// 泛型类型参数（如 T、K、V）：在泛型结构体的接收者范围内是合法类型。
 		// 复用 KindBasic 生成 Get/Set，TypeStr 即类型参数名（如 "T"）。
 		// 生成代码：func (this *Cache[K, V]) GetItem() T { return this.Item }
-		return &model.TypeInfo{Kind: model.KindBasic, TypeStr: typeStr, IsComparable: isComparable}
+		return &model.TypeInfo{Kind: model.KindBasic, TypeStr: typeStr}
 
 	default:
-		return &model.TypeInfo{Kind: model.KindUnsupported, TypeStr: typeStr, IsComparable: isComparable}
+		return &model.TypeInfo{Kind: model.KindUnsupported, TypeStr: typeStr}
 	}
 }
 

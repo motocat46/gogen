@@ -51,9 +51,6 @@ func (this *AutoDirtyCollections) GetTagsCopy() []string {
 
 // SetTagsAt 设置切片 Tags 中 index 位置的元素
 func (this *AutoDirtyCollections) SetTagsAt(index int, elem string) {
-	if this.Tags[index] == elem {
-		return
-	}
 	this.Tags[index] = elem
 	this.MakeDirty() // 需业务层实现此方法
 }
@@ -171,9 +168,6 @@ func (this *AutoDirtyCollections) RangeNums(fn func(index int, value int32) bool
 
 // SetNumsAt 设置数组 Nums 中 index 位置的元素
 func (this *AutoDirtyCollections) SetNumsAt(index int, elem int32) {
-	if this.Nums[index] == elem {
-		return
-	}
 	this.Nums[index] = elem
 	this.MakeDirty() // 需业务层实现此方法
 }

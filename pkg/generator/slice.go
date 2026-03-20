@@ -63,11 +63,6 @@ func (this *{{ .ReceiverType }}) Get{{ .MethodName }}Copy() {{ .SliceType }} {
 {{ if .SetAt -}}
 // Set{{ .MethodName }}At 设置切片 {{ .FieldName }} 中 index 位置的元素
 func (this *{{ .ReceiverType }}) Set{{ .MethodName }}At(index int, elem {{ .ElemType }}) {
-{{- if .SetAtIdempotent }}
-	if this.{{ .FieldName }}[index] == elem {
-		return
-	}
-{{- end }}
 	this.{{ .FieldName }}[index] = elem
 {{- if .SetAtDirtyMethod }}
 	this.{{ .SetAtDirtyMethod }}() // 需业务层实现此方法
@@ -117,13 +112,11 @@ func (g *SliceGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte
 	appendFn := w && canGen("Append"+fn)
 	deleteFn := w && canGen("Delete"+fn+"At")
 
-	// dirty 注入：SetAt 使用元素类型的可比较性做幂等检查
+	// dirty 注入
 	effectiveDM := model.EffectiveDirtyMethod(f, s)
 	setAtDirtyMethod, appendDirtyMethod, deleteAtDirtyMethod := "", "", ""
-	setAtIdempotent := false
 	if setAt {
 		setAtDirtyMethod = effectiveDM
-		setAtIdempotent = setAtDirtyMethod != "" && f.Type.Elem != nil && f.Type.Elem.IsComparable
 	}
 	if appendFn {
 		appendDirtyMethod = effectiveDM
@@ -150,7 +143,6 @@ func (g *SliceGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte
 		"Delete":              deleteFn,
 		"Any":                 getAt || getLen || rang || has || getCopy || setAt || appendFn || deleteFn,
 		"SetAtDirtyMethod":    setAtDirtyMethod,
-		"SetAtIdempotent":     setAtIdempotent,
 		"AppendDirtyMethod":   appendDirtyMethod,
 		"DeleteAtDirtyMethod": deleteAtDirtyMethod,
 	})

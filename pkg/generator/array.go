@@ -59,11 +59,6 @@ func (this *{{ .ReceiverType }}) Range{{ .MethodName }}(fn func(index int, value
 {{ if .SetAt -}}
 // Set{{ .MethodName }}At 设置数组 {{ .FieldName }} 中 index 位置的元素
 func (this *{{ .ReceiverType }}) Set{{ .MethodName }}At(index int, elem {{ .ElemType }}) {
-{{- if .SetAtIdempotent }}
-	if this.{{ .FieldName }}[index] == elem {
-		return
-	}
-{{- end }}
 	this.{{ .FieldName }}[index] = elem
 {{- if .SetAtDirtyMethod }}
 	this.{{ .SetAtDirtyMethod }}() // 需业务层实现此方法
@@ -92,12 +87,9 @@ func (g *ArrayGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte
 	rang := r && canGen("Range"+fn)
 	setAt := w && canGen("Set"+fn+"At")
 
-	// SetAt 的幂等检查使用元素类型的 IsComparable（不是数组整体）
 	setAtDirtyMethod := ""
-	setAtIdempotent := false
 	if setAt {
 		setAtDirtyMethod = model.EffectiveDirtyMethod(f, s)
-		setAtIdempotent = setAtDirtyMethod != "" && f.Type.Elem != nil && f.Type.Elem.IsComparable
 	}
 
 	var buf bytes.Buffer
@@ -115,7 +107,6 @@ func (g *ArrayGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte
 		"SetAt":            setAt,
 		"Any":              getField || getAt || getLen || rang || setAt,
 		"SetAtDirtyMethod": setAtDirtyMethod,
-		"SetAtIdempotent":  setAtIdempotent,
 	})
 	if err != nil {
 		return nil, err

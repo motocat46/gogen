@@ -37,11 +37,6 @@ func (this *{{ .ReceiverType }}) Get{{ .FieldName }}() {{ .TypeStr }} {
 {{ if .SetField -}}
 // Set{{ .FieldName }} 设置 {{ .FieldName }}
 func (this *{{ .ReceiverType }}) Set{{ .FieldName }}({{ .FieldName }} {{ .TypeStr }}) {
-{{- if .SetIdempotent }}
-	if this.{{ .FieldName }} == {{ .FieldName }} {
-		return
-	}
-{{- end }}
 	this.{{ .FieldName }} = {{ .FieldName }}
 {{- if .SetDirtyMethod }}
 	this.{{ .SetDirtyMethod }}() // 需业务层实现此方法
@@ -74,10 +69,8 @@ func (g *BoolGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte,
 	// dirty 注入：计算每个写方法的有效 dirty 方法名
 	effectiveDM := model.EffectiveDirtyMethod(f, s)
 	setDirtyMethod := ""
-	setIdempotent := false
 	if setField {
 		setDirtyMethod = effectiveDM
-		setIdempotent = setDirtyMethod != "" && f.Type.IsComparable
 	}
 	toggleDirtyMethod := ""
 	if toggle {
@@ -95,7 +88,6 @@ func (g *BoolGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte,
 		"Toggle":            toggle,
 		"Any":               getField || setField || toggle,
 		"SetDirtyMethod":    setDirtyMethod,
-		"SetIdempotent":     setIdempotent,
 		"ToggleDirtyMethod": toggleDirtyMethod,
 	})
 	if err != nil {
