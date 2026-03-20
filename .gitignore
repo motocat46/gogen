@@ -37,6 +37,9 @@ Thumbs.db
 # Superpowers workflow artifacts (local process files, not project docs)
 docs/superpowers/
 
+# Git worktrees
+.worktrees/
+
 # Project specific
 # Built binary (same name as the project)
 gogen
