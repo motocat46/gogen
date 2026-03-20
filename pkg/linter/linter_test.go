@@ -36,8 +36,8 @@ func TestLint(t *testing.T) {
 		{
 			name:       "矛盾组合",
 			subdir:     "contradictions",
-			wantErrors: 3, // readonly+writeonly, -+plain, readonly+dirty 同时触发 dirty 方法不存在检查
-			wantWarns:  1, // readonly+dirty
+			wantErrors: 2, // readonly+writeonly, -+plain
+			wantWarns:  1, // readonly+dirty（fixture 提供了 MakeDirty，checkDirtyRef 通过，只剩矛盾组合 Warning）
 		},
 		{
 			name:       "dirty 方法不存在",
