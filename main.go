@@ -33,6 +33,7 @@ import (
 	"github.com/motocat46/gogen/pkg/analyzer"
 	"github.com/motocat46/gogen/pkg/config"
 	"github.com/motocat46/gogen/pkg/generator"
+	"github.com/motocat46/gogen/pkg/linter"
 	"github.com/motocat46/gogen/pkg/loader"
 	"github.com/motocat46/gogen/pkg/writer"
 )
@@ -346,6 +347,10 @@ func init() {
 	checkCmd.Flags().StringVar(&fileSuffix, "suffix", writer.DefaultSuffix, "生成文件名后缀（需与生成时保持一致）")
 	checkCmd.Flags().StringArrayVar(&excludePaths, "exclude", nil, "额外排除路径（可多次指定）")
 	checkCmd.Flags().BoolVar(&noDefaultExcludes, "no-default-excludes", false, "禁用默认排除（vendor、testdata、mock、mocks）")
+
+	rootCmd.AddCommand(lintCmd)
+	lintCmd.Flags().StringArrayVar(&excludePaths, "exclude", nil, "额外排除路径（可多次指定）")
+	lintCmd.Flags().BoolVar(&noDefaultExcludes, "no-default-excludes", false, "禁用默认排除（vendor、testdata、mock、mocks）")
 }
 
 // versionCmd 打印版本号后退出。
@@ -603,6 +608,73 @@ func runCheck(cmd *cobra.Command, args []string) error {
 		fmt.Fprintf(os.Stderr, "   %s\n", p)
 	}
 	return fmt.Errorf("%d 个生成文件已过期", len(outdated))
+}
+
+// lintCmd 对 gogen tag 和注解做静态检查，不生成任何代码。
+var lintCmd = &cobra.Command{
+	Use:           "lint [patterns...]",
+	Short:         "检查 gogen tag 和注解的有效性（不生成代码）",
+	SilenceUsage:  true,
+	SilenceErrors: true,
+	Long: `lint 对指定包中所有 struct 的 gogen tag 和文档注释注解做静态检查：
+
+  - 拼写错误：gogen:"raedonly" 等未知选项（附近似建议）
+  - 矛盾组合：readonly+writeonly、-+其他选项
+  - 无效组合：readonly 字段上的 dirty tag（dirty 注入无法生效）
+  - dirty 方法引用：gogen:dirty=XXX 或字段级 dirty=XXX 指定的方法不存在于方法集
+
+退出码：无问题时为 0，发现任何 Error 级别问题时为 1。`,
+	Args: cobra.MinimumNArgs(1),
+	RunE: runLint,
+}
+
+func runLint(cmd *cobra.Command, args []string) error {
+	dir, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("获取工作目录失败: %w", err)
+	}
+
+	fileCfg, err := config.Load(dir)
+	if err != nil {
+		return err
+	}
+
+	// 合并排除路径（配置文件 + CLI，CLI 优先追加）
+	mergedExcludes := append(fileCfg.Excludes, excludePaths...)
+	finalExcludes := buildExcludePaths(dir, mergedExcludes, noDefaultExcludes)
+
+	issues, err := linter.Lint(dir, linter.Config{
+		ExcludePaths: finalExcludes,
+	}, args...)
+	if err != nil {
+		return fmt.Errorf("lint 失败: %w", err)
+	}
+
+	hasError := false
+	for _, iss := range issues {
+		fmt.Fprintf(cmd.OutOrStdout(), "%s\n", iss)
+		if iss.Severity == linter.Error {
+			hasError = true
+		}
+	}
+
+	if hasError {
+		return fmt.Errorf("lint 发现 %d 个问题", countLintErrors(issues))
+	}
+	if len(issues) == 0 {
+		fmt.Fprintln(cmd.OutOrStdout(), "lint: 未发现问题")
+	}
+	return nil
+}
+
+func countLintErrors(issues []linter.Issue) int {
+	n := 0
+	for _, iss := range issues {
+		if iss.Severity == linter.Error {
+			n++
+		}
+	}
+	return n
 }
 
 func main() {
