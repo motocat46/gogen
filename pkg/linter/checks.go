@@ -208,7 +208,7 @@ type docAnnotations struct {
 // parseDocAnnotations 从结构体文档注释中解析 gogen 注解。
 func parseDocAnnotations(doc string) docAnnotations {
 	var ann docAnnotations
-	for _, line := range strings.Split(doc, "\n") {
+	for line := range strings.SplitSeq(doc, "\n") {
 		line = strings.TrimSpace(line)
 		switch {
 		case line == "gogen:plain":
@@ -245,7 +245,7 @@ func methodSetContains(named *types.Named, methodName string) bool {
 // splitOptions 将 tag 值按逗号分割，返回清理空格后的选项列表。
 func splitOptions(tagVal string) []string {
 	var opts []string
-	for _, p := range strings.Split(tagVal, ",") {
+	for p := range strings.SplitSeq(tagVal, ",") {
 		if p = strings.TrimSpace(p); p != "" {
 			opts = append(opts, p)
 		}
