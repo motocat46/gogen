@@ -321,3 +321,26 @@ dirty 注入已解决"有变化时通知"的核心需求。观察者模式的额
 
 **决策：不实现**
 gogen 的定位是 Go 访问器代码生成器，输入和输出均为 Go 源码。跨语言生成需要维护类型映射表、处理目标语言的模块系统，且存在 int64 精度等语言边界问题。该需求已有成熟的独立工具（tygo、go-typescript、protobuf+grpc-gateway 等），不在 gogen 的边界内。
+
+---
+
+## D-020 不生成 Clone() / DeepCopy() 方法
+
+**背景**
+讨论过为含 slice/map/pointer 字段的结构体生成深拷贝方法，解决手写深拷贝繁琐的问题。
+
+**决策：不实现**
+Go 生态中已有专为此设计的成熟工具 [k8s.io/code-generator/cmd/deepcopy-gen](https://github.com/kubernetes/code-generator)，广泛用于 k8s 生态及各类 Go 项目。该工具支持递归深拷贝、`+k8s:deepcopy-gen` 注解控制、接口适配等完整能力，gogen 重新实现收益极低。有深拷贝需求的项目应直接引入 deepcopy-gen。
+
+---
+
+## D-021 不生成 Equal() 方法
+
+**背景**
+讨论过生成 `Equal(other *T) bool` 逐字段比较方法，用于测试断言和变更检测。
+
+**决策：暂不实现**
+- 实际需要结构体级 Equal() 的场景较少；测试中更常用 `reflect.DeepEqual` 或 `cmp.Equal`（google/go-cmp）
+- 浅比较与深比较语义取舍复杂（slice/map 元素是否递归比较、pointer 是地址比较还是值比较）
+- `func` / `chan` 字段无法比较，需要跳过规则，引入额外设计复杂度
+- 待有明确高频需求时再重新评估。
