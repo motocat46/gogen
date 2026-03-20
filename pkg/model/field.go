@@ -40,14 +40,16 @@ type FieldConfig struct {
 }
 
 // ParseFieldConfig 从原始 struct tag 字符串解析 FieldConfig。
-// rawTag 为完整的 tag 字符串，如 `json:"name" gogen:"readonly"`
-func ParseFieldConfig(rawTag string) FieldConfig {
+// rawTag 为完整的 tag 字符串，如 `json:"name" gogen:"readonly"`。
+// 第二个返回值为无法识别的选项列表，调用方可据此打印警告。
+func ParseFieldConfig(rawTag string) (FieldConfig, []string) {
 	val := reflect.StructTag(rawTag).Get("gogen")
 	if val == "" {
-		return FieldConfig{}
+		return FieldConfig{}, nil
 	}
 
 	cfg := FieldConfig{}
+	var unknown []string
 	for p := range strings.SplitSeq(val, ",") {
 		p = strings.TrimSpace(p)
 		switch p {
@@ -68,10 +70,13 @@ func ParseFieldConfig(rawTag string) FieldConfig {
 				if name != "" {
 					cfg.DirtyMethod = name
 				}
+				// dirty= 无方法名：静默忽略（gogen lint 会明确报告）
+			} else if p != "" {
+				unknown = append(unknown, p)
 			}
 		}
 	}
-	return cfg
+	return cfg, unknown
 }
 
 // FieldDef 描述结构体中一个字段的完整信息

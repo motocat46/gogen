@@ -80,7 +80,7 @@ func TestParseFieldConfig(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cfg := model.ParseFieldConfig(tt.rawTag)
+			cfg, _ := model.ParseFieldConfig(tt.rawTag)
 			if cfg.Skip != tt.wantSkip {
 				t.Errorf("Skip = %v, want %v", cfg.Skip, tt.wantSkip)
 			}
@@ -95,12 +95,42 @@ func TestParseFieldConfig(t *testing.T) {
 }
 
 func TestParseFieldConfigOverride(t *testing.T) {
-	cfg := model.ParseFieldConfig(`gogen:"override"`)
+	cfg, _ := model.ParseFieldConfig(`gogen:"override"`)
 	if !cfg.Override {
 		t.Error("override tag 应设置 Override=true")
 	}
 	if cfg.Skip || cfg.Readonly || cfg.WriteOnly || cfg.Plain {
 		t.Error("override tag 不应影响其他字段")
+	}
+}
+
+func TestParseFieldConfig_unknownOptions(t *testing.T) {
+	cases := []struct {
+		name    string
+		rawTag  string
+		wantLen int
+		wantOpt string
+	}{
+		{"无未知选项", `gogen:"readonly"`, 0, ""},
+		{"单个未知选项", `gogen:"raedonly"`, 1, "raedonly"},
+		{"多个未知选项", `gogen:"foo,bar"`, 2, "foo"},
+		{"dirty= 空值不计入未知", `gogen:"dirty="`, 0, ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, unknown := model.ParseFieldConfig(tc.rawTag)
+			if len(unknown) != tc.wantLen {
+				t.Errorf("unknown 长度 = %d, want %d（got %v）", len(unknown), tc.wantLen, unknown)
+			}
+			if tc.wantOpt != "" && (len(unknown) == 0 || unknown[0] != tc.wantOpt) {
+				t.Errorf("unknown[0] = %q, want %q", func() string {
+					if len(unknown) > 0 {
+						return unknown[0]
+					}
+					return ""
+				}(), tc.wantOpt)
+			}
+		})
 	}
 }
 
@@ -258,7 +288,7 @@ func TestParseFieldConfig_dirty(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := model.ParseFieldConfig(tc.rawTag)
+			got, _ := model.ParseFieldConfig(tc.rawTag)
 			if got.DirtyMethod != tc.wantDM {
 				t.Errorf("DirtyMethod = %q, want %q", got.DirtyMethod, tc.wantDM)
 			}

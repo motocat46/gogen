@@ -27,6 +27,7 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -230,14 +231,27 @@ func analyzeFields(
 
 		// 解析 struct tag
 		rawTag := ""
+		var tagPos token.Position
 		if astField.Tag != nil {
 			// Tag.Value 包含反引号，去掉后得到原始 tag 字符串
 			rawTag = strings.Trim(astField.Tag.Value, "`")
+			tagPos = pkg.Fset.Position(astField.Tag.Pos())
 		}
-		cfg := model.ParseFieldConfig(rawTag)
+		cfg, unknownOpts := model.ParseFieldConfig(rawTag)
 		// 结构体级 plain 标注向下传播（字段级 Skip 不受影响）
 		if structPlain && !cfg.Skip {
 			cfg.Plain = true
+		}
+		// 打印未知选项警告（字段名在 astField.Names 中，可能多个，取第一个作为提示）
+		if len(unknownOpts) > 0 {
+			firstName := ""
+			if len(astField.Names) > 0 {
+				firstName = astField.Names[0].Name
+			}
+			for _, opt := range unknownOpts {
+				fmt.Fprintf(os.Stderr, "%s: [Warning] 字段 %q: gogen tag 包含未知选项 %q\n",
+					tagPos, firstName, opt)
+			}
 		}
 
 		// 解析注释

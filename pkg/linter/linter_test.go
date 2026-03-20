@@ -62,7 +62,6 @@ func TestLint(t *testing.T) {
 
 			var errors, warns int
 			for _, iss := range issues {
-				t.Logf("  %s", iss)
 				if iss.Severity == linter.Error {
 					errors++
 				} else {
@@ -70,6 +69,11 @@ func TestLint(t *testing.T) {
 				}
 			}
 
+			if errors != tc.wantErrors || warns != tc.wantWarns {
+				for _, iss := range issues {
+					t.Logf("  %s", iss)
+				}
+			}
 			if errors != tc.wantErrors {
 				t.Errorf("Error 数量：got %d, want %d", errors, tc.wantErrors)
 			}
