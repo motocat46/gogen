@@ -14,6 +14,7 @@
 
 - **`Reset()` 生成**：为所有结构体自动生成 `Reset()` 方法，将所有字段重置为零值（slice/map 重置为 nil 释放内存），语义与 `proto.Reset()` 一致。已有手写或嵌入提升的 `Reset()` 时静默跳过。
 - **Dirty 注入**（opt-in）：为写方法末尾自动注入业务层脏标记调用。支持三种触发方式：自动检测 `MakeDirty()`、结构体注解 `gogen:dirty`、自定义方法名 `gogen:dirty=MarkChanged`。支持字段级覆盖和结构体级 `gogen:nodirty` 禁用。
+- **`gogen lint` 子命令**：静态检查 struct tag 和注解；捕获拼写错误（附近似建议）、矛盾组合（`readonly+writeonly`）、无效组合（`readonly+dirty`）、dirty 方法引用错误；Error 级别问题时以非零退出码退出，可接入 CI。
 
 ### 内部变更
 

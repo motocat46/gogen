@@ -149,6 +149,7 @@ Flags:
   gogen version               打印版本号
   gogen init                  在当前目录生成 .gogen.yaml 配置文件模板
   gogen check [patterns...]   验证生成文件是否最新，不写入（CI 适用，过期则非零退出）
+  gogen lint [patterns...]    检查 gogen tag 和注解有效性（不生成代码，有 Error 级诊断时非零退出）
 ```
 
 patterns 格式与 `go/packages` 一致：`.`、`./...`、`pkg/model`，也支持直接传入 `.go` 文件路径。
@@ -210,6 +211,19 @@ generate:
 ```bash
 # 或直接使用已安装的 gogen
 gogen check ./...   # 生成文件过期时以非零状态退出
+```
+
+**Lint 集成**：使用 `gogen lint` 静态检查 struct tag 和注解，可在 CI 中接入：
+
+```yaml
+# GitHub Actions 示例
+- name: Lint gogen tags
+  run: go run github.com/motocat46/gogen lint ./...
+```
+
+```bash
+# 或直接使用已安装的 gogen
+gogen lint ./...    # tag/注解有 Error 级别问题时以非零状态退出
 ```
 
 ## Dirty 注入

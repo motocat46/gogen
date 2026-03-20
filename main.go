@@ -639,6 +639,10 @@ func runLint(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	if !cmd.Flags().Changed("no-default-excludes") && fileCfg.NoDefaultExcludes {
+		noDefaultExcludes = fileCfg.NoDefaultExcludes
+	}
+
 	// 合并排除路径（配置文件 + CLI，CLI 优先追加）
 	mergedExcludes := append(fileCfg.Excludes, excludePaths...)
 	finalExcludes := buildExcludePaths(dir, mergedExcludes, noDefaultExcludes)
