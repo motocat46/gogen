@@ -249,8 +249,13 @@ func analyzeFields(
 				firstName = astField.Names[0].Name
 			}
 			for _, opt := range unknownOpts {
-				fmt.Fprintf(os.Stderr, "%s: [Warning] 字段 %q: gogen tag 包含未知选项 %q\n",
-					tagPos, firstName, opt)
+				if opt == "dirty=" {
+					fmt.Fprintf(os.Stderr, "%s: [Warning] 字段 %q: gogen tag \"dirty=\" 未指定方法名，dirty 注入已被忽略\n",
+						tagPos, firstName)
+				} else {
+					fmt.Fprintf(os.Stderr, "%s: [Warning] 字段 %q: gogen tag 包含未知选项 %q\n",
+						tagPos, firstName, opt)
+				}
 			}
 		}
 

@@ -69,8 +69,10 @@ func ParseFieldConfig(rawTag string) (FieldConfig, []string) {
 			} else if name, ok := strings.CutPrefix(p, "dirty="); ok {
 				if name != "" {
 					cfg.DirtyMethod = name
+				} else {
+					// dirty= 无方法名：加入 unknown 通知调用方打印 Warning
+					unknown = append(unknown, "dirty=")
 				}
-				// dirty= 无方法名：静默忽略（gogen lint 会明确报告）
 			} else if p != "" {
 				unknown = append(unknown, p)
 			}

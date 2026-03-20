@@ -114,7 +114,7 @@ func TestParseFieldConfig_unknownOptions(t *testing.T) {
 		{"无未知选项", `gogen:"readonly"`, 0, ""},
 		{"单个未知选项", `gogen:"raedonly"`, 1, "raedonly"},
 		{"多个未知选项", `gogen:"foo,bar"`, 2, "foo"},
-		{"dirty= 空值不计入未知", `gogen:"dirty="`, 0, ""},
+		{"dirty= 空值返回哨兵", `gogen:"dirty="`, 1, "dirty="},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
