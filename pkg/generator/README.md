@@ -171,11 +171,12 @@ type MethodGenerator interface {
 | 2 | `gogen:"dirty=XXX"`（字段 tag）| 该字段使用指定方法名覆盖结构体级 |
 | 3 | 结构体级 dirty 方法 | 所有字段共享 |
 
-### 幂等检查
+### 注入范围
 
-- **Set 类方法**（SetField/SetFieldAt）：若字段类型可比较（`IsComparable`），有 dirty 方法时，生成 `if current == new { return }` 前置检查
-- **集合写方法**（Append/Delete/SetVal/DeleteKey）：不做幂等检查，语义上必须更新
-- **Ensure**：不注入 dirty（惰性初始化自身具有幂等性）
+- **Set 类方法**（SetField/SetFieldAt）：直接注入，无幂等检查
+- **数值运算方法**（AddField/SubField）：直接注入
+- **集合写方法**（Append/Delete/SetVal/DeleteKey）：直接注入
+- **Ensure**：不注入（惰性初始化自身具有幂等性）
 
 ### 示例
 
