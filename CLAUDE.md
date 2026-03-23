@@ -31,15 +31,15 @@ CLI (main.go + cobra)
 
 ### Supported Field Types
 
-| Kind | 生成方法 |
+| Kind | 生成方法（完整列表见 [pkg/generator/README.md](pkg/generator/README.md)）|
 |---|---|
-| basic（含 interface/func） | Get/Set |
-| pointer | Get/Set |
-| struct | Get/Set |
-| generic instance | Get/Set |
-| slice | Elem/Len/Cap/Range/Add/Del/Copy |
-| array | Elem/Len/Range/SetElem |
-| map | Val/Len/Range/SetKV/DelKV/Copy/Ensure |
+| basic（含 interface/func） | Get / Set |
+| pointer | Get / Set |
+| struct | Get / Set |
+| generic instance | Get / Set |
+| slice | GetAt / Len / Range / Has / Copy / SetAt / Append / DeleteAt |
+| array | Get / GetAt / Len / Range / SetAt |
+| map | Val / ValOrDefault / Len / Range / Has / HasKey / Keys / Copy / Ensure / SetVal / DeleteKey |
 | chan | 跳过（封装弊大于利） |
 
 ## Development Commands
