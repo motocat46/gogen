@@ -37,9 +37,9 @@ CLI (main.go + cobra)
 | pointer | Get/Set |
 | struct | Get/Set |
 | generic instance | Get/Set |
-| slice | Elem/Len/Cap/Range/Add/Del |
+| slice | Elem/Len/Cap/Range/Add/Del/Copy |
 | array | Elem/Len/Range/SetElem |
-| map | Val/Range/SetKV/DelKV |
+| map | Val/Len/Range/SetKV/DelKV/Copy/Ensure |
 | chan | 跳过（封装弊大于利） |
 
 ## Development Commands
