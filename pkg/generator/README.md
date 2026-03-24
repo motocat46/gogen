@@ -149,60 +149,46 @@ type MethodGenerator interface {
 
 | 方法 | 签名 | 说明 |
 |------|------|------|
-| `Reset()` | `Reset()` | `*this = T{}`，slice/map 重置为 nil；若结构体启用了 dirty 注入，末尾追加 dirty 调用 |
+| `Reset()` | `Reset()` | `*this = T{}`，slice/map 重置为 nil；若启用了 dirty tracking，末尾追加 dirty 调用 |
+| `Modify()` | `Modify(fn func(*T))` | dirty tracking 唯一变更入口；fn 完成后调用 dirty 方法，fn panic 则不调用。仅在启用 dirty tracking 时生成 |
 
 已有手写或提升的 `Reset()` 时，静默跳过，不覆盖。
 
-## Dirty 注入
+## Dirty Tracking
 
-为写方法末尾自动注入业务层脏标记调用，减少手写样板。**默认不注入**（opt-out 语义）。
+生成 `Modify(fn func(*T))` 作为唯一的变更入口（由 `ModifyGenerator` 实现）。**默认不生成**（opt-in）。
 
-### 触发条件（三选一）
+### 触发条件
 
-1. **自动检测**：结构体方法集中包含 `MakeDirty()` 方法（通过嵌入提升或手写）
-2. **显式配置**：结构体文档注释含 `// gogen:dirty`（使用 `MakeDirty()`）
-3. **自定义方法名**：文档注释含 `// gogen:dirty=MarkChanged`
+| 条件 | 说明 |
+|------|------|
+| 自动检测 | 结构体方法集包含零参 `MakeDirty()`（含嵌入提升） |
+| `// gogen:dirty` | 显式启用，使用 `MakeDirty()` |
+| `// gogen:dirty=MarkChanged` | 显式启用，自定义方法名 |
+| `// gogen:nodirty` | 禁用（最高优先级） |
+| `// gogen:modify=Apply` | 自定义生成的方法名，默认为 `Modify` |
 
-### 三层优先级（高→低）
-
-| 优先级 | 配置方式 | 说明 |
-|--------|---------|------|
-| 1 | `// gogen:nodirty`（结构体注解）| 禁用所有注入，字段级 tag 也失效 |
-| 2 | `gogen:"dirty=XXX"`（字段 tag）| 该字段使用指定方法名覆盖结构体级 |
-| 3 | 结构体级 dirty 方法 | 所有字段共享 |
-
-### 注入范围
-
-- **Set 类方法**（SetField/SetFieldAt）：直接注入，无幂等检查
-- **数值运算方法**（AddField/SubField）：直接注入
-- **集合写方法**（Append/Delete/SetVal/DeleteKey）：直接注入
-- **Ensure**：不注入（惰性初始化自身具有幂等性）
-
-### 示例
+### 生成结果
 
 ```go
-// 自动检测：嵌入含 MakeDirty() 的类型
-type Player struct {
-    DirtyBase      // 持有 MakeDirty()
-    Gold  int64
-    Tags  []string
+// 启用 dirty tracking 后生成：
+func (this *Player) Modify(fn func(*Player)) {
+    fn(this)
+    this.MakeDirty()
 }
-// 生成：SetGold 含幂等检查 + MakeDirty()；AppendTags 直接 MakeDirty()
+```
 
-// gogen:dirty=MarkChanged
-// 自定义方法名
-type Entity struct {
-    Name string
-}
-func (e *Entity) MarkChanged() {}
+fn 执行完毕后调用 dirty 方法；若 fn panic，dirty 方法不调用，panic 继续传播。
 
-// gogen:nodirty
-// 禁用注入
-type ReadOnlyView struct {
-    DirtyBase
-    Score float64
+### 与 Reset 的交互
+
+启用 dirty tracking 时，`Reset()` 末尾会追加 dirty 调用：
+
+```go
+func (this *Player) Reset() {
+    *this = Player{}
+    this.MakeDirty()
 }
-// 生成：SetScore 无任何 dirty 调用
 ```
 
 ## 注意事项
@@ -210,5 +196,6 @@ type ReadOnlyView struct {
 - 生成的代码**不含** `package` 声明和 `import`，由 `GenerateStruct` 统一添加文件头，由 `writer` 层通过 `goimports` 自动推断 import
 - 生成文件不含时间戳，确保相同输入在任何环境产生相同字节（幂等性）
 - 方法名冲突检查（字段名、手写方法、提升方法）由 `model.StructDef.CanGenerateMethod` 完成，生成器通过 `resolveCanGen` 调用
+- `ModifyGenerator` 使用 `CanGenerateMethodOverride` 而非 `CanGenerateMethod`，允许覆盖嵌入类型提升的同名方法（如 `DirtyBase.Modify`），并打印 Warning 提示
 - `KindUnsupported`（chan）不注册任何生成器，会被静默跳过
-- 嵌入 dirty 基础类型时，若基础类型自身也生成了 `Reset()`，其提升方法会阻止嵌入结构体生成自己的 `Reset()`。解决方案：为基础类型手写空的 `Reset()` 或让结构体自行实现 `MakeDirty()` 而不依赖嵌入
+- 嵌入 dirty 基础类型时，若基础类型自身也生成了 `Reset()`，其提升方法会阻止嵌入结构体生成自己的 `Reset()`。解决方案：为基础类型手写空的 `Reset()`

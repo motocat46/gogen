@@ -10,7 +10,7 @@
 - 增量生成：文件内容未变时跳过写入
 - 孤儿文件清理：结构体删除后自动清理对应的生成文件
 - `Reset()` 方法生成：将所有字段重置为零值，slice/map 重置为 nil，释放底层内存（语义与 `proto.Reset()` 一致）
-- Dirty 注入（opt-in）：为写方法末尾自动注入业务层脏标记调用；支持自动检测 `MakeDirty()`、结构体注解、字段级 tag 三种触发方式
+- Dirty tracking（opt-in）：生成 `Modify(fn func(*T))` 作为唯一变更入口，fn 完成后自动调用业务层 dirty 方法；支持自动检测 `MakeDirty()`、结构体注解两种触发方式
 - 支持 `.gogen.yaml` 配置文件
 - 与 `//go:generate` 无缝集成
 
@@ -67,7 +67,8 @@ gogen --verbose ./...
 
 | 方法 | 签名 | 说明 |
 |------|------|------|
-| `Reset()` | `Reset()` | 将所有字段重置为零值；若结构体启用了 dirty 注入，末尾追加 dirty 调用。已有手写或提升的 `Reset()` 时静默跳过 |
+| `Reset()` | `Reset()` | 将所有字段重置为零值；若启用了 dirty tracking，末尾追加 dirty 调用。已有手写或提升的 `Reset()` 时静默跳过 |
+| `Modify()` | `Modify(fn func(*T))` | dirty tracking 的唯一变更入口；fn 执行完毕后自动调用 dirty 方法，若 fn panic 则不调用。仅在启用 dirty tracking 时生成 |
 
 ## struct tag 控制
 
@@ -226,25 +227,21 @@ gogen check ./...   # 生成文件过期时以非零状态退出
 gogen lint ./...    # tag/注解有 Error 级别问题时以非零状态退出
 ```
 
-## Dirty 注入
+## Dirty Tracking
 
-为写方法末尾自动注入业务层脏标记调用，减少手写样板。**默认不注入（opt-in）**。
+生成 `Modify(fn func(*T))` 作为唯一的变更入口。调用方在 fn 内修改结构体任意字段（包括嵌入的自定义结构体和第三方类型），fn 执行完毕后 gogen 统一调用 dirty 方法。**默认不生成（opt-in）**。
 
-### 触发方式（三选一）
+### 触发方式
 
-1. **自动检测**：结构体方法集中包含零参 `MakeDirty()` 方法（含通过嵌入提升的）
-2. **结构体注解**：文档注释含 `// gogen:dirty`（使用默认方法名 `MakeDirty()`）
-3. **自定义方法名**：文档注释含 `// gogen:dirty=MarkChanged`
+| 方式 | 写法 | 说明 |
+|------|------|------|
+| 自动检测 | 结构体方法集包含零参 `MakeDirty()` | 含通过嵌入提升的 |
+| 显式注解 | `// gogen:dirty` | 使用默认方法名 `MakeDirty()` |
+| 自定义方法名 | `// gogen:dirty=MarkChanged` | 指定业务层方法名 |
+| 禁用 | `// gogen:nodirty` | 最高优先级，覆盖自动检测 |
+| 自定义 Modify 名 | `// gogen:modify=Apply` | 默认生成 `Modify()`，可改为任意名称 |
 
-### 三层优先级（高→低）
-
-| 优先级 | 配置 | 说明 |
-|--------|------|------|
-| 1 | `// gogen:nodirty`（结构体注解）| 禁用所有注入，字段级 tag 也失效 |
-| 2 | `gogen:"dirty=XXX"`（字段 tag）| 该字段使用指定方法名，覆盖结构体级 |
-| 3 | 结构体级 dirty 方法 | 所有字段共享 |
-
-### 示例
+### 使用方式
 
 ```go
 // 场景 1：自动检测（嵌入含 MakeDirty() 的类型）
@@ -252,42 +249,62 @@ type DirtyBase struct{}
 func (d *DirtyBase) MakeDirty() {}
 
 type Player struct {
-    DirtyBase        // gogen 自动检测到 MakeDirty()，注入所有写方法
+    DirtyBase   // gogen 自动检测到 MakeDirty()
     Gold  int64
-    Tags  []string
+    Queue *ItemQueue  // 第三方/自定义类型，同样支持
 }
 
 // 生成：
-func (p *Player) SetGold(Gold int64) {
-    p.Gold = Gold
-    p.MakeDirty()
-}
-func (p *Player) AppendTags(elems ...string) {
-    p.Tags = append(p.Tags, elems...)
+func (p *Player) Modify(fn func(*Player)) {
+    fn(p)
     p.MakeDirty()
 }
 
-// 场景 2：自定义方法名
+// 调用：
+player.Modify(func(p *Player) {
+    p.Gold += 100          // 基础类型
+    p.Queue.Enqueue(item)  // 自定义类型，无需额外处理
+})
+
+// 场景 2：自定义 dirty 方法名
 // gogen:dirty=MarkChanged
 type Entity struct {
     Name string
 }
 func (e *Entity) MarkChanged() {}
+// 生成：func (e *Entity) Modify(fn func(*Entity)) { fn(e); e.MarkChanged() }
 
-// 场景 3：禁用注入
+// 场景 3：禁用
 // gogen:nodirty
 type ReadOnlyView struct {
     DirtyBase
     Score float64
 }
-// 生成：SetScore 无任何 dirty 调用
+// 不生成 Modify()
 
-// 场景 4：字段级覆盖
+// 场景 4：自定义 Modify 方法名
 // gogen:dirty
-type Module struct {
-    Gold        int64
-    ModuleScore int64 `gogen:"dirty=MarkModule"` // 此字段使用 MarkModule()，其他字段用 MakeDirty()
+// gogen:modify=Apply
+type Command struct {
+    Target string
 }
+func (c *Command) MakeDirty() {}
+// 生成：func (c *Command) Apply(fn func(*Command)) { fn(c); c.MakeDirty() }
+```
+
+### 设计说明
+
+setter（`SetGold`、`AppendTags` 等）作为字段操作工具独立存在，不触发 dirty。
+所有需要标记 dirty 的修改统一通过 `Modify()` 完成：
+
+```go
+// ✓ 需要 dirty 时，走 Modify
+player.Modify(func(p *Player) {
+    p.SetGold(100)   // 或直接 p.Gold = 100，效果相同
+})
+
+// ✓ 只读或内部逻辑，直接用 setter/getter
+value := player.GetGold()
 ```
 
 ## 嵌入提升方法保护

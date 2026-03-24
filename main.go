@@ -88,7 +88,11 @@ struct tag / 注释控制：
   gogen:"override"  覆盖模式：忽略嵌入提升方法检查，强制生成该字段的访问器
 
 结构体注释控制（在结构体文档注释中添加）：
-  // gogen:plain    该结构体所有字段使用 plain 模式，无需逐字段打 tag
+  // gogen:plain              该结构体所有字段使用 plain 模式，无需逐字段打 tag
+  // gogen:dirty              启用 dirty tracking，自动检测 MakeDirty() 或使用默认名
+  // gogen:dirty=MarkChanged  启用 dirty tracking，指定 dirty 方法名
+  // gogen:nodirty            禁用 dirty tracking（最高优先级，覆盖自动检测）
+  // gogen:modify=Apply       自定义生成的 Modify() 方法名（默认 "Modify"）
 
 patterns 格式（同 go/packages）：
   .          当前目录
