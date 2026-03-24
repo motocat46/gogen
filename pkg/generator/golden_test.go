@@ -54,11 +54,12 @@ func normalizeForCompare(b []byte) []byte {
 }
 
 // goldenDir 返回 testdata/examples 目录的绝对路径。
-func goldenDir(t *testing.T) string {
-	t.Helper()
+// 接受 testing.TB 以便测试和基准均可使用。
+func goldenDir(tb testing.TB) string {
+	tb.Helper()
 	_, thisFile, _, ok := runtime.Caller(0)
 	if !ok {
-		t.Fatal("无法获取当前文件路径")
+		tb.Fatal("无法获取当前文件路径")
 	}
 	return filepath.Join(filepath.Dir(thisFile), "..", "..", "testdata", "examples")
 }
@@ -94,7 +95,7 @@ func TestGoldenFiles(t *testing.T) {
 	for _, s := range structs {
 		s := s
 		t.Run(s.Name, func(t *testing.T) {
-			got, err := reg.GenerateStruct(s)
+			got, err := reg.GenerateStruct(s, func(string) {})
 			if err != nil {
 				t.Fatalf("生成 %s 失败: %v", s.Name, err)
 			}

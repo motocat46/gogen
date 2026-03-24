@@ -45,7 +45,7 @@ func TestPlainMode(t *testing.T) {
 	reg := generator.NewRegistry()
 	for _, s := range structs {
 		if s.Name == "TagControl" {
-			code, genErr := reg.GenerateStruct(s)
+			code, genErr := reg.GenerateStruct(s, func(string) {})
 			if genErr != nil {
 				t.Fatalf("生成 TagControl 失败: %v", genErr)
 			}

@@ -152,7 +152,7 @@ type MethodGenerator interface {
 | `Reset()` | `Reset()` | `*this = T{}`，slice/map 重置为 nil；若启用了 dirty tracking，末尾追加 dirty 调用 |
 | `Modify()` | `Modify(fn func(*T))` | dirty tracking 唯一变更入口；fn 完成后调用 dirty 方法，fn panic 则不调用。仅在启用 dirty tracking 时生成 |
 
-已有手写或提升的 `Reset()` 时，静默跳过，不覆盖。
+手写的 `Reset()` 受保护，不会被覆盖，并打印 `[Info]` 说明原因（手写实现可能含自定义逻辑，gogen 不覆盖）；嵌入类型提升的 `Reset()` 会被静默覆盖（提升的实现只清零嵌入部分，不清零外层字段，几乎必然是错的）。
 
 ## Dirty Tracking
 
@@ -196,6 +196,5 @@ func (this *Player) Reset() {
 - 生成的代码**不含** `package` 声明和 `import`，由 `GenerateStruct` 统一添加文件头，由 `writer` 层通过 `goimports` 自动推断 import
 - 生成文件不含时间戳，确保相同输入在任何环境产生相同字节（幂等性）
 - 方法名冲突检查（字段名、手写方法、提升方法）由 `model.StructDef.CanGenerateMethod` 完成，生成器通过 `resolveCanGen` 调用
-- `ModifyGenerator` 使用 `CanGenerateMethodOverride` 而非 `CanGenerateMethod`，允许覆盖嵌入类型提升的同名方法（如 `DirtyBase.Modify`），并打印 Warning 提示
+- `ModifyGenerator` 和 `ResetGenerator` 均使用 `CanGenerateMethodOverride`，覆盖嵌入类型提升的同名方法时不打印 Warning——两者语义固定（`fn + dirty`、`*this = T{}`），覆盖提升方法必然正确，无需提醒
 - `KindUnsupported`（chan）不注册任何生成器，会被静默跳过
-- 嵌入 dirty 基础类型时，若基础类型自身也生成了 `Reset()`，其提升方法会阻止嵌入结构体生成自己的 `Reset()`。解决方案：为基础类型手写空的 `Reset()`

@@ -248,13 +248,23 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 			validPaths[outPath] = true
 			mu.Unlock()
 
-			code, err := reg.GenerateStruct(s)
+			// 缓冲诊断消息（[Warning]/[Info]），在 mu 保护下统一输出，
+			// 避免并发写 stderr 时与 stdout 的 ✅ 顺序错乱。
+			var diagMsgs []string
+			logFn := func(msg string) { diagMsgs = append(diagMsgs, msg) }
+
+			code, err := reg.GenerateStruct(s, logFn)
 			if err != nil {
 				return fmt.Errorf("生成 %s 失败: %w", s.Name, err)
 			}
 			if code == nil {
 				// 所有方法均已有手写实现或被跳过，无需生成文件；
 				// 若上次已生成过 _access.go，须删除，否则旧文件与手写方法重复声明导致编译错误。
+				mu.Lock()
+				for _, msg := range diagMsgs {
+					fmt.Fprintln(os.Stderr, msg)
+				}
+				mu.Unlock()
 				return writer.Clean(s, writerCfg)
 			}
 
@@ -276,6 +286,9 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 				if !dryRun {
 					// 内容未变，增量跳过（dry-run 模式下不计入）
 					mu.Lock()
+					for _, msg := range diagMsgs {
+						fmt.Fprintln(os.Stderr, msg)
+					}
 					skippedFiles++
 					mu.Unlock()
 				}
@@ -283,6 +296,9 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 			}
 
 			mu.Lock()
+			for _, msg := range diagMsgs {
+				fmt.Fprintln(os.Stderr, msg)
+			}
 			totalFiles++
 			totalMethods += methodCount
 			ds := dirStats[relDir]
@@ -574,7 +590,8 @@ func runCheck(cmd *cobra.Command, args []string) error {
 
 	for _, s := range structs {
 		g.Go(func() error {
-			code, err := reg.GenerateStruct(s)
+			// check 模式不需要诊断输出，传 no-op logger
+			code, err := reg.GenerateStruct(s, func(string) {})
 			if err != nil {
 				return fmt.Errorf("生成 %s 失败: %w", s.Name, err)
 			}

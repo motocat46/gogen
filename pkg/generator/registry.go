@@ -69,9 +69,13 @@ type MethodGenerator interface {
 
 // StructGenerator 是结构体级方法生成器接口，与 MethodGenerator 并列注册。
 // 生成阶段在字段级方法之后执行，结果追加至同一 *_access.go 文件。
+//
+// log 由调用方（GenerateStruct）提供，生成器通过它输出诊断消息（Warning/Info）。
+// 使用 log 而非直接写 os.Stderr，是为了让调用方控制输出时机和流，
+// 避免并发写入不同 fd 时的顺序不确定问题。
 type StructGenerator interface {
-	Name() string                                // 生成器标识，如 "reset"
-	Generate(s *model.StructDef) ([]byte, error) // 返回类型与 MethodGenerator 一致
+	Name() string                                              // 生成器标识，如 "reset"
+	Generate(s *model.StructDef, log func(string)) ([]byte, error) // log 用于输出诊断消息
 }
 
 // Registry 管理 TypeKind 到 MethodGenerator 的映射。
@@ -112,10 +116,13 @@ func (r *Registry) RegisterStruct(g StructGenerator) {
 
 // GenerateStruct 为一个结构体生成完整的访问器文件内容（包含文件头）。
 //
+// log 由调用方提供，生成器通过它输出诊断消息（Warning/Info）。
+// 调用方可在 mu 保护下统一刷出，避免并发写 stderr 时输出顺序不确定。
+//
 // 空结果判断规则（Phase 1 更新）：
 //   - 字段级方法体为空 且 结构体级方法体也为空 → 返回 nil，不生成文件
 //   - 即使所有字段被跳过，只要有结构体级方法（如 Reset），仍生成文件
-func (r *Registry) GenerateStruct(s *model.StructDef) ([]byte, error) {
+func (r *Registry) GenerateStruct(s *model.StructDef, log func(string)) ([]byte, error) {
 	// 生成字段级方法体
 	var body bytes.Buffer
 	for _, field := range s.ActiveFields() {
@@ -133,7 +140,7 @@ func (r *Registry) GenerateStruct(s *model.StructDef) ([]byte, error) {
 	// 生成结构体级方法体（如 Reset）
 	var structBody bytes.Buffer
 	for _, sg := range r.structGenerators {
-		code, err := sg.Generate(s)
+		code, err := sg.Generate(s, log)
 		if err != nil {
 			return nil, fmt.Errorf("生成结构体 %s 的 %s 方法失败: %w", s.Name, sg.Name(), err)
 		}

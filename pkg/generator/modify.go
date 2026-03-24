@@ -18,8 +18,6 @@ package generator
 
 import (
 	"bytes"
-	"fmt"
-	"os"
 	"text/template"
 
 	"github.com/motocat46/gogen/pkg/model"
@@ -52,7 +50,7 @@ func (g *ModifyGenerator) Name() string { return "modify" }
 // 条件：s.ModifyMethod 非空（由 analyzer 在分析阶段填充，dirty 未启用时为空）。
 // 若方法名已存在于手写文件或与字段名冲突，静默跳过。
 // 若覆盖了嵌入类型提升的同名方法，打印 Warning 提示用户确认行为是否符合预期。
-func (g *ModifyGenerator) Generate(s *model.StructDef) ([]byte, error) {
+func (g *ModifyGenerator) Generate(s *model.StructDef, log func(string)) ([]byte, error) {
 	if s.ModifyMethod == "" {
 		return nil, nil
 	}
@@ -60,13 +58,7 @@ func (g *ModifyGenerator) Generate(s *model.StructDef) ([]byte, error) {
 	// 典型场景：DirtyBase.Modify(fn func(*DirtyBase)) 被 Child.Modify(fn func(*Child)) 覆盖，
 	// 覆盖是正确行为（Child 的 Modify 签名更具体，更有用）。
 	// 仍然检查手写方法冲突（ManualMethods），保护用户自定义的 Modify 实现。
-	//
-	// 当提升方法来自非 dirty-base 的第三方嵌入类型时，覆盖可能出乎意料，因此打印 Warning。
-	if s.PromotedMethods[s.ModifyMethod] {
-		fmt.Fprintf(os.Stderr, "%s.%s: [Warning] 生成的 %s() 覆盖了嵌入类型提升的同名方法；"+
-			"若需保留原提升方法，请手写 %s() 或通过 gogen:modify=Xxx 改用其他名称\n",
-			s.PackagePath, s.Name, s.ModifyMethod, s.ModifyMethod)
-	}
+	// 注：不打印 Warning——Modify() 语义固定（fn + dirty），覆盖提升方法与 Reset() 一样是必然正确的行为。
 	if !s.CanGenerateMethodOverride(s.ModifyMethod) {
 		return nil, nil
 	}
