@@ -34,3 +34,9 @@ func (this *EmbedDeep) AddID(delta int) {
 func (this *EmbedDeep) SubID(delta int) {
 	this.ID -= delta
 }
+
+// Reset 将所有字段重置为零值。
+// slice 和 map 字段重置为 nil，释放底层内存。
+func (this *EmbedDeep) Reset() {
+	*this = EmbedDeep{}
+}

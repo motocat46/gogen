@@ -18,6 +18,7 @@ package generator
 
 import (
 	"bytes"
+	"fmt"
 	"text/template"
 
 	"github.com/motocat46/gogen/pkg/model"
@@ -46,10 +47,18 @@ type ResetGenerator struct{}
 func (g *ResetGenerator) Name() string { return "reset" }
 
 // Generate 生成 Reset() 方法代码。
-// 若 s.CanGenerateMethod("Reset") 返回 false（手写文件已有 Reset，或提升方法冲突），
-// 静默跳过，与现有字段生成器行为一致。
-func (g *ResetGenerator) Generate(s *model.StructDef) ([]byte, error) {
-	if !s.CanGenerateMethod("Reset") {
+// 使用 CanGenerateMethodOverride 而非 CanGenerateMethod：允许覆盖嵌入类型提升的 Reset()。
+// 理由：提升的 Reset() 只清零嵌入部分的字段，不会清零外层结构体的其他字段，几乎必然是错的；
+// 而生成的 *this = T{} 语义唯一且正确，无需 Warning——与 ModifyGenerator 不同，Reset 无歧义。
+// 手写的 Reset() 受保护：检测到时打印 [Info] 提示原因，不静默跳过，让用户明确知晓未生成的原因。
+func (g *ResetGenerator) Generate(s *model.StructDef, log func(string)) ([]byte, error) {
+	if s.ManualMethods["Reset"] {
+		log(fmt.Sprintf("%s.%s: [Info] 检测到手写 Reset()，跳过生成；手写实现可能包含自定义逻辑（非全字段清零），gogen 不覆盖",
+			s.PackagePath, s.Name))
+		return nil, nil
+	}
+	if !s.CanGenerateMethodOverride("Reset") {
+		// 唯一剩余情况：字段名与 Reset 冲突（极罕见）
 		return nil, nil
 	}
 	var buf bytes.Buffer

@@ -17,16 +17,11 @@
 package examples
 
 // ── 场景 1：自动检测（方法集含 MakeDirty()，无标注）──────────────────────
-// DirtyBase 是被嵌入的 dirty 基础类型，持有 dirty 状态。
-// 业务层负责实现 MakeDirty()，gogen 不注入任何字段。
-// Reset 手写实现，防止 gogen 生成 Reset 方法后被嵌入类型提升覆盖外层 Reset。
+// DirtyBase 是被嵌入的 dirty 基础类型。
+// 业务层实现 MakeDirty()，gogen 自动检测并为嵌入它的外层结构体生成 Modify() 和 Reset()。
 type DirtyBase struct{}
 
 func (d *DirtyBase) MakeDirty() {}
-
-// Reset 手写实现，防止 gogen 为 DirtyBase 生成 Reset（它本身无用户字段）。
-// 避免通过提升机制干扰嵌入它的结构体（如 ResetWithDirtyPlayer）的 Reset 生成。
-func (d *DirtyBase) Reset() {}
 
 // AutoDirtyPlayer 无任何 gogen 注解，但嵌入 DirtyBase，
 // 其方法集含 MakeDirty()，gogen 自动检测并注入。

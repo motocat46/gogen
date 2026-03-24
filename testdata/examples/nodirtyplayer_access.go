@@ -54,3 +54,9 @@ func (this *NoDirtyPlayer) AddScore(delta float64) {
 func (this *NoDirtyPlayer) SubScore(delta float64) {
 	this.Score -= delta
 }
+
+// Reset 将所有字段重置为零值。
+// slice 和 map 字段重置为 nil，释放底层内存。
+func (this *NoDirtyPlayer) Reset() {
+	*this = NoDirtyPlayer{}
+}
