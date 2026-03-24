@@ -52,26 +52,24 @@ func (e *CustomDirtyEntity) MarkChanged() {}
 // ── 场景 3：nodirty（最高优先级）────────────────────────────────────────
 
 // gogen:nodirty
-// NoDirtyPlayer 显式禁用 dirty 注入，即使嵌入了 DirtyBase，
-// 且字段带有 gogen:"dirty=X" tag，也不注入。
+// NoDirtyPlayer 显式禁用 dirty 注入，即使嵌入了 DirtyBase 也不生成 Modify()。
 type NoDirtyPlayer struct {
 	DirtyBase
-	Gold  int64 `gogen:"dirty=MarkGold"` // nodirty 最高优先级，此 tag 无效
+	Gold  int64
 	Score float64
 }
 
-// ── 场景 4：字段级覆盖 ──────────────────────────────────────────────────
+// ── 场景 4：自定义 Modify 方法名 ─────────────────────────────────────────
 
 // gogen:dirty
-// FieldOverrideEntity 结构体级使用 MakeDirty()，
-// 但 ModuleScore 字段覆盖为 MarkModule()。
+// gogen:modify=Apply
+// FieldOverrideEntity 验证 gogen:modify=Apply 注解将生成的方法名从 Modify 改为 Apply。
 type FieldOverrideEntity struct {
 	Gold        int64
-	ModuleScore int64 `gogen:"dirty=MarkModule"` // 覆盖结构体级
+	ModuleScore int64
 }
 
-func (e *FieldOverrideEntity) MakeDirty()  {}
-func (e *FieldOverrideEntity) MarkModule() {}
+func (e *FieldOverrideEntity) MakeDirty() {}
 
 // ── 场景 5：slice/map 写方法（无幂等检查，直接注入）──────────────────────
 

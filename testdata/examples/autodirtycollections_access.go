@@ -52,20 +52,17 @@ func (this *AutoDirtyCollections) GetTagsCopy() []string {
 // SetTagsAt 设置切片 Tags 中 index 位置的元素
 func (this *AutoDirtyCollections) SetTagsAt(index int, elem string) {
 	this.Tags[index] = elem
-	this.MakeDirty() // 需业务层实现此方法
 }
 
 // AppendTags 向切片 Tags 追加一个或多个元素
 func (this *AutoDirtyCollections) AppendTags(elems ...string) {
 	this.Tags = append(this.Tags, elems...)
-	this.MakeDirty() // 需业务层实现此方法
 }
 
 // DeleteTagsAt 删除切片 Tags 中 index 位置的元素，并清零释放的尾部槽位
 // 注意：会改变被删除元素之后所有元素的下标
 func (this *AutoDirtyCollections) DeleteTagsAt(index int) {
 	this.Tags = slices.Delete(this.Tags, index, index+1)
-	this.MakeDirty() // 需业务层实现此方法
 }
 
 // GetAttrsVal 获取 Attrs 中指定 key 的值，ok 表示 key 是否存在
@@ -132,13 +129,11 @@ func (this *AutoDirtyCollections) EnsureAttrs() map[string]int32 {
 // SetAttrsVal 设置 Attrs 中指定 key 的值
 func (this *AutoDirtyCollections) SetAttrsVal(key string, value int32) {
 	this.Attrs[key] = value
-	this.MakeDirty() // 需业务层实现此方法
 }
 
 // DeleteAttrsKey 删除 Attrs 中指定 key
 func (this *AutoDirtyCollections) DeleteAttrsKey(key string) {
 	delete(this.Attrs, key)
-	this.MakeDirty() // 需业务层实现此方法
 }
 
 // 数组 SetAt，元素 int32 可比较，有幂等检查
@@ -169,5 +164,11 @@ func (this *AutoDirtyCollections) RangeNums(fn func(index int, value int32) bool
 // SetNumsAt 设置数组 Nums 中 index 位置的元素
 func (this *AutoDirtyCollections) SetNumsAt(index int, elem int32) {
 	this.Nums[index] = elem
-	this.MakeDirty() // 需业务层实现此方法
+}
+
+// Modify 在 fn 中修改结构体内容，fn 执行完毕后自动调用 MakeDirty()，若 fn 发生 panic 则不调用。
+// 适用于所有类型的字段变更，包括嵌入的自定义结构体和第三方类型。
+func (this *AutoDirtyCollections) Modify(fn func(*AutoDirtyCollections)) {
+	fn(this)
+	this.MakeDirty()
 }

@@ -15,7 +15,6 @@
 
 package examples
 
-// nodirty 最高优先级，此 tag 无效
 // GetGold 获取 Gold
 func (this *NoDirtyPlayer) GetGold() int64 {
 	return this.Gold

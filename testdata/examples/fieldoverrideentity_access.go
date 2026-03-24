@@ -23,22 +23,18 @@ func (this *FieldOverrideEntity) GetGold() int64 {
 // SetGold 设置 Gold
 func (this *FieldOverrideEntity) SetGold(Gold int64) {
 	this.Gold = Gold
-	this.MakeDirty() // 需业务层实现此方法
 }
 
 // AddGold 将 Gold 增加 delta
 func (this *FieldOverrideEntity) AddGold(delta int64) {
 	this.Gold += delta
-	this.MakeDirty() // 需业务层实现此方法
 }
 
 // SubGold 将 Gold 减少 delta
 func (this *FieldOverrideEntity) SubGold(delta int64) {
 	this.Gold -= delta
-	this.MakeDirty() // 需业务层实现此方法
 }
 
-// 覆盖结构体级
 // GetModuleScore 获取 ModuleScore
 func (this *FieldOverrideEntity) GetModuleScore() int64 {
 	return this.ModuleScore
@@ -47,19 +43,16 @@ func (this *FieldOverrideEntity) GetModuleScore() int64 {
 // SetModuleScore 设置 ModuleScore
 func (this *FieldOverrideEntity) SetModuleScore(ModuleScore int64) {
 	this.ModuleScore = ModuleScore
-	this.MarkModule() // 需业务层实现此方法
 }
 
 // AddModuleScore 将 ModuleScore 增加 delta
 func (this *FieldOverrideEntity) AddModuleScore(delta int64) {
 	this.ModuleScore += delta
-	this.MarkModule() // 需业务层实现此方法
 }
 
 // SubModuleScore 将 ModuleScore 减少 delta
 func (this *FieldOverrideEntity) SubModuleScore(delta int64) {
 	this.ModuleScore -= delta
-	this.MarkModule() // 需业务层实现此方法
 }
 
 // Reset 将所有字段重置为零值。
@@ -67,4 +60,11 @@ func (this *FieldOverrideEntity) SubModuleScore(delta int64) {
 func (this *FieldOverrideEntity) Reset() {
 	*this = FieldOverrideEntity{}
 	this.MakeDirty() // 需业务层实现此方法
+}
+
+// Apply 在 fn 中修改结构体内容，fn 执行完毕后自动调用 MakeDirty()，若 fn 发生 panic 则不调用。
+// 适用于所有类型的字段变更，包括嵌入的自定义结构体和第三方类型。
+func (this *FieldOverrideEntity) Apply(fn func(*FieldOverrideEntity)) {
+	fn(this)
+	this.MakeDirty()
 }

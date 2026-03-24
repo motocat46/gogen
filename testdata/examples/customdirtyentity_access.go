@@ -23,7 +23,6 @@ func (this *CustomDirtyEntity) GetName() string {
 // SetName 设置 Name
 func (this *CustomDirtyEntity) SetName(Name string) {
 	this.Name = Name
-	this.MarkChanged() // 需业务层实现此方法
 }
 
 // GetLevel 获取 Level
@@ -34,19 +33,16 @@ func (this *CustomDirtyEntity) GetLevel() int32 {
 // SetLevel 设置 Level
 func (this *CustomDirtyEntity) SetLevel(Level int32) {
 	this.Level = Level
-	this.MarkChanged() // 需业务层实现此方法
 }
 
 // AddLevel 将 Level 增加 delta
 func (this *CustomDirtyEntity) AddLevel(delta int32) {
 	this.Level += delta
-	this.MarkChanged() // 需业务层实现此方法
 }
 
 // SubLevel 将 Level 减少 delta
 func (this *CustomDirtyEntity) SubLevel(delta int32) {
 	this.Level -= delta
-	this.MarkChanged() // 需业务层实现此方法
 }
 
 // Reset 将所有字段重置为零值。
@@ -54,4 +50,11 @@ func (this *CustomDirtyEntity) SubLevel(delta int32) {
 func (this *CustomDirtyEntity) Reset() {
 	*this = CustomDirtyEntity{}
 	this.MarkChanged() // 需业务层实现此方法
+}
+
+// Modify 在 fn 中修改结构体内容，fn 执行完毕后自动调用 MarkChanged()，若 fn 发生 panic 则不调用。
+// 适用于所有类型的字段变更，包括嵌入的自定义结构体和第三方类型。
+func (this *CustomDirtyEntity) Modify(fn func(*CustomDirtyEntity)) {
+	fn(this)
+	this.MarkChanged()
 }
