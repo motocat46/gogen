@@ -624,8 +624,7 @@ var lintCmd = &cobra.Command{
 
   - 拼写错误：gogen:"raedonly" 等未知选项（附近似建议）
   - 矛盾组合：readonly+writeonly、-+其他选项
-  - 无效组合：readonly 字段上的 dirty tag（dirty 注入无法生效）
-  - dirty 方法引用：gogen:dirty=XXX 或字段级 dirty=XXX 指定的方法不存在于方法集
+  - dirty 方法引用：结构体注解 gogen:dirty=XXX 指定的方法不存在于方法集
 
 退出码：无问题时为 0，发现任何 Error 级别问题时为 1。`,
 	Args: cobra.MinimumNArgs(1),

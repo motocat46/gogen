@@ -25,14 +25,15 @@ import (
 	"strings"
 )
 
-// knownOptions 是合法的 gogen tag 选项集合（不含 dirty=XXX 前缀形式）。
+// knownOptions 是合法的 gogen tag 选项集合。
+// 注：dirty tracking 配置已改为结构体级注解（gogen:dirty/nodirty/modify=），
+// 字段级 dirty tag 不再支持，出现时由 checkTagOptions 报告 Error。
 var knownOptions = map[string]bool{
 	"-":        true,
 	"readonly":  true,
 	"writeonly": true,
 	"plain":     true,
 	"override":  true,
-	"dirty":     true,
 }
 
 // checkStruct 对一个 struct 的所有字段做所有 lint 检查，返回发现的问题列表。
@@ -61,8 +62,7 @@ func checkStruct(fset *token.FileSet, typeSpec *ast.TypeSpec, named *types.Named
 		fieldName := field.Names[0].Name
 
 		issues = append(issues, checkTagOptions(pos, fieldName, tagVal)...)
-		issues = append(issues, checkTagCombinations(pos, fieldName, tagVal, ann)...)
-		issues = append(issues, checkDirtyRef(pos, fieldName, tagVal, named)...)
+		issues = append(issues, checkTagCombinations(pos, fieldName, tagVal)...)
 	}
 
 	// 检查结构体级 dirty 方法引用
@@ -78,17 +78,6 @@ func checkTagOptions(pos token.Position, fieldName, tagVal string) []Issue {
 		if knownOptions[opt] {
 			continue
 		}
-		if strings.HasPrefix(opt, "dirty=") {
-			if len(opt) == len("dirty=") {
-				// dirty= 有等号但无方法名：ParseFieldConfig 静默忽略，lint 明确告知
-				issues = append(issues, Issue{
-					Pos:      pos,
-					Severity: Warning,
-					Message:  fmt.Sprintf("字段 %s：`dirty=` 方法名为空，将被静默忽略（请用 `dirty` 或 `dirty=方法名`）", fieldName),
-				})
-			}
-			continue // dirty=XXX 形式（含空名）均跳过未知选项检查
-		}
 		// 尝试给出"你是否指的是"提示
 		msg := fmt.Sprintf("字段 %s：未知的 gogen tag 选项 %q", fieldName, opt)
 		if suggestion := suggest(opt); suggestion != "" {
@@ -100,16 +89,10 @@ func checkTagOptions(pos token.Position, fieldName, tagVal string) []Issue {
 }
 
 // checkTagCombinations 检查 gogen tag 选项组合是否有矛盾。
-func checkTagCombinations(pos token.Position, fieldName, tagVal string, ann docAnnotations) []Issue {
+func checkTagCombinations(pos token.Position, fieldName, tagVal string) []Issue {
 	opts := map[string]bool{}
-	dirtyMethod := ""
 	for _, opt := range splitOptions(tagVal) {
 		opts[opt] = true
-		if opt == "dirty" {
-			dirtyMethod = "MakeDirty"
-		} else if name, ok := strings.CutPrefix(opt, "dirty="); ok && name != "" {
-			dirtyMethod = name
-		}
 	}
 
 	var issues []Issue
@@ -132,48 +115,7 @@ func checkTagCombinations(pos token.Position, fieldName, tagVal string, ann docA
 		})
 	}
 
-	// readonly + dirty 无效（dirty 注入在 setter 中，readonly 无 setter）
-	if opts["readonly"] && dirtyMethod != "" {
-		issues = append(issues, Issue{
-			Pos:      pos,
-			Severity: Warning,
-			Message:  fmt.Sprintf("字段 %s：`readonly` 字段不生成 setter，`dirty` tag 无法生效", fieldName),
-		})
-	}
-
-	// 字段级 dirty=XXX 但结构体标注了 gogen:nodirty → 字段级 dirty 被压制，无效
-	if dirtyMethod != "" && ann.NoDirty {
-		issues = append(issues, Issue{
-			Pos:      pos,
-			Severity: Warning,
-			Message:  fmt.Sprintf("字段 %s：结构体标注了 gogen:nodirty，字段级 dirty tag 无效", fieldName),
-		})
-	}
-
 	return issues
-}
-
-// checkDirtyRef 检查字段级 dirty=XXX 指定的方法是否存在于结构体方法集中。
-func checkDirtyRef(pos token.Position, fieldName, tagVal string, named *types.Named) []Issue {
-	dirtyMethod := ""
-	for _, opt := range splitOptions(tagVal) {
-		if opt == "dirty" {
-			dirtyMethod = "MakeDirty"
-		} else if name, ok := strings.CutPrefix(opt, "dirty="); ok && name != "" {
-			dirtyMethod = name
-		}
-	}
-	if dirtyMethod == "" {
-		return nil
-	}
-	if methodSetContains(named, dirtyMethod) {
-		return nil
-	}
-	return []Issue{{
-		Pos:      pos,
-		Severity: Error,
-		Message:  fmt.Sprintf("字段 %s：dirty 方法 %q 在类型 *%s 的方法集中不存在，生成代码将无法编译", fieldName, dirtyMethod, named.Obj().Name()),
-	}}
 }
 
 // checkStructDirtyRef 检查结构体级 gogen:dirty=XXX 注解指定的方法是否存在。

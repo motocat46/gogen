@@ -31,11 +31,11 @@
 | `pair_access.go` | `Pair` | 泛型结构体 `Pair[K, V]` |
 | `container_access.go` | `Container` | 泛型结构体（含 slice/map 字段） |
 | `speedentity_access.go` | `SpeedEntity` | 数值类型的 Add/Sub 方法 |
-| `autodirtyplayer_access.go` | `AutoDirtyPlayer` | 自动检测 dirty（嵌入含 MakeDirty），数值/slice/map 写方法注入；数值 Set 幂等检查，slice SetAt 幂等检查（string 可比较），Append/Delete/SetVal/DeleteKey 无幂等检查 |
+| `autodirtyplayer_access.go` | `AutoDirtyPlayer` | 自动检测 dirty（嵌入含 MakeDirty），生成 Modify() 方法 |
 | `customdirtyentity_access.go` | `CustomDirtyEntity` | 自定义 dirty 方法名 `gogen:dirty=MarkChanged` |
-| `nodirtyplayer_access.go` | `NoDirtyPlayer` | `gogen:nodirty` 最高优先级：禁用所有注入，字段级 tag 失效 |
-| `fieldoverrideentity_access.go` | `FieldOverrideEntity` | 字段级覆盖：`ModuleScore` 使用 `MarkModule()`，`Gold` 使用结构体级 `MakeDirty()` |
-| `autodirtycollections_access.go` | `AutoDirtyCollections` | 集合类型 dirty 注入：slice/map 写方法直接注入；数组 SetAt 有幂等检查（int32 可比较）|
+| `nodirtyplayer_access.go` | `NoDirtyPlayer` | `gogen:nodirty` 最高优先级：即使嵌入了 DirtyBase 也不生成 Modify() |
+| `fieldoverrideentity_access.go` | `FieldOverrideEntity` | `gogen:modify=Apply`：自定义 Modify 方法名为 Apply |
+| `autodirtycollections_access.go` | `AutoDirtyCollections` | 集合类型：slice/map/array 字段，生成 Modify() 方法 |
 | `resetwithdirtyplayer_access.go` | `ResetWithDirtyPlayer` | Reset + dirty 交互：`Reset()` 末尾注入 dirty 调用 |
 
 ## 可执行测试命令

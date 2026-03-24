@@ -15,5 +15,4 @@ type Valid struct {
 	Name  string      `gogen:"readonly"`
 	Score int64       `gogen:"writeonly"`
 	Tags  []string    `gogen:"plain,override"`
-	Gold  int64       `gogen:"dirty=MakeDirty"` // 字段级覆盖，方法存在
 }

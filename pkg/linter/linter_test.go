@@ -30,19 +30,19 @@ func TestLint(t *testing.T) {
 		{
 			name:       "拼写错误 tag",
 			subdir:     "bad_tags",
-			wantErrors: 2, // raedonly, unknownoption
-			wantWarns:  1, // dirty= 空方法名
+			wantErrors: 3, // raedonly, unknownoption, dirty=（字段级 dirty 已废弃，视为未知选项）
+			wantWarns:  0,
 		},
 		{
 			name:       "矛盾组合",
 			subdir:     "contradictions",
 			wantErrors: 2, // readonly+writeonly, -+plain
-			wantWarns:  1, // readonly+dirty（fixture 提供了 MakeDirty，checkDirtyRef 通过，只剩矛盾组合 Warning）
+			wantWarns:  0,
 		},
 		{
 			name:       "dirty 方法不存在",
 			subdir:     "dirty_missing",
-			wantErrors: 2, // 结构体级 + 字段级各一个
+			wantErrors: 1, // 结构体级 gogen:dirty=NonExistentMethod
 			wantWarns:  0,
 		},
 		{

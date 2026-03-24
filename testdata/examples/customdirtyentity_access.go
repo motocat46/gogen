@@ -49,7 +49,7 @@ func (this *CustomDirtyEntity) SubLevel(delta int32) {
 // slice 和 map 字段重置为 nil，释放底层内存。
 func (this *CustomDirtyEntity) Reset() {
 	*this = CustomDirtyEntity{}
-	this.MarkChanged() // 需业务层实现此方法
+	this.MarkChanged()
 }
 
 // Modify 在 fn 中修改结构体内容，fn 执行完毕后自动调用 MarkChanged()，若 fn 发生 panic 则不调用。

@@ -136,7 +136,6 @@ func (this *AutoDirtyCollections) DeleteAttrsKey(key string) {
 	delete(this.Attrs, key)
 }
 
-// 数组 SetAt，元素 int32 可比较，有幂等检查
 // GetNums 获取数组 Nums 的完整副本
 func (this *AutoDirtyCollections) GetNums() [4]int32 {
 	return this.Nums

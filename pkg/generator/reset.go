@@ -32,7 +32,7 @@ const resetTmplStr = `
 func (this *{{ .ReceiverType }}) Reset() {
 	*this = {{ .ReceiverType }}{}
 {{- if .DirtyMethod }}
-	this.{{ .DirtyMethod }}() // 需业务层实现此方法
+	this.{{ .DirtyMethod }}()
 {{- end }}
 }
 `

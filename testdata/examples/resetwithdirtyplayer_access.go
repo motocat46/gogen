@@ -49,7 +49,7 @@ func (this *ResetWithDirtyPlayer) SubLevel(delta int32) {
 // slice 和 map 字段重置为 nil，释放底层内存。
 func (this *ResetWithDirtyPlayer) Reset() {
 	*this = ResetWithDirtyPlayer{}
-	this.MakeDirty() // 需业务层实现此方法
+	this.MakeDirty()
 }
 
 // Modify 在 fn 中修改结构体内容，fn 执行完毕后自动调用 MakeDirty()，若 fn 发生 panic 则不调用。

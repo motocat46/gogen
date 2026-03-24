@@ -71,7 +71,7 @@ type FieldOverrideEntity struct {
 
 func (e *FieldOverrideEntity) MakeDirty() {}
 
-// ── 场景 5：slice/map 写方法（无幂等检查，直接注入）──────────────────────
+// ── 场景 5：含 slice/map/array 字段的结构体，生成 Modify() 统一入口 ──────────
 
 // AutoDirtyCollections 验证集合类型写方法的 dirty 注入行为。
 // 使用自动检测（嵌入 DirtyBase）。
@@ -79,7 +79,7 @@ type AutoDirtyCollections struct {
 	DirtyBase
 	Tags  []string
 	Attrs map[string]int32
-	Nums  [4]int32 // 数组 SetAt，元素 int32 可比较，有幂等检查
+	Nums  [4]int32
 }
 
 // ── 场景 6：Reset + dirty 交互 ───────────────────────────────────────────
