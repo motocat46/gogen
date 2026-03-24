@@ -38,9 +38,6 @@ func (this *{{ .ReceiverType }}) Get{{ .FieldName }}() {{ .TypeStr }} {
 // Set{{ .FieldName }} 设置 {{ .FieldName }}
 func (this *{{ .ReceiverType }}) Set{{ .FieldName }}({{ .FieldName }} {{ .TypeStr }}) {
 	this.{{ .FieldName }} = {{ .FieldName }}
-{{- if .SetDirtyMethod }}
-	this.{{ .SetDirtyMethod }}() // 需业务层实现此方法
-{{- end }}
 }
 {{ end -}}
 {{ if .HasField -}}
@@ -63,22 +60,16 @@ func (g *NilableGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]by
 	setField := w && canGen("Set"+fn)
 	hasField := !plain && r && canGen("Has"+fn)
 
-	setDirtyMethod := ""
-	if setField {
-		setDirtyMethod = model.EffectiveDirtyMethod(f, s)
-	}
-
 	var buf bytes.Buffer
 	err := nilableTmpl.Execute(&buf, map[string]any{
-		"ReceiverType":   s.ReceiverType(),
-		"FieldName":      fn,
-		"TypeStr":        f.Type.TypeStr,
-		"Doc":            formatDoc(f.Doc),
-		"GetField":       getField,
-		"SetField":       setField,
-		"HasField":       hasField,
-		"Any":            getField || setField || hasField,
-		"SetDirtyMethod": setDirtyMethod,
+		"ReceiverType": s.ReceiverType(),
+		"FieldName":    fn,
+		"TypeStr":      f.Type.TypeStr,
+		"Doc":          formatDoc(f.Doc),
+		"GetField":     getField,
+		"SetField":     setField,
+		"HasField":     hasField,
+		"Any":          getField || setField || hasField,
 	})
 	if err != nil {
 		return nil, err

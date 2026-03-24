@@ -38,18 +38,12 @@ func (this *{{ .ReceiverType }}) Get{{ .FieldName }}() {{ .TypeStr }} {
 // Set{{ .FieldName }} 设置 {{ .FieldName }}
 func (this *{{ .ReceiverType }}) Set{{ .FieldName }}({{ .FieldName }} {{ .TypeStr }}) {
 	this.{{ .FieldName }} = {{ .FieldName }}
-{{- if .SetDirtyMethod }}
-	this.{{ .SetDirtyMethod }}() // 需业务层实现此方法
-{{- end }}
 }
 {{ end -}}
 {{ if .Toggle -}}
 // Toggle{{ .FieldName }} 翻转 {{ .FieldName }} 的布尔值
 func (this *{{ .ReceiverType }}) Toggle{{ .FieldName }}() {
 	this.{{ .FieldName }} = !this.{{ .FieldName }}
-{{- if .ToggleDirtyMethod }}
-	this.{{ .ToggleDirtyMethod }}() // 需业务层实现此方法
-{{- end }}
 }
 {{ end }}`
 
@@ -66,29 +60,16 @@ func (g *BoolGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte,
 	setField := w && canGen("Set"+fn)
 	toggle := !f.Config.Plain && w && canGen("Toggle"+fn)
 
-	// dirty 注入：计算每个写方法的有效 dirty 方法名
-	effectiveDM := model.EffectiveDirtyMethod(f, s)
-	setDirtyMethod := ""
-	if setField {
-		setDirtyMethod = effectiveDM
-	}
-	toggleDirtyMethod := ""
-	if toggle {
-		toggleDirtyMethod = effectiveDM
-	}
-
 	var buf bytes.Buffer
 	err := boolTmpl.Execute(&buf, map[string]any{
-		"ReceiverType":      s.ReceiverType(),
-		"FieldName":         fn,
-		"TypeStr":           f.Type.TypeStr,
-		"Doc":               formatDoc(f.Doc),
-		"GetField":          getField,
-		"SetField":          setField,
-		"Toggle":            toggle,
-		"Any":               getField || setField || toggle,
-		"SetDirtyMethod":    setDirtyMethod,
-		"ToggleDirtyMethod": toggleDirtyMethod,
+		"ReceiverType": s.ReceiverType(),
+		"FieldName":    fn,
+		"TypeStr":      f.Type.TypeStr,
+		"Doc":          formatDoc(f.Doc),
+		"GetField":     getField,
+		"SetField":     setField,
+		"Toggle":       toggle,
+		"Any":          getField || setField || toggle,
 	})
 	if err != nil {
 		return nil, err

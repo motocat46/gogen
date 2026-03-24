@@ -95,7 +95,8 @@ func NewRegistry() *Registry {
 	r.Register(model.KindArray, &ArrayGenerator{})
 	r.Register(model.KindMap, &MapGenerator{})
 	// KindUnsupported 不注册，自动跳过
-	r.RegisterStruct(&ResetGenerator{}) // Phase 1: Reset
+	r.RegisterStruct(&ResetGenerator{})  // Reset：整体清零
+	r.RegisterStruct(&ModifyGenerator{}) // Modify：dirty tracking 统一入口
 	return r
 }
 

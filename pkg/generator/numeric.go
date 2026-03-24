@@ -38,27 +38,18 @@ func (this *{{ .ReceiverType }}) Get{{ .FieldName }}() {{ .TypeStr }} {
 // Set{{ .FieldName }} 设置 {{ .FieldName }}
 func (this *{{ .ReceiverType }}) Set{{ .FieldName }}({{ .FieldName }} {{ .TypeStr }}) {
 	this.{{ .FieldName }} = {{ .FieldName }}
-{{- if .SetDirtyMethod }}
-	this.{{ .SetDirtyMethod }}() // 需业务层实现此方法
-{{- end }}
 }
 {{ end -}}
 {{ if .AddField -}}
 // Add{{ .FieldName }} 将 {{ .FieldName }} 增加 delta
 func (this *{{ .ReceiverType }}) Add{{ .FieldName }}(delta {{ .TypeStr }}) {
 	this.{{ .FieldName }} += delta
-{{- if .AddDirtyMethod }}
-	this.{{ .AddDirtyMethod }}() // 需业务层实现此方法
-{{- end }}
 }
 {{ end -}}
 {{ if .SubField -}}
 // Sub{{ .FieldName }} 将 {{ .FieldName }} 减少 delta
 func (this *{{ .ReceiverType }}) Sub{{ .FieldName }}(delta {{ .TypeStr }}) {
 	this.{{ .FieldName }} -= delta
-{{- if .SubDirtyMethod }}
-	this.{{ .SubDirtyMethod }}() // 需业务层实现此方法
-{{- end }}
 }
 {{ end }}`
 
@@ -76,32 +67,17 @@ func (g *NumericGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]by
 	addField := !plain && w && canGen("Add"+fn)
 	subField := !plain && w && canGen("Sub"+fn)
 
-	effectiveDM := model.EffectiveDirtyMethod(f, s)
-	setDirtyMethod, addDirtyMethod, subDirtyMethod := "", "", ""
-	if setField {
-		setDirtyMethod = effectiveDM
-	}
-	if addField {
-		addDirtyMethod = effectiveDM
-	}
-	if subField {
-		subDirtyMethod = effectiveDM
-	}
-
 	var buf bytes.Buffer
 	err := numericTmpl.Execute(&buf, map[string]any{
-		"ReceiverType":   s.ReceiverType(),
-		"FieldName":      fn,
-		"TypeStr":        f.Type.TypeStr,
-		"Doc":            formatDoc(f.Doc),
-		"GetField":       getField,
-		"SetField":       setField,
-		"AddField":       addField,
-		"SubField":       subField,
-		"Any":            getField || setField || addField || subField,
-		"SetDirtyMethod": setDirtyMethod,
-		"AddDirtyMethod": addDirtyMethod,
-		"SubDirtyMethod": subDirtyMethod,
+		"ReceiverType": s.ReceiverType(),
+		"FieldName":    fn,
+		"TypeStr":      f.Type.TypeStr,
+		"Doc":          formatDoc(f.Doc),
+		"GetField":     getField,
+		"SetField":     setField,
+		"AddField":     addField,
+		"SubField":     subField,
+		"Any":          getField || setField || addField || subField,
 	})
 	if err != nil {
 		return nil, err

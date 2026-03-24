@@ -179,11 +179,20 @@ func analyzeFile(pkg *packages.Package, file *ast.File, fileMap map[string]*ast.
 
 			// 确定结构体级 dirty 方法名（优先级：nodirty > 显式 > 自动检测）
 			dirtyMethod := ""
+			modifyMethod := ""
 			if !annotations.NoDirty {
 				if annotations.DirtyMethod != "" {
 					dirtyMethod = annotations.DirtyMethod
 				} else if methodSetContains(typesNamed, "MakeDirty") {
 					dirtyMethod = "MakeDirty"
+				}
+				if dirtyMethod != "" {
+					// 确定 Modify 方法名：注解指定 > 默认 "Modify"
+					if annotations.ModifyMethod != "" {
+						modifyMethod = annotations.ModifyMethod
+					} else {
+						modifyMethod = "Modify"
+					}
 				}
 			}
 
@@ -199,6 +208,7 @@ func analyzeFile(pkg *packages.Package, file *ast.File, fileMap map[string]*ast.
 				FieldNames:      fieldNames,
 				PromotedMethods: promotedMethods,
 				DirtyMethod:     dirtyMethod,
+				ModifyMethod:    modifyMethod,
 				NoDirty:         annotations.NoDirty,
 			})
 		}
@@ -525,13 +535,14 @@ func isExcluded(filename string, excludePaths []string) bool {
 // structAnnotations 保存从结构体文档注释解析出的所有 gogen 注解。
 // 包私有类型，只在 analyzeFile 内使用，不对外暴露。
 type structAnnotations struct {
-	Plain       bool
-	DirtyMethod string // "" 表示不注入；"MakeDirty" 为默认；自定义名为指定值
-	NoDirty     bool   // gogen:nodirty 显式禁用
+	Plain        bool
+	DirtyMethod  string // "" 表示不注入；"MakeDirty" 为默认；自定义名为指定值
+	NoDirty      bool   // gogen:nodirty 显式禁用
+	ModifyMethod string // Modify 方法名，默认 "Modify"，gogen:modify=Xxx 可覆盖
 }
 
 // parseStructAnnotations 统一解析结构体文档注释中的 gogen 注解，
-// 支持 plain/dirty/nodirty 三类注解。
+// 支持 plain/dirty/nodirty/modify 四类注解。
 // doc 已由 ast.CommentGroup.Text() 剥离 "//" 前缀，每行独立匹配，避免前缀误判。
 func parseStructAnnotations(doc string) structAnnotations {
 	var ann structAnnotations
@@ -547,6 +558,10 @@ func parseStructAnnotations(doc string) structAnnotations {
 		case strings.HasPrefix(line, "gogen:dirty="):
 			if name, _ := strings.CutPrefix(line, "gogen:dirty="); name != "" {
 				ann.DirtyMethod = name
+			}
+		case strings.HasPrefix(line, "gogen:modify="):
+			if name, _ := strings.CutPrefix(line, "gogen:modify="); name != "" {
+				ann.ModifyMethod = name
 			}
 		}
 	}

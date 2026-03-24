@@ -29,14 +29,13 @@ import (
 //	`gogen:"readonly"`  只生成 getter，不生成 setter 及写操作方法
 //	`gogen:"writeonly"` 只生成 setter，不生成 getter
 //	`gogen:"plain"`     简单模式：只生成核心 Get/Set，跳过 Add/Sub/Toggle/Has 等扩展方法
-//	`gogen:"override"` 覆盖模式：忽略嵌入提升方法检查，强制生成该字段的访问器
+//	`gogen:"override"`  覆盖模式：忽略嵌入提升方法检查，强制生成该字段的访问器
 type FieldConfig struct {
-	Skip        bool   `gogen:"plain"` // 跳过此字段
-	Readonly    bool   `gogen:"plain"` // 只读：只生成 getter
-	WriteOnly   bool   `gogen:"plain"` // 只写：只生成 setter
-	Plain       bool   `gogen:"plain"` // 简单模式：跳过扩展方法，只保留核心访问器
-	Override    bool   `gogen:"plain"` // 覆盖模式：忽略嵌入提升方法检查，强制生成（仍受字段名/手写方法约束）
-	DirtyMethod string `gogen:"plain"` // 字段级覆盖，优先于 StructDef.DirtyMethod
+	Skip      bool `gogen:"plain"` // 跳过此字段
+	Readonly  bool `gogen:"plain"` // 只读：只生成 getter
+	WriteOnly bool `gogen:"plain"` // 只写：只生成 setter
+	Plain     bool `gogen:"plain"` // 简单模式：跳过扩展方法，只保留核心访问器
+	Override  bool `gogen:"plain"` // 覆盖模式：忽略嵌入提升方法检查，强制生成（仍受字段名/手写方法约束）
 }
 
 // ParseFieldConfig 从原始 struct tag 字符串解析 FieldConfig。
@@ -64,16 +63,7 @@ func ParseFieldConfig(rawTag string) (FieldConfig, []string) {
 		case "override":
 			cfg.Override = true
 		default:
-			if p == "dirty" {
-				cfg.DirtyMethod = "MakeDirty"
-			} else if name, ok := strings.CutPrefix(p, "dirty="); ok {
-				if name != "" {
-					cfg.DirtyMethod = name
-				} else {
-					// dirty= 无方法名：加入 unknown 通知调用方打印 Warning
-					unknown = append(unknown, "dirty=")
-				}
-			} else if p != "" {
+			if p != "" {
 				unknown = append(unknown, p)
 			}
 		}
@@ -100,18 +90,3 @@ func (f *FieldDef) IsWritable() bool {
 	return !f.Config.Skip && !f.Config.Readonly
 }
 
-// EffectiveDirtyMethod 返回该字段实际使用的 dirty 方法名。
-// 优先级（从高到低）：
-//  1. s.NoDirty = true → 返回 ""（最高优先级，压过字段级 dirty tag）
-//  2. field.Config.DirtyMethod 非空 → 返回字段级方法名
-//  3. s.DirtyMethod 非空 → 返回结构体级方法名
-//  4. 均为空 → 返回 ""，不注入
-func EffectiveDirtyMethod(field *FieldDef, s *StructDef) string {
-	if s.NoDirty {
-		return ""
-	}
-	if field.Config.DirtyMethod != "" {
-		return field.Config.DirtyMethod
-	}
-	return s.DirtyMethod
-}

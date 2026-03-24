@@ -60,9 +60,6 @@ func (this *{{ .ReceiverType }}) Range{{ .MethodName }}(fn func(index int, value
 // Set{{ .MethodName }}At 设置数组 {{ .FieldName }} 中 index 位置的元素
 func (this *{{ .ReceiverType }}) Set{{ .MethodName }}At(index int, elem {{ .ElemType }}) {
 	this.{{ .FieldName }}[index] = elem
-{{- if .SetAtDirtyMethod }}
-	this.{{ .SetAtDirtyMethod }}() // 需业务层实现此方法
-{{- end }}
 }
 {{ end }}`
 
@@ -87,26 +84,20 @@ func (g *ArrayGenerator) Generate(s *model.StructDef, f *model.FieldDef) ([]byte
 	rang := r && canGen("Range"+fn)
 	setAt := w && canGen("Set"+fn+"At")
 
-	setAtDirtyMethod := ""
-	if setAt {
-		setAtDirtyMethod = model.EffectiveDirtyMethod(f, s)
-	}
-
 	var buf bytes.Buffer
 	err := arrayTmpl.Execute(&buf, map[string]any{
-		"ReceiverType":     s.ReceiverType(),
-		"MethodName":       fn,
-		"FieldName":        f.Name,
-		"ElemType":         elemType,
-		"ArrayType":        f.Type.TypeStr,
-		"Doc":              formatDoc(f.Doc),
-		"GetField":         getField,
-		"GetAt":            getAt,
-		"GetLen":           getLen,
-		"Range":            rang,
-		"SetAt":            setAt,
-		"Any":              getField || getAt || getLen || rang || setAt,
-		"SetAtDirtyMethod": setAtDirtyMethod,
+		"ReceiverType": s.ReceiverType(),
+		"MethodName":   fn,
+		"FieldName":    f.Name,
+		"ElemType":     elemType,
+		"ArrayType":    f.Type.TypeStr,
+		"Doc":          formatDoc(f.Doc),
+		"GetField":     getField,
+		"GetAt":        getAt,
+		"GetLen":       getLen,
+		"Range":        rang,
+		"SetAt":        setAt,
+		"Any":          getField || getAt || getLen || rang || setAt,
 	})
 	if err != nil {
 		return nil, err

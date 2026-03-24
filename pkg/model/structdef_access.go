@@ -348,7 +348,7 @@ func (this *StructDef) DeletePromotedMethodsKey(key string) {
 	delete(this.PromotedMethods, key)
 }
 
-// 结构体级 dirty 方法名；"" 表示无标注或未检测到
+// Modify() 内调用的 dirty 方法名（如 "MakeDirty"）；"" 表示不生成 Modify()
 // GetDirtyMethod 获取 DirtyMethod
 func (this *StructDef) GetDirtyMethod() string {
 	return this.DirtyMethod
@@ -359,7 +359,18 @@ func (this *StructDef) SetDirtyMethod(DirtyMethod string) {
 	this.DirtyMethod = DirtyMethod
 }
 
-// true = 显式禁用（gogen:nodirty），优先级最高，压过字段级 dirty tag
+// 生成的 Modify 方法名（默认 "Modify"，注解 gogen:modify=Xxx 可覆盖）
+// GetModifyMethod 获取 ModifyMethod
+func (this *StructDef) GetModifyMethod() string {
+	return this.ModifyMethod
+}
+
+// SetModifyMethod 设置 ModifyMethod
+func (this *StructDef) SetModifyMethod(ModifyMethod string) {
+	this.ModifyMethod = ModifyMethod
+}
+
+// true = 显式禁用（gogen:nodirty），优先级最高
 // GetNoDirty 获取 NoDirty
 func (this *StructDef) GetNoDirty() bool {
 	return this.NoDirty
