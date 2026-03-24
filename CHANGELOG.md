@@ -6,20 +6,39 @@
 
 ## [Unreleased]
 
+---
+
+## [v0.4.0] — 2026-03-24
+
 ### 破坏性变更
 
 - **移除 Set 方法的幂等检查**：所有 `Set*` / `SetAt*` / `SetVal*` 方法不再生成 `if this.Field == value { return }` 检查。原因：指针/接口类型的 `==` 比较地址而非值，接口比较可能 runtime panic；幂等检查是调用方责任，生成层不应隐含此语义。详见 [D-013](DECISIONS.md)。
+- **Dirty tracking 改用统一 `Modify()` 入口**：不再为每个写方法末尾注入 dirty 调用。升级后需将散落的 setter 调用改为 `Modify()` 包裹：
+  ```go
+  // 旧用法（不再支持）
+  player.SetName("x")   // setter 内部自动调用 MakeDirty()
+  // 新用法
+  player.Modify(func(p *Player) { p.SetName("x") })
+  ```
+- **字段级 `gogen:"dirty=XXX"` tag 废除**：现为 lint Error，请改用结构体注解 `// gogen:dirty` 或 `// gogen:dirty=MethodName`。
 
 ### 新特性
 
-- **`Reset()` 生成**：为所有结构体自动生成 `Reset()` 方法，将所有字段重置为零值（slice/map 重置为 nil 释放内存），语义与 `proto.Reset()` 一致。已有手写或嵌入提升的 `Reset()` 时静默跳过。
-- **Dirty 注入**（opt-in）：为写方法末尾自动注入业务层脏标记调用。支持三种触发方式：自动检测 `MakeDirty()`、结构体注解 `gogen:dirty`、自定义方法名 `gogen:dirty=MarkChanged`。支持字段级覆盖和结构体级 `gogen:nodirty` 禁用。
-- **`gogen lint` 子命令**：静态检查 struct tag 和注解；捕获拼写错误（附近似建议）、矛盾组合（`readonly+writeonly`）、无效组合（`readonly+dirty`）、dirty 方法引用错误；Error 级别问题时以非零退出码退出，可接入 CI。
+- **`Modify()` 方法生成**：为启用 dirty tracking 的结构体生成 `Modify(fn func(*T))` 方法，fn 执行后统一调用 dirty 方法；fn panic 时不调用。方法名可通过 `// gogen:modify=Apply` 自定义。
+- **`Reset()` 生成**：为所有结构体自动生成 `Reset()` 方法（`*this = T{}`），将所有字段重置为零值（slice/map 重置为 nil 释放内存）。已有手写 `Reset()` 时跳过生成并输出 `[Info]` 说明原因。
+- **`gogen lint` 子命令**：静态检查 struct tag 和注解；捕获拼写错误（附近似建议）、矛盾组合（`readonly+writeonly`）、dirty 方法引用错误；Error 级别问题时以非零退出码退出，可接入 CI。
+
+### 修复
+
+- **嵌入场景 `Reset()` 生成正确**：改用 `CanGenerateMethodOverride`，外层结构体嵌入了已生成 `Reset()` 的内层结构体时，不再被提升方法阻挡，始终生成正确的 `*this = T{}` 形式。
+- **并发输出顺序确定**：`[Info]` 等诊断消息由 log 回调传递，在 mutex 保护下与 `✅` 一起刷出，不再可能出现在汇总行之后。
+- 移除 `Modify()` 覆盖提升方法时的 Warning 噪音。
 
 ### 内部变更
 
 - `structAnnotations` 改为包私有类型（原 `StructAnnotations`），不对外暴露
-- 新增设计决策 D-013 ~ D-019（幂等性移除、Validate 不注入、Diff-aware dirty 边界、不生成 String()、不生成并发安全访问器、不生成 Observer 模式、不绑定跨语言）
+- 新增设计决策 D-011 ~ D-019
+- 新增并发正确性命题测试、边界测试和性能基准（生成全部结构体 ~522 µs/op，Apple M4）
 
 ---
 
