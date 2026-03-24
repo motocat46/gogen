@@ -6,6 +6,8 @@
 |------|---------|
 | `golden_test.go` | 全链路黄金文件对比测试：loader→analyzer→generator，验证所有结构体的生成输出与提交的黄金文件逐字节一致 |
 | `plain_test.go` | plain 模式专项测试：验证 `gogen:"plain"` 时各类型只生成核心方法（Get/Set），扩展方法（Toggle/Add/Sub/Has/Copy 等）被正确跳过 |
+| `correctness_test.go` | 并发正确性命题 + 边界/nil 语义测试（见下方命题清单） |
+| `bench_test.go` | 基准测试：生成吞吐量，串行 vs 并行（见下方基准基线） |
 
 ## 黄金文件清单
 
@@ -38,6 +40,27 @@
 | `autodirtycollections_access.go` | `AutoDirtyCollections` | 集合类型：slice/map/array 字段，生成 Modify() 方法 |
 | `resetwithdirtyplayer_access.go` | `ResetWithDirtyPlayer` | Reset + dirty 交互：`Reset()` 末尾注入 dirty 调用 |
 
+## 正确性命题（correctness_test.go）
+
+| 命题 | 测试函数 | 验证内容 |
+|------|---------|---------|
+| 并发安全 | `TestGenerateStructConcurrentSafety` | 20 轮×所有结构体并发生成，结果与串行基线一致；`-race` 无竞争 |
+| Reset 语义-零字段 | `TestGenerateStruct_ResetGenerated_NoFields` | 零字段结构体仍生成 `Reset()`，不应返回 nil |
+| nil 语义-手写Reset | `TestGenerateStruct_NilResult_ManualResetAllSkipped` | 手写 Reset + 全字段跳过 → nil，且 log 收到 [Info] |
+| nil 语义-字段名冲突 | `TestGenerateStruct_NilResult_ResetFieldNameConflict` | 字段名 "Reset" + 全字段跳过 → nil（无法生成 Reset，无字段方法） |
+| log 回调-手写Reset | `TestGenerateStruct_LogCallback_ManualReset` | 手写 Reset() 时 log 收到含 [Info] 和 "Reset" 的消息 |
+| log 回调-无消息 | `TestGenerateStruct_LogCallback_NoMessages` | 正常生成场景 log 不被调用 |
+
+## 基准基线（Apple M4，`-benchtime=3s -benchmem -count=3`）
+
+| 基准 | 耗时/op | 内存/op | 分配/op | 说明 |
+|------|--------|--------|--------|------|
+| `BenchmarkGenerateAll` | ~522 µs | 818 KB | 9959 | 串行生成全部 ~30 个结构体 |
+| `BenchmarkGenerateAllParallel` | ~489 µs | 821 KB | 9998 | 并发生成全部结构体（goroutine 开销抵消部分收益） |
+| `BenchmarkGenerateSingle/AllTypes` | ~216 µs | 299 KB | 4157 | 生成单个最复杂结构体（全 TypeKind 覆盖） |
+
+> 并发（Parallel）对纯内存操作收益有限；真实场景中收益主要来自 `imports.Process`（I/O + 进程启动）的并发化。
+
 ## 可执行测试命令
 
 ### 快速验证（推荐日常使用）
@@ -60,6 +83,16 @@ go test ./pkg/generator/... -count=1 -run TestGoldenFiles -v
 go test ./pkg/generator/... -count=1 -run TestPlain -v
 ```
 
+### 仅运行正确性命题测试（含竞态检测）
+```bash
+go test ./pkg/generator/... -count=1 -race -run TestGenerateStruct -v
+```
+
+### 运行基准测试
+```bash
+go test ./pkg/generator/... -bench=. -benchtime=3s -benchmem -count=3
+```
+
 ### 更新黄金文件（修改了生成逻辑后执行）
 ```bash
 go run . --no-default-excludes ./testdata/examples
@@ -74,8 +107,6 @@ go run . --no-default-excludes ./testdata/examples
 3. 检查生成内容是否符合预期
 4. 运行 `go test ./pkg/generator/... -count=1 -run TestGoldenFiles` 确认通过
 5. 提交源文件和新生成的 `*_access.go`
-
-> **dirty 场景注意事项**：含 `MakeDirty()` 的嵌入类型（如 `DirtyBase`）若被 gogen 处理，会为其生成 `Reset()` 方法，进而通过提升机制阻止嵌入结构体生成自己的 `Reset()`。解决方案：在源文件中为该基础类型手写一个空的 `Reset()` 方法，阻止 gogen 生成。
 
 ## 黄金文件比对规则
 
