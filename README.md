@@ -356,7 +356,9 @@ gogen/
 │   ├── model/               # 领域模型（TypeInfo / FieldDef / StructDef）
 │   ├── generator/           # Registry 模式，按类型分发生成器
 │   ├── writer/              # 文件写入 + goimports 格式化
-│   └── config/              # .gogen.yaml 配置文件加载
+│   ├── config/              # .gogen.yaml 配置文件加载
+│   ├── annotations/         # gogen 注解统一解析（analyzer + linter 共用）
+│   └── linter/              # struct tag 和注解静态检查
 └── testdata/examples/       # 测试用例 + 黄金文件
 ```
 
@@ -364,7 +366,7 @@ gogen/
 
 | 文档 | 内容 |
 |------|------|
-| [DECISIONS.md](DECISIONS.md) | 关键设计决策记录（D-001 ~ D-021），记录 trade-off 与方案选择依据 |
+| [DECISIONS.md](DECISIONS.md) | 关键设计决策记录（D-001 ~ D-022），记录 trade-off 与方案选择依据 |
 | [pkg/README.md](pkg/README.md) | 各子包一览（loader / analyzer / model / generator / writer / config）|
 | [pkg/loader/DESIGN.md](pkg/loader/DESIGN.md) | 两阶段加载机制、以包为分析单元的原因 |
 | [pkg/analyzer/DESIGN.md](pkg/analyzer/DESIGN.md) | go/types 类型识别状态机、提升方法检测陷阱 |
