@@ -23,6 +23,8 @@ import (
 	"go/types"
 	"reflect"
 	"strings"
+
+	"github.com/motocat46/gogen/pkg/annotations"
 )
 
 // knownOptions 是合法的 gogen tag 选项集合。
@@ -41,7 +43,7 @@ var knownOptions = map[string]bool{
 // "type Foo struct {}" 写法中注释能被正确读取。
 func checkStruct(fset *token.FileSet, typeSpec *ast.TypeSpec, named *types.Named, docText string) []Issue {
 	structType := typeSpec.Type.(*ast.StructType)
-	ann := parseDocAnnotations(docText)
+	ann := annotations.ParseStructAnnotations(docText)
 
 	var issues []Issue
 	for _, field := range structType.Fields.List {
@@ -66,7 +68,10 @@ func checkStruct(fset *token.FileSet, typeSpec *ast.TypeSpec, named *types.Named
 	}
 
 	// 检查结构体级 dirty 方法引用
-	issues = append(issues, checkStructDirtyRef(fset.Position(typeSpec.Pos()), typeSpec.Name.Name, ann, named)...)
+	pos := fset.Position(typeSpec.Pos())
+	structName := typeSpec.Name.Name
+	issues = append(issues, checkStructDirtyRef(pos, structName, ann, named)...)
+	issues = append(issues, checkModifyWithoutDirty(pos, structName, ann, named)...)
 
 	return issues
 }
@@ -119,11 +124,11 @@ func checkTagCombinations(pos token.Position, fieldName, tagVal string) []Issue 
 }
 
 // checkStructDirtyRef 检查结构体级 gogen:dirty=XXX 注解指定的方法是否存在。
-func checkStructDirtyRef(pos token.Position, structName string, ann docAnnotations, named *types.Named) []Issue {
+func checkStructDirtyRef(pos token.Position, structName string, ann annotations.StructAnnotations, named *types.Named) []Issue {
 	if ann.DirtyMethod == "" || ann.NoDirty {
 		return nil
 	}
-	if methodSetContains(named, ann.DirtyMethod) {
+	if annotations.MethodSetContains(named, ann.DirtyMethod) {
 		return nil
 	}
 	return []Issue{{
@@ -133,48 +138,26 @@ func checkStructDirtyRef(pos token.Position, structName string, ann docAnnotatio
 	}}
 }
 
-// docAnnotations 保存从结构体文档注释解析出的 gogen 注解。
-type docAnnotations struct {
-	Plain       bool
-	DirtyMethod string // "" 表示未指定
-	NoDirty     bool
-}
-
-// parseDocAnnotations 从结构体文档注释中解析 gogen 注解。
-func parseDocAnnotations(doc string) docAnnotations {
-	var ann docAnnotations
-	for line := range strings.SplitSeq(doc, "\n") {
-		line = strings.TrimSpace(line)
-		switch {
-		case line == "gogen:plain":
-			ann.Plain = true
-		case line == "gogen:nodirty":
-			ann.NoDirty = true
-		case line == "gogen:dirty":
-			if ann.DirtyMethod == "" {
-				ann.DirtyMethod = "MakeDirty"
-			}
-		case strings.HasPrefix(line, "gogen:dirty="):
-			if name, _ := strings.CutPrefix(line, "gogen:dirty="); name != "" {
-				ann.DirtyMethod = name
-			}
-		}
+// checkModifyWithoutDirty 检查 gogen:modify=XXX 在 dirty tracking 未启用时的无效用法。
+// Modify() 方法仅在 dirty tracking 生效时才会生成；若 dirty tracking 不会激活，
+// modify= 注解是无操作的，应提示用户检查配置。
+func checkModifyWithoutDirty(pos token.Position, structName string, ann annotations.StructAnnotations, named *types.Named) []Issue {
+	if ann.ModifyMethod == "" {
+		return nil
 	}
-	return ann
-}
-
-// methodSetContains 检查 *named 的方法集是否包含名为 methodName 的零参无返回值方法。
-func methodSetContains(named *types.Named, methodName string) bool {
-	mset := types.NewMethodSet(types.NewPointer(named))
-	sel := mset.Lookup(nil, methodName)
-	if sel == nil {
-		return false
+	// dirty tracking 会生效的条件：未被 nodirty 禁用，且有显式 dirty 方法或自动检测到 MakeDirty
+	dirtyActive := !ann.NoDirty && (ann.DirtyMethod != "" || annotations.MethodSetContains(named, "MakeDirty"))
+	if dirtyActive {
+		return nil
 	}
-	sig, ok := sel.Type().(*types.Signature)
-	if !ok {
-		return false
-	}
-	return sig.Params().Len() == 0 && sig.Results().Len() == 0
+	return []Issue{{
+		Pos:      pos,
+		Severity: Warning,
+		Message: fmt.Sprintf(
+			"结构体 %s：gogen:modify=%s 无效——dirty tracking 未启用（需同时添加 gogen:dirty 或嵌入含 MakeDirty() 的类型）",
+			structName, ann.ModifyMethod,
+		),
+	}}
 }
 
 // splitOptions 将 tag 值按逗号分割，返回清理空格后的选项列表。

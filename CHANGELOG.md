@@ -6,6 +6,11 @@
 
 ## [Unreleased]
 
+### 新特性
+
+- **`pkg/annotations/` 统一注解解析包**：将 `pkg/analyzer` 与 `pkg/linter` 中重复的注解解析实现合并为共享包，同时修复 linter 缺少 `gogen:modify=` 解析的 bug。
+- **linter：检测 `gogen:modify=` 无效配置**：`gogen:modify=XXX` 在 dirty tracking 未启用时不会生成任何方法；linter 现在对此发出 Warning，提示用户同时添加 `gogen:dirty` 或嵌入含 `MakeDirty()` 的类型。
+
 ---
 
 ## [v0.4.0] — 2026-03-24

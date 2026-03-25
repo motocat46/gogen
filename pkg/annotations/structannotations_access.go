@@ -13,52 +13,63 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package analyzer
+package annotations
 
 // GetPlain 获取 Plain
-func (this *structAnnotations) GetPlain() bool {
+func (this *StructAnnotations) GetPlain() bool {
 	return this.Plain
 }
 
 // SetPlain 设置 Plain
-func (this *structAnnotations) SetPlain(Plain bool) {
+func (this *StructAnnotations) SetPlain(Plain bool) {
 	this.Plain = Plain
 }
 
 // TogglePlain 翻转 Plain 的布尔值
-func (this *structAnnotations) TogglePlain() {
+func (this *StructAnnotations) TogglePlain() {
 	this.Plain = !this.Plain
 }
 
 // "" 表示不注入；"MakeDirty" 为默认；自定义名为指定值
 // GetDirtyMethod 获取 DirtyMethod
-func (this *structAnnotations) GetDirtyMethod() string {
+func (this *StructAnnotations) GetDirtyMethod() string {
 	return this.DirtyMethod
 }
 
 // SetDirtyMethod 设置 DirtyMethod
-func (this *structAnnotations) SetDirtyMethod(DirtyMethod string) {
+func (this *StructAnnotations) SetDirtyMethod(DirtyMethod string) {
 	this.DirtyMethod = DirtyMethod
 }
 
 // gogen:nodirty 显式禁用
 // GetNoDirty 获取 NoDirty
-func (this *structAnnotations) GetNoDirty() bool {
+func (this *StructAnnotations) GetNoDirty() bool {
 	return this.NoDirty
 }
 
 // SetNoDirty 设置 NoDirty
-func (this *structAnnotations) SetNoDirty(NoDirty bool) {
+func (this *StructAnnotations) SetNoDirty(NoDirty bool) {
 	this.NoDirty = NoDirty
 }
 
 // ToggleNoDirty 翻转 NoDirty 的布尔值
-func (this *structAnnotations) ToggleNoDirty() {
+func (this *StructAnnotations) ToggleNoDirty() {
 	this.NoDirty = !this.NoDirty
+}
+
+// Modify 方法名，默认由调用方决定（通常 "Modify"），gogen:modify=Xxx 可覆盖
+// GetModifyMethod 获取 ModifyMethod
+func (this *StructAnnotations) GetModifyMethod() string {
+	return this.ModifyMethod
+}
+
+// SetModifyMethod 设置 ModifyMethod
+func (this *StructAnnotations) SetModifyMethod(ModifyMethod string) {
+	this.ModifyMethod = ModifyMethod
 }
 
 // Reset 将所有字段重置为零值。
 // slice 和 map 字段重置为 nil，释放底层内存。
-func (this *structAnnotations) Reset() {
-	*this = structAnnotations{}
+func (this *StructAnnotations) Reset() {
+	*this = StructAnnotations{}
 }
