@@ -46,6 +46,12 @@ func TestLint(t *testing.T) {
 			wantWarns:  0,
 		},
 		{
+			name:       "modify= 无 dirty tracking",
+			subdir:     "modify_no_dirty",
+			wantErrors: 0,
+			wantWarns:  2, // NoEffect + NoDirtyWithModify 各一条 Warning
+		},
+		{
 			name:       "合法注解无问题",
 			subdir:     "valid",
 			wantErrors: 0,

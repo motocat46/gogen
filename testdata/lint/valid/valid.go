@@ -16,3 +16,14 @@ type Valid struct {
 	Score int64       `gogen:"writeonly"`
 	Tags  []string    `gogen:"plain,override"`
 }
+
+// ValidModify：gogen:modify= 与 dirty tracking 同时生效，合法。
+//
+// gogen:dirty=MarkChanged
+// gogen:modify=Apply
+type ValidModify struct {
+	DirtyBase
+	Name string
+}
+
+func (v *ValidModify) MarkChanged() {}
