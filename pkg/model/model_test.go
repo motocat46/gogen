@@ -20,6 +20,8 @@ import (
 	"testing"
 
 	"github.com/motocat46/gogen/pkg/model"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // ─── ParseFieldConfig ────────────────────────────────────────────────────────
@@ -81,27 +83,17 @@ func TestParseFieldConfig(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg, _ := model.ParseFieldConfig(tt.rawTag)
-			if cfg.Skip != tt.wantSkip {
-				t.Errorf("Skip = %v, want %v", cfg.Skip, tt.wantSkip)
-			}
-			if cfg.Readonly != tt.wantRO {
-				t.Errorf("Readonly = %v, want %v", cfg.Readonly, tt.wantRO)
-			}
-			if cfg.WriteOnly != tt.wantWO {
-				t.Errorf("WriteOnly = %v, want %v", cfg.WriteOnly, tt.wantWO)
-			}
+			assert.Equal(t, tt.wantSkip, cfg.Skip)
+			assert.Equal(t, tt.wantRO, cfg.Readonly)
+			assert.Equal(t, tt.wantWO, cfg.WriteOnly)
 		})
 	}
 }
 
 func TestParseFieldConfigOverride(t *testing.T) {
 	cfg, _ := model.ParseFieldConfig(`gogen:"override"`)
-	if !cfg.Override {
-		t.Error("override tag 应设置 Override=true")
-	}
-	if cfg.Skip || cfg.Readonly || cfg.WriteOnly || cfg.Plain {
-		t.Error("override tag 不应影响其他字段")
-	}
+	assert.True(t, cfg.Override, "override tag 应设置 Override=true")
+	assert.False(t, cfg.Skip || cfg.Readonly || cfg.WriteOnly || cfg.Plain, "override tag 不应影响其他字段")
 }
 
 func TestParseFieldConfig_unknownOptions(t *testing.T) {
@@ -120,16 +112,10 @@ func TestParseFieldConfig_unknownOptions(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			_, unknown := model.ParseFieldConfig(tc.rawTag)
-			if len(unknown) != tc.wantLen {
-				t.Errorf("unknown 长度 = %d, want %d（got %v）", len(unknown), tc.wantLen, unknown)
-			}
-			if tc.wantOpt != "" && (len(unknown) == 0 || unknown[0] != tc.wantOpt) {
-				t.Errorf("unknown[0] = %q, want %q", func() string {
-					if len(unknown) > 0 {
-						return unknown[0]
-					}
-					return ""
-				}(), tc.wantOpt)
+			assert.Len(t, unknown, tc.wantLen, "unknown 选项数量")
+			if tc.wantOpt != "" {
+				require.NotEmpty(t, unknown)
+				assert.Equal(t, tc.wantOpt, unknown[0])
 			}
 		})
 	}
@@ -185,12 +171,8 @@ func TestIsReadableIsWritable(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			f := &model.FieldDef{Name: "X", Config: tt.cfg}
-			if got := f.IsReadable(); got != tt.readable {
-				t.Errorf("IsReadable() = %v, want %v", got, tt.readable)
-			}
-			if got := f.IsWritable(); got != tt.writable {
-				t.Errorf("IsWritable() = %v, want %v", got, tt.writable)
-			}
+			assert.Equal(t, tt.readable, f.IsReadable())
+			assert.Equal(t, tt.writable, f.IsWritable())
 		})
 	}
 }
@@ -227,9 +209,7 @@ func TestReceiverType(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &model.StructDef{Name: tt.structName, TypeParams: tt.typeParams}
-			if got := s.ReceiverType(); got != tt.want {
-				t.Errorf("ReceiverType() = %q, want %q", got, tt.want)
-			}
+			assert.Equal(t, tt.want, s.ReceiverType())
 		})
 	}
 }
@@ -264,14 +244,10 @@ func TestCanGenerateMethod(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.method, func(t *testing.T) {
-			if got := sd.CanGenerateMethod(tt.method); got != tt.want {
-				t.Errorf("CanGenerateMethod(%q) = %v, want %v（%s）",
-					tt.method, got, tt.want, tt.reason)
-			}
+			assert.Equal(t, tt.want, sd.CanGenerateMethod(tt.method), tt.reason)
 		})
 	}
 }
-
 
 // ─── StructDef.CanGenerateMethodOverride ─────────────────────────────────────
 
@@ -300,10 +276,7 @@ func TestCanGenerateMethodOverride(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.method, func(t *testing.T) {
-			if got := sd.CanGenerateMethodOverride(tt.method); got != tt.want {
-				t.Errorf("CanGenerateMethodOverride(%q) = %v, want %v（%s）",
-					tt.method, got, tt.want, tt.reason)
-			}
+			assert.Equal(t, tt.want, sd.CanGenerateMethodOverride(tt.method), tt.reason)
 		})
 	}
 }
@@ -356,14 +329,10 @@ func TestActiveFields(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			sd := &model.StructDef{Fields: tt.fields}
 			got := sd.ActiveFields()
-			if len(got) != len(tt.wantNames) {
-				t.Fatalf("ActiveFields() 长度 = %d, want %d（got %v, want %v）",
-					len(got), len(tt.wantNames), fieldNames(got), tt.wantNames)
-			}
+			require.Len(t, got, len(tt.wantNames),
+				"ActiveFields() 长度不符（got %v, want %v）", fieldNames(got), tt.wantNames)
 			for i, f := range got {
-				if f.Name != tt.wantNames[i] {
-					t.Errorf("ActiveFields()[%d].Name = %q, want %q", i, f.Name, tt.wantNames[i])
-				}
+				assert.Equal(t, tt.wantNames[i], f.Name, "ActiveFields()[%d].Name", i)
 			}
 		})
 	}
@@ -402,9 +371,7 @@ func TestTypeKindString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.want, func(t *testing.T) {
-			if got := tt.kind.String(); got != tt.want {
-				t.Errorf("TypeKind(%d).String() = %q, want %q", int(tt.kind), got, tt.want)
-			}
+			assert.Equal(t, tt.want, tt.kind.String())
 		})
 	}
 }

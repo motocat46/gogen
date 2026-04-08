@@ -22,6 +22,8 @@ import (
 	"go/ast"
 	"go/token"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // ─── Severity.String ──────────────────────────────────────────────────────────
@@ -36,9 +38,7 @@ func TestSeverityString(t *testing.T) {
 		{Severity(99), "warning"}, // 未知值走 default 分支，返回 "warning"
 	}
 	for _, tt := range tests {
-		if got := tt.s.String(); got != tt.want {
-			t.Errorf("Severity(%d).String() = %q, want %q", tt.s, got, tt.want)
-		}
+		assert.Equal(t, tt.want, tt.s.String())
 	}
 }
 
@@ -47,18 +47,10 @@ func TestSeverityString(t *testing.T) {
 func TestIssueString(t *testing.T) {
 	pos := token.Position{Filename: "foo.go", Line: 10, Column: 5}
 	iss := Issue{Pos: pos, Severity: Error, Message: "bad tag"}
-	got := iss.String()
-	want := "foo.go:10:5: [error] bad tag"
-	if got != want {
-		t.Errorf("Issue.String() = %q, want %q", got, want)
-	}
+	assert.Equal(t, "foo.go:10:5: [error] bad tag", iss.String())
 
 	iss2 := Issue{Pos: pos, Severity: Warning, Message: "unused annotation"}
-	got2 := iss2.String()
-	want2 := "foo.go:10:5: [warning] unused annotation"
-	if got2 != want2 {
-		t.Errorf("Issue.String() = %q, want %q", got2, want2)
-	}
+	assert.Equal(t, "foo.go:10:5: [warning] unused annotation", iss2.String())
 }
 
 // ─── extractDocText ───────────────────────────────────────────────────────────
@@ -78,10 +70,10 @@ func TestExtractDocText(t *testing.T) {
 		wantContain string
 	}{
 		{
-			name:      "两者均为 nil，返回空字符串",
-			genDoc:    nil,
+			name:        "两者均为 nil，返回空字符串",
+			genDoc:      nil,
 			specComment: nil,
-			wantEmpty: true,
+			wantEmpty:   true,
 		},
 		{
 			name:        "genDoc 非空，优先返回 genDoc",
@@ -96,8 +88,8 @@ func TestExtractDocText(t *testing.T) {
 			wantContain: "gogen:dirty",
 		},
 		{
-			name:      "genDoc 非空，specComment 为 nil",
-			genDoc:    makeCommentGroup("hello"),
+			name:        "genDoc 非空，specComment 为 nil",
+			genDoc:      makeCommentGroup("hello"),
 			specComment: nil,
 			wantContain: "hello",
 		},
@@ -106,11 +98,10 @@ func TestExtractDocText(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := extractDocText(tt.genDoc, tt.specComment)
-			if tt.wantEmpty && got != "" {
-				t.Errorf("extractDocText() = %q, want empty", got)
-			}
-			if tt.wantContain != "" && got == "" {
-				t.Errorf("extractDocText() 返回空，want 包含 %q", tt.wantContain)
+			if tt.wantEmpty {
+				assert.Empty(t, got)
+			} else {
+				assert.Contains(t, got, tt.wantContain)
 			}
 		})
 	}

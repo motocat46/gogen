@@ -21,6 +21,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -51,10 +52,7 @@ func TestPackageDir(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			pkg := &packages.Package{GoFiles: tt.goFiles}
-			got := packageDir(pkg)
-			if got != tt.want {
-				t.Errorf("packageDir() = %q, want %q", got, tt.want)
-			}
+			assert.Equal(t, tt.want, packageDir(pkg))
 		})
 	}
 }
@@ -116,11 +114,7 @@ func TestIsExcludedPath(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := isExcludedPath(tt.path, tt.excludes)
-			if got != tt.want {
-				t.Errorf("isExcludedPath(%q, %v) = %v, want %v",
-					tt.path, tt.excludes, got, tt.want)
-			}
+			assert.Equal(t, tt.want, isExcludedPath(tt.path, tt.excludes))
 		})
 	}
 }

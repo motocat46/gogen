@@ -24,15 +24,15 @@ import (
 	"testing"
 
 	"github.com/motocat46/gogen/pkg/loader"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // examplesDir 返回 testdata/examples 的绝对路径。
 func examplesDir(t *testing.T) string {
 	t.Helper()
 	_, thisFile, _, ok := runtime.Caller(0)
-	if !ok {
-		t.Fatal("无法获取当前文件路径")
-	}
+	require.True(t, ok, "无法获取当前文件路径")
 	return filepath.Join(filepath.Dir(thisFile), "..", "..", "testdata", "examples")
 }
 
@@ -43,19 +43,16 @@ func makeTempModule(t *testing.T, files map[string]string) string {
 
 	// 写入 go.mod
 	gomod := "module testmod\n\ngo 1.22\n"
-	if err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(gomod), 0o644); err != nil {
-		t.Fatalf("写入 go.mod 失败: %v", err)
-	}
+	err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(gomod), 0o644)
+	require.NoError(t, err, "写入 go.mod 失败")
 
 	// 写入用户指定的文件
 	for name, content := range files {
 		path := filepath.Join(dir, name)
-		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-			t.Fatalf("创建目录失败: %v", err)
-		}
-		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
-			t.Fatalf("写入文件 %s 失败: %v", name, err)
-		}
+		err := os.MkdirAll(filepath.Dir(path), 0o755)
+		require.NoError(t, err, "创建目录失败")
+		err = os.WriteFile(path, []byte(content), 0o644)
+		require.NoError(t, err, "写入文件 %s 失败", name)
 	}
 	return dir
 }
@@ -64,17 +61,11 @@ func makeTempModule(t *testing.T, files map[string]string) string {
 func TestLoad_BasicSuccess(t *testing.T) {
 	dir := examplesDir(t)
 	pkgs, err := loader.Load(dir, loader.Config{}, ".")
-	if err != nil {
-		t.Fatalf("Load 失败: %v", err)
-	}
-	if len(pkgs) == 0 {
-		t.Fatal("期望至少加载到 1 个包，实际为 0")
-	}
+	require.NoError(t, err, "Load 失败")
+	require.NotEmpty(t, pkgs, "期望至少加载到 1 个包")
 	// 验证包含类型信息（TypesInfo 非 nil）
 	for _, pkg := range pkgs {
-		if pkg.TypesInfo == nil {
-			t.Errorf("包 %s 缺少 TypesInfo", pkg.PkgPath)
-		}
+		assert.NotNil(t, pkg.TypesInfo, "包 %s 缺少 TypesInfo", pkg.PkgPath)
 	}
 }
 
@@ -83,12 +74,8 @@ func TestLoad_ExcludePaths(t *testing.T) {
 	dir := examplesDir(t)
 	// 将 examples 目录本身加入排除路径 → 结果应为空
 	pkgs, err := loader.Load(dir, loader.Config{ExcludePaths: []string{dir}}, ".")
-	if err != nil {
-		t.Fatalf("Load 失败: %v", err)
-	}
-	if len(pkgs) != 0 {
-		t.Errorf("期望排除后结果为空，实际有 %d 个包", len(pkgs))
-	}
+	require.NoError(t, err, "Load 失败")
+	assert.Empty(t, pkgs, "期望排除后结果为空")
 }
 
 // TestLoad_SingleGoFile 验证传入单个 .go 文件路径时能加载其所在的完整包。
@@ -96,9 +83,8 @@ func TestLoad_SingleGoFile(t *testing.T) {
 	dir := examplesDir(t)
 	// 取 examples 目录下第一个 .go 文件
 	entries, err := os.ReadDir(dir)
-	if err != nil {
-		t.Fatalf("读取目录失败: %v", err)
-	}
+	require.NoError(t, err, "读取目录失败")
+
 	var goFile string
 	for _, e := range entries {
 		if !e.IsDir() && filepath.Ext(e.Name()) == ".go" &&
@@ -114,12 +100,8 @@ func TestLoad_SingleGoFile(t *testing.T) {
 
 	// 使用相对路径传入（normalizePatterns 应将其转换为 file= 格式）
 	pkgs, err := loader.Load(dir, loader.Config{}, goFile)
-	if err != nil {
-		t.Fatalf("Load 单个文件失败: %v", err)
-	}
-	if len(pkgs) == 0 {
-		t.Fatal("期望加载到至少 1 个包")
-	}
+	require.NoError(t, err, "Load 单个文件失败")
+	require.NotEmpty(t, pkgs, "期望加载到至少 1 个包")
 }
 
 // TestLoad_TwoPhase_DefaultSuffix 验证两阶段加载的核心场景：
@@ -145,12 +127,8 @@ INVALID SYNTAX HERE — 模拟生成文件损坏
 
 	// 两阶段加载应能恢复：检测到 user_access.go 有 gogen 标记 → overlay 空包声明 → 加载成功
 	pkgs, err := loader.Load(dir, loader.Config{}, ".")
-	if err != nil {
-		t.Fatalf("两阶段加载应能恢复损坏的生成文件，实际报错: %v", err)
-	}
-	if len(pkgs) == 0 {
-		t.Fatal("期望加载到至少 1 个包")
-	}
+	require.NoError(t, err, "两阶段加载应能恢复损坏的生成文件")
+	require.NotEmpty(t, pkgs, "期望加载到至少 1 个包")
 }
 
 // TestLoad_TwoPhase_CustomSuffix 验证自定义后缀场景下两阶段加载同样生效。
@@ -174,12 +152,8 @@ BAD CODE
 
 	// suffix=gen → 应能恢复 user_gen.go
 	pkgs, err := loader.Load(dir, loader.Config{GeneratedSuffix: "gen"}, ".")
-	if err != nil {
-		t.Fatalf("自定义后缀两阶段加载应能恢复损坏文件，实际报错: %v", err)
-	}
-	if len(pkgs) == 0 {
-		t.Fatal("期望加载到至少 1 个包")
-	}
+	require.NoError(t, err, "自定义后缀两阶段加载应能恢复损坏文件")
+	require.NotEmpty(t, pkgs, "期望加载到至少 1 个包")
 }
 
 // TestLoad_TwoPhase_WrongSuffix 验证 suffix 不匹配时，损坏的文件被视为用户错误（报错）。
@@ -203,9 +177,7 @@ BAD CODE
 
 	// suffix=gen → user_access.go 不匹配 *_gen.go → 不在 overlay 列表 → 应报错
 	_, err := loader.Load(dir, loader.Config{GeneratedSuffix: "gen"}, ".")
-	if err == nil {
-		t.Fatal("suffix 不匹配时，损坏的生成文件应视为用户错误并报错")
-	}
+	require.Error(t, err, "suffix 不匹配时，损坏的生成文件应视为用户错误并报错")
 }
 
 // TestLoad_HandWrittenFileError_NotRecovered 验证无 gogen 标记的文件出错时不自动恢复（应报错）。
@@ -226,9 +198,7 @@ BAD CODE — 无 gogen 标记，手写文件
 	})
 
 	_, err := loader.Load(dir, loader.Config{}, ".")
-	if err == nil {
-		t.Fatal("无 gogen 标记的文件编译错误应报错，不应静默恢复")
-	}
+	require.Error(t, err, "无 gogen 标记的文件编译错误应报错，不应静默恢复")
 }
 
 // TestLoad_DefaultSuffix_FallbackToAccess 验证 GeneratedSuffix 为空时默认使用 "access"。
@@ -248,12 +218,8 @@ BAD CODE
 
 	// 不传 suffix（空字符串）→ 内部默认 "access" → 应恢复
 	pkgs, err := loader.Load(dir, loader.Config{GeneratedSuffix: ""}, ".")
-	if err != nil {
-		t.Fatalf("GeneratedSuffix 为空时应默认 access，实际报错: %v", err)
-	}
-	if len(pkgs) == 0 {
-		t.Fatal("期望加载到至少 1 个包")
-	}
+	require.NoError(t, err, "GeneratedSuffix 为空时应默认 access")
+	require.NotEmpty(t, pkgs, "期望加载到至少 1 个包")
 }
 
 // TestLoad_AccessFileRecovery 验证两阶段加载能恢复损坏的 access 文件。
@@ -281,12 +247,8 @@ func (this *Foo) GetName( {
 	})
 
 	pkgs, err := loader.Load(filepath.Join(dir, "mypkg"), loader.Config{}, ".")
-	if err != nil {
-		t.Fatalf("两阶段加载应成功恢复损坏的 access 文件，got error: %v", err)
-	}
-	if len(pkgs) == 0 {
-		t.Fatal("期望加载到至少一个包")
-	}
+	require.NoError(t, err, "两阶段加载应成功恢复损坏的 access 文件")
+	require.NotEmpty(t, pkgs, "期望加载到至少一个包")
 }
 
 // TestExtractFileFilter 验证从 patterns 中提取显式 .go 文件路径
@@ -341,13 +303,9 @@ func TestExtractFileFilter(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			got := loader.ExtractFileFilter(dir, tc.patterns)
-			if len(got) != len(tc.want) {
-				t.Fatalf("长度不符：got %v，want %v", got, tc.want)
-			}
+			require.Len(t, got, len(tc.want), "got %v, want %v", got, tc.want)
 			for i := range got {
-				if got[i] != tc.want[i] {
-					t.Errorf("[%d] got %q, want %q", i, got[i], tc.want[i])
-				}
+				assert.Equal(t, tc.want[i], got[i])
 			}
 		})
 	}

@@ -24,6 +24,8 @@ import (
 
 	"github.com/motocat46/gogen/pkg/model"
 	"github.com/motocat46/gogen/pkg/writer"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // makeStruct 创建一个最小的 StructDef，用于 writer 测试。
@@ -62,17 +64,12 @@ func TestWrite_NewFile(t *testing.T) {
 	cfg := writer.Config{Suffix: "access"}
 
 	written, err := writer.Write(s, []byte(gogenCode), cfg)
-	if err != nil {
-		t.Fatalf("Write 失败: %v", err)
-	}
-	if !written {
-		t.Error("期望 written=true，实际为 false")
-	}
+	require.NoError(t, err, "Write 失败")
+	assert.True(t, written, "期望 written=true")
 
 	outPath := filepath.Join(dir, "mystruct_access.go")
-	if _, err := os.Stat(outPath); os.IsNotExist(err) {
-		t.Errorf("期望文件 %s 存在，但不存在", outPath)
-	}
+	_, err = os.Stat(outPath)
+	assert.NoError(t, err, "期望文件 %s 存在", outPath)
 }
 
 // TestWrite_SameContent_Skip 验证已有相同内容时增量跳过（written=false）。
@@ -82,18 +79,13 @@ func TestWrite_SameContent_Skip(t *testing.T) {
 	cfg := writer.Config{Suffix: "access"}
 
 	// 第一次写入
-	if _, err := writer.Write(s, []byte(gogenCode), cfg); err != nil {
-		t.Fatalf("第一次 Write 失败: %v", err)
-	}
+	_, err := writer.Write(s, []byte(gogenCode), cfg)
+	require.NoError(t, err, "第一次 Write 失败")
 
 	// 第二次写入相同内容
 	written, err := writer.Write(s, []byte(gogenCode), cfg)
-	if err != nil {
-		t.Fatalf("第二次 Write 失败: %v", err)
-	}
-	if written {
-		t.Error("期望 written=false（内容不变，跳过），实际为 true")
-	}
+	require.NoError(t, err, "第二次 Write 失败")
+	assert.False(t, written, "内容不变时期望 written=false（跳过）")
 }
 
 // TestWrite_DifferentContent_Overwrite 验证已有不同内容时覆盖写入（written=true）。
@@ -103,19 +95,14 @@ func TestWrite_DifferentContent_Overwrite(t *testing.T) {
 	cfg := writer.Config{Suffix: "access"}
 
 	// 写入原始内容
-	if _, err := writer.Write(s, []byte(gogenCode), cfg); err != nil {
-		t.Fatalf("第一次 Write 失败: %v", err)
-	}
+	_, err := writer.Write(s, []byte(gogenCode), cfg)
+	require.NoError(t, err, "第一次 Write 失败")
 
 	// 写入修改后的内容（仍含 gogen 标记）
 	updatedCode := strings.Replace(gogenCode, "GetFoo", "GetBar", 1)
 	written, err := writer.Write(s, []byte(updatedCode), cfg)
-	if err != nil {
-		t.Fatalf("第二次 Write 失败: %v", err)
-	}
-	if !written {
-		t.Error("期望 written=true（内容不同），实际为 false")
-	}
+	require.NoError(t, err, "第二次 Write 失败")
+	assert.True(t, written, "内容不同时期望 written=true")
 }
 
 // TestWrite_HandWrittenFile_Rejected 验证手写文件（无 gogen 标记）拒绝覆盖并返回 error。
@@ -126,17 +113,12 @@ func TestWrite_HandWrittenFile_Rejected(t *testing.T) {
 
 	// 预先写入手写文件（无 gogen 标记）
 	outPath := filepath.Join(dir, cfg.OutputFilename(s.Name))
-	if err := os.WriteFile(outPath, []byte(handWrittenCode), 0o644); err != nil {
-		t.Fatalf("预写入手写文件失败: %v", err)
-	}
+	err := os.WriteFile(outPath, []byte(handWrittenCode), 0o644)
+	require.NoError(t, err, "预写入手写文件失败")
 
 	written, err := writer.Write(s, []byte(gogenCode), cfg)
-	if err == nil {
-		t.Error("期望返回 error（手写文件保护），实际为 nil")
-	}
-	if written {
-		t.Error("期望 written=false，实际为 true")
-	}
+	assert.Error(t, err, "期望返回 error（手写文件保护）")
+	assert.False(t, written)
 }
 
 // TestWrite_DryRun 验证 dry-run 模式下不创建文件，返回 written=false。
@@ -146,17 +128,12 @@ func TestWrite_DryRun(t *testing.T) {
 	cfg := writer.Config{Suffix: "access", DryRun: true}
 
 	written, err := writer.Write(s, []byte(gogenCode), cfg)
-	if err != nil {
-		t.Fatalf("Write DryRun 失败: %v", err)
-	}
-	if written {
-		t.Error("dry-run 模式期望 written=false，实际为 true")
-	}
+	require.NoError(t, err, "Write DryRun 失败")
+	assert.False(t, written, "dry-run 模式期望 written=false")
 
 	outPath := filepath.Join(dir, cfg.OutputFilename(s.Name))
-	if _, err := os.Stat(outPath); !os.IsNotExist(err) {
-		t.Errorf("dry-run 模式不应创建文件 %s", outPath)
-	}
+	_, err = os.Stat(outPath)
+	assert.True(t, os.IsNotExist(err), "dry-run 模式不应创建文件 %s", outPath)
 }
 
 // TestWrite_CustomSuffix 验证 Suffix 配置生效（文件名使用自定义后缀）。
@@ -166,17 +143,11 @@ func TestWrite_CustomSuffix(t *testing.T) {
 	cfg := writer.Config{Suffix: "gen"}
 
 	written, err := writer.Write(s, []byte(gogenCode), cfg)
-	if err != nil {
-		t.Fatalf("Write 自定义后缀失败: %v", err)
-	}
-	if !written {
-		t.Error("期望 written=true，实际为 false")
-	}
+	require.NoError(t, err, "Write 自定义后缀失败")
+	assert.True(t, written)
 
-	expectedPath := filepath.Join(dir, "mystruct_gen.go")
-	if _, err := os.Stat(expectedPath); os.IsNotExist(err) {
-		t.Errorf("期望文件 %s 存在，但不存在", expectedPath)
-	}
+	_, err = os.Stat(filepath.Join(dir, "mystruct_gen.go"))
+	assert.NoError(t, err, "期望文件 mystruct_gen.go 存在")
 }
 
 // TestWrite_DefaultSuffix 验证 Suffix 为空时使用 DefaultSuffix。
@@ -186,18 +157,12 @@ func TestWrite_DefaultSuffix(t *testing.T) {
 	cfg := writer.Config{} // Suffix 为空
 
 	written, err := writer.Write(s, []byte(gogenCode), cfg)
-	if err != nil {
-		t.Fatalf("Write 默认后缀失败: %v", err)
-	}
-	if !written {
-		t.Error("期望 written=true，实际为 false")
-	}
+	require.NoError(t, err, "Write 默认后缀失败")
+	assert.True(t, written)
 
 	// 默认后缀为 "access"
-	expectedPath := filepath.Join(dir, "mystruct_access.go")
-	if _, err := os.Stat(expectedPath); os.IsNotExist(err) {
-		t.Errorf("期望文件 %s 存在（默认后缀），但不存在", expectedPath)
-	}
+	_, err = os.Stat(filepath.Join(dir, "mystruct_access.go"))
+	assert.NoError(t, err, "期望文件 mystruct_access.go 存在（默认后缀）")
 }
 
 // TestClean_ExistingGogenFile 验证 Clean 删除已有的 gogen 生成文件。
@@ -207,19 +172,14 @@ func TestClean_ExistingGogenFile(t *testing.T) {
 	cfg := writer.Config{Suffix: "access"}
 
 	// 先写入 gogen 文件
-	if _, err := writer.Write(s, []byte(gogenCode), cfg); err != nil {
-		t.Fatalf("Write 失败: %v", err)
-	}
+	_, err := writer.Write(s, []byte(gogenCode), cfg)
+	require.NoError(t, err, "Write 失败")
 
-	// 调用 Clean
-	if err := writer.Clean(s, cfg); err != nil {
-		t.Fatalf("Clean 失败: %v", err)
-	}
+	require.NoError(t, writer.Clean(s, cfg), "Clean 失败")
 
 	outPath := filepath.Join(dir, cfg.OutputFilename(s.Name))
-	if _, err := os.Stat(outPath); !os.IsNotExist(err) {
-		t.Errorf("Clean 后文件 %s 应不存在", outPath)
-	}
+	_, err = os.Stat(outPath)
+	assert.True(t, os.IsNotExist(err), "Clean 后文件 %s 应不存在", outPath)
 }
 
 // TestClean_NonExistentFile 验证 Clean 对不存在的文件不报错。
@@ -228,10 +188,7 @@ func TestClean_NonExistentFile(t *testing.T) {
 	s := makeStruct(dir, "example", "MyStruct")
 	cfg := writer.Config{Suffix: "access"}
 
-	// 文件不存在时 Clean 应无错误
-	if err := writer.Clean(s, cfg); err != nil {
-		t.Fatalf("Clean 对不存在文件不应报错，实际: %v", err)
-	}
+	assert.NoError(t, writer.Clean(s, cfg), "Clean 对不存在文件不应报错")
 }
 
 // TestClean_DryRun 验证 Clean dry-run 模式不删除文件。
@@ -241,20 +198,16 @@ func TestClean_DryRun(t *testing.T) {
 	cfg := writer.Config{Suffix: "access"}
 
 	// 先写入文件
-	if _, err := writer.Write(s, []byte(gogenCode), cfg); err != nil {
-		t.Fatalf("Write 失败: %v", err)
-	}
+	_, err := writer.Write(s, []byte(gogenCode), cfg)
+	require.NoError(t, err, "Write 失败")
 
 	// dry-run Clean 不应删除
 	dryRunCfg := writer.Config{Suffix: "access", DryRun: true}
-	if err := writer.Clean(s, dryRunCfg); err != nil {
-		t.Fatalf("Clean DryRun 失败: %v", err)
-	}
+	require.NoError(t, writer.Clean(s, dryRunCfg), "Clean DryRun 失败")
 
 	outPath := filepath.Join(dir, cfg.OutputFilename(s.Name))
-	if _, err := os.Stat(outPath); os.IsNotExist(err) {
-		t.Errorf("dry-run 模式不应删除文件 %s", outPath)
-	}
+	_, err = os.Stat(outPath)
+	assert.NoError(t, err, "dry-run 模式不应删除文件 %s", outPath)
 }
 
 // TestOutputFilename 验证 OutputFilename 生成正确的文件名。
@@ -272,10 +225,7 @@ func TestOutputFilename(t *testing.T) {
 
 	for _, tc := range cases {
 		cfg := writer.Config{Suffix: tc.suffix}
-		got := cfg.OutputFilename(tc.name)
-		if got != tc.expected {
-			t.Errorf("OutputFilename(%q, suffix=%q) = %q，期望 %q", tc.name, tc.suffix, got, tc.expected)
-		}
+		assert.Equal(t, tc.expected, cfg.OutputFilename(tc.name))
 	}
 }
 
@@ -320,10 +270,7 @@ func TestIsGogenGenerated(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := writer.IsGogenGenerated([]byte(tc.content))
-			if got != tc.want {
-				t.Errorf("IsGogenGenerated() = %v，期望 %v", got, tc.want)
-			}
+			assert.Equal(t, tc.want, writer.IsGogenGenerated([]byte(tc.content)))
 		})
 	}
 }
@@ -336,44 +283,30 @@ func TestCheck_CodeNil(t *testing.T) {
 
 	t.Run("文件不存在时返回 upToDate=true", func(t *testing.T) {
 		upToDate, err := writer.Check(s, nil, cfg)
-		if err != nil {
-			t.Fatalf("Check 不应返回错误: %v", err)
-		}
-		if !upToDate {
-			t.Error("文件不存在时应返回 upToDate=true（无需操作）")
-		}
+		require.NoError(t, err)
+		assert.True(t, upToDate, "文件不存在时应返回 upToDate=true（无需操作）")
 	})
 
 	t.Run("存在 gogen 文件时返回 upToDate=false（需要删除）", func(t *testing.T) {
 		path := filepath.Join(dir, "mystruct_access.go")
-		if err := os.WriteFile(path, []byte(gogenCode), 0o644); err != nil {
-			t.Fatal(err)
-		}
+		err := os.WriteFile(path, []byte(gogenCode), 0o644)
+		require.NoError(t, err)
 		t.Cleanup(func() { os.Remove(path) })
 
 		upToDate, err := writer.Check(s, nil, cfg)
-		if err != nil {
-			t.Fatalf("Check 不应返回错误: %v", err)
-		}
-		if upToDate {
-			t.Error("存在 gogen 文件时应返回 upToDate=false（文件需被删除）")
-		}
+		require.NoError(t, err)
+		assert.False(t, upToDate, "存在 gogen 文件时应返回 upToDate=false（文件需被删除）")
 	})
 
 	t.Run("存在手写文件时返回 upToDate=true（不应删除）", func(t *testing.T) {
 		path := filepath.Join(dir, "mystruct_access.go")
-		if err := os.WriteFile(path, []byte(handWrittenCode), 0o644); err != nil {
-			t.Fatal(err)
-		}
+		err := os.WriteFile(path, []byte(handWrittenCode), 0o644)
+		require.NoError(t, err)
 		t.Cleanup(func() { os.Remove(path) })
 
 		upToDate, err := writer.Check(s, nil, cfg)
-		if err != nil {
-			t.Fatalf("Check 不应返回错误: %v", err)
-		}
-		if !upToDate {
-			t.Error("手写文件时应返回 upToDate=true（不应删除）")
-		}
+		require.NoError(t, err)
+		assert.True(t, upToDate, "手写文件时应返回 upToDate=true（不应删除）")
 	})
 }
 
@@ -386,29 +319,17 @@ func TestCheck_WithCode(t *testing.T) {
 
 	t.Run("文件不存在时返回 upToDate=false（需要创建）", func(t *testing.T) {
 		upToDate, err := writer.Check(s, code, cfg)
-		if err != nil {
-			t.Fatalf("Check 不应返回错误: %v", err)
-		}
-		if upToDate {
-			t.Error("文件不存在时应返回 upToDate=false")
-		}
+		require.NoError(t, err)
+		assert.False(t, upToDate, "文件不存在时应返回 upToDate=false")
 	})
 
 	t.Run("写入后再 Check 返回 upToDate=true", func(t *testing.T) {
 		written, err := writer.Write(s, code, cfg)
-		if err != nil {
-			t.Fatalf("Write 失败: %v", err)
-		}
-		if !written {
-			t.Fatal("期望 Write 返回 true（文件应被写入）")
-		}
+		require.NoError(t, err, "Write 失败")
+		require.True(t, written, "期望 Write 返回 true（文件应被写入）")
 
 		upToDate, err := writer.Check(s, code, cfg)
-		if err != nil {
-			t.Fatalf("Check 不应返回错误: %v", err)
-		}
-		if !upToDate {
-			t.Error("内容相同时应返回 upToDate=true")
-		}
+		require.NoError(t, err)
+		assert.True(t, upToDate, "内容相同时应返回 upToDate=true")
 	})
 }

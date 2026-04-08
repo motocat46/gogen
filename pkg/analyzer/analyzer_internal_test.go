@@ -20,6 +20,8 @@ package analyzer
 import (
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIsExcluded(t *testing.T) {
@@ -83,11 +85,7 @@ func TestIsExcluded(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := isExcluded(tt.filename, tt.excludePaths)
-			if got != tt.want {
-				t.Errorf("isExcluded(%q, %v) = %v, want %v",
-					tt.filename, tt.excludePaths, got, tt.want)
-			}
+			assert.Equal(t, tt.want, isExcluded(tt.filename, tt.excludePaths))
 		})
 	}
 }

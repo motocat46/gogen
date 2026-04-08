@@ -28,6 +28,7 @@ import (
 	"github.com/motocat46/gogen/pkg/generator"
 	"github.com/motocat46/gogen/pkg/loader"
 	"github.com/motocat46/gogen/pkg/writer"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -45,7 +46,7 @@ var (
 //  1. import 语句（imports.Process 自动推断，内存生成不产生）
 //  2. 连续空行（gofmt 在声明之间加空行，模板不加）
 //
-// 注：时间戳已从生成文件中移除，无需再处理。
+// 注：时间戳行已从生成文件中移除，无需再处理。
 func normalizeForCompare(b []byte) []byte {
 	b = reImportSingle.ReplaceAll(b, []byte("\n"))
 	b = reImportMulti.ReplaceAll(b, []byte("\n"))
@@ -80,14 +81,10 @@ func TestGoldenFiles(t *testing.T) {
 	dir := goldenDir(t)
 
 	pkgs, err := loader.Load(dir, loader.Config{}, ".")
-	if err != nil {
-		t.Fatalf("加载 testdata/examples 失败: %v", err)
-	}
+	require.NoError(t, err, "加载 testdata/examples 失败")
 
 	structs, err := analyzer.Analyze(pkgs, analyzer.Config{})
-	if err != nil {
-		t.Fatalf("分析 testdata/examples 失败: %v", err)
-	}
+	require.NoError(t, err, "分析 testdata/examples 失败")
 
 	reg := generator.NewRegistry()
 	writerCfg := writer.Config{} // 使用默认后缀 "access"
@@ -96,9 +93,7 @@ func TestGoldenFiles(t *testing.T) {
 		s := s
 		t.Run(s.Name, func(t *testing.T) {
 			got, err := reg.GenerateStruct(s, func(string) {})
-			if err != nil {
-				t.Fatalf("生成 %s 失败: %v", s.Name, err)
-			}
+			require.NoError(t, err, "生成 %s 失败", s.Name)
 
 			goldenPath := filepath.Join(dir, writerCfg.OutputFilename(s.Name))
 

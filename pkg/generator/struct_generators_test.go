@@ -22,6 +22,8 @@ import (
 
 	"github.com/motocat46/gogen/pkg/generator"
 	"github.com/motocat46/gogen/pkg/model"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // nopLog 丢弃所有日志，用于不关心日志输出的测试用例。
@@ -39,9 +41,8 @@ func TestModifyGenerator_Generate(t *testing.T) {
 			ModifyMethod: "",
 		}
 		out, err := g.Generate(s, nopLog)
-		if err != nil || out != nil {
-			t.Errorf("ModifyMethod=空 时 Generate() 应返回 nil,nil；got %q, %v", out, err)
-		}
+		assert.NoError(t, err)
+		assert.Nil(t, out, "ModifyMethod=空 时 Generate() 应返回 nil")
 	})
 
 	t.Run("ModifyMethod 与字段名冲突，CanGenerateMethodOverride=false，返回 nil", func(t *testing.T) {
@@ -55,9 +56,8 @@ func TestModifyGenerator_Generate(t *testing.T) {
 			ManualMethods: map[string]bool{},
 		}
 		out, err := g.Generate(s, nopLog)
-		if err != nil || out != nil {
-			t.Errorf("字段名冲突时 Generate() 应返回 nil,nil；got %q, %v", out, err)
-		}
+		assert.NoError(t, err)
+		assert.Nil(t, out, "字段名冲突时 Generate() 应返回 nil")
 	})
 
 	t.Run("ModifyMethod 与手写方法冲突，返回 nil", func(t *testing.T) {
@@ -70,9 +70,8 @@ func TestModifyGenerator_Generate(t *testing.T) {
 			ManualMethods: map[string]bool{"Modify": true},
 		}
 		out, err := g.Generate(s, nopLog)
-		if err != nil || out != nil {
-			t.Errorf("手写方法冲突时 Generate() 应返回 nil,nil；got %q, %v", out, err)
-		}
+		assert.NoError(t, err)
+		assert.Nil(t, out, "手写方法冲突时 Generate() 应返回 nil")
 	})
 
 	t.Run("正常生成：输出包含方法名和 dirty 调用", func(t *testing.T) {
@@ -85,16 +84,10 @@ func TestModifyGenerator_Generate(t *testing.T) {
 			ManualMethods: map[string]bool{},
 		}
 		out, err := g.Generate(s, nopLog)
-		if err != nil {
-			t.Fatalf("Generate() 返回错误: %v", err)
-		}
+		require.NoError(t, err)
 		code := string(out)
-		if !strings.Contains(code, "func (this *Player) Modify(") {
-			t.Errorf("生成代码缺少方法签名，got:\n%s", code)
-		}
-		if !strings.Contains(code, "this.MakeDirty()") {
-			t.Errorf("生成代码缺少 dirty 调用，got:\n%s", code)
-		}
+		assert.Contains(t, code, "func (this *Player) Modify(", "生成代码缺少方法签名")
+		assert.Contains(t, code, "this.MakeDirty()", "生成代码缺少 dirty 调用")
 	})
 
 	t.Run("自定义方法名", func(t *testing.T) {
@@ -107,16 +100,10 @@ func TestModifyGenerator_Generate(t *testing.T) {
 			ManualMethods: map[string]bool{},
 		}
 		out, err := g.Generate(s, nopLog)
-		if err != nil {
-			t.Fatalf("Generate() 返回错误: %v", err)
-		}
+		require.NoError(t, err)
 		code := string(out)
-		if !strings.Contains(code, "func (this *Config) Apply(") {
-			t.Errorf("期望自定义方法名 Apply，got:\n%s", code)
-		}
-		if !strings.Contains(code, "this.MarkChanged()") {
-			t.Errorf("期望自定义 dirty 方法 MarkChanged，got:\n%s", code)
-		}
+		assert.Contains(t, code, "func (this *Config) Apply(", "期望自定义方法名 Apply")
+		assert.Contains(t, code, "this.MarkChanged()", "期望自定义 dirty 方法 MarkChanged")
 	})
 }
 
@@ -135,12 +122,10 @@ func TestResetGenerator_Generate(t *testing.T) {
 			FieldNames:    map[string]bool{},
 		}
 		out, err := g.Generate(s, func(msg string) { logged = append(logged, msg) })
-		if err != nil || out != nil {
-			t.Errorf("手写 Reset 时 Generate() 应返回 nil,nil；got %q, %v", out, err)
-		}
-		if len(logged) == 0 || !strings.Contains(logged[0], "[Info]") {
-			t.Errorf("期望 [Info] 日志，got %v", logged)
-		}
+		assert.NoError(t, err)
+		assert.Nil(t, out, "手写 Reset 时 Generate() 应返回 nil")
+		require.NotEmpty(t, logged, "期望 [Info] 日志")
+		assert.Contains(t, logged[0], "[Info]")
 	})
 
 	t.Run("字段名为 Reset，CanGenerateMethodOverride=false，返回 nil", func(t *testing.T) {
@@ -153,9 +138,8 @@ func TestResetGenerator_Generate(t *testing.T) {
 			FieldNames: map[string]bool{"Reset": true},
 		}
 		out, err := g.Generate(s, nopLog)
-		if err != nil || out != nil {
-			t.Errorf("字段名冲突时 Generate() 应返回 nil,nil；got %q, %v", out, err)
-		}
+		assert.NoError(t, err)
+		assert.Nil(t, out, "字段名冲突时 Generate() 应返回 nil")
 	})
 
 	t.Run("正常生成，无 dirty", func(t *testing.T) {
@@ -168,17 +152,11 @@ func TestResetGenerator_Generate(t *testing.T) {
 			DirtyMethod:   "",
 		}
 		out, err := g.Generate(s, nopLog)
-		if err != nil {
-			t.Fatalf("Generate() 返回错误: %v", err)
-		}
+		require.NoError(t, err)
 		code := string(out)
-		if !strings.Contains(code, "func (this *Config) Reset()") {
-			t.Errorf("生成代码缺少方法签名，got:\n%s", code)
-		}
-		if strings.Contains(code, "this.") {
-			// 无 dirty 时不应有 this.XXX() 调用
-			t.Errorf("无 dirty 时不应生成 dirty 调用，got:\n%s", code)
-		}
+		assert.Contains(t, code, "func (this *Config) Reset()", "生成代码缺少方法签名")
+		// 无 dirty 时不应有 this.XXX() 调用
+		assert.False(t, strings.Contains(code, "this."), "无 dirty 时不应生成 dirty 调用")
 	})
 
 	t.Run("NoDirty=true，不生成 dirty 调用（即使 DirtyMethod 非空）", func(t *testing.T) {
@@ -192,12 +170,8 @@ func TestResetGenerator_Generate(t *testing.T) {
 			NoDirty:       true,
 		}
 		out, err := g.Generate(s, nopLog)
-		if err != nil {
-			t.Fatalf("Generate() 返回错误: %v", err)
-		}
-		if strings.Contains(string(out), "MakeDirty") {
-			t.Errorf("NoDirty=true 时不应调用 MakeDirty，got:\n%s", out)
-		}
+		require.NoError(t, err)
+		assert.NotContains(t, string(out), "MakeDirty", "NoDirty=true 时不应调用 MakeDirty")
 	})
 
 	t.Run("有 dirty 方法时生成 dirty 调用", func(t *testing.T) {
@@ -210,11 +184,7 @@ func TestResetGenerator_Generate(t *testing.T) {
 			DirtyMethod:   "MakeDirty",
 		}
 		out, err := g.Generate(s, nopLog)
-		if err != nil {
-			t.Fatalf("Generate() 返回错误: %v", err)
-		}
-		if !strings.Contains(string(out), "this.MakeDirty()") {
-			t.Errorf("期望 dirty 调用 MakeDirty，got:\n%s", out)
-		}
+		require.NoError(t, err)
+		assert.Contains(t, string(out), "this.MakeDirty()", "期望 dirty 调用 MakeDirty")
 	})
 }

@@ -21,12 +21,16 @@
 package e2e_test
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
 // gogenBin 保存编译好的 gogen 二进制路径，由 TestMain 填充。
@@ -48,8 +52,6 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic("创建临时目录失败: " + err.Error())
 	}
-	defer os.RemoveAll(tmp)
-
 	bin := filepath.Join(tmp, "gogen")
 	if runtime.GOOS == "windows" {
 		bin += ".exe"
@@ -68,7 +70,16 @@ func TestMain(m *testing.M) {
 	}
 	gogenBin = bin
 
-	os.Exit(m.Run())
+	// 显式清理（defer 在 os.Exit 前不执行）
+	code := m.Run()
+	os.RemoveAll(tmp)
+	if err := goleak.Find(); err != nil {
+		fmt.Fprintln(os.Stderr, "goroutine leak:", err)
+		if code == 0 {
+			code = 1
+		}
+	}
+	os.Exit(code)
 }
 
 // runGogen 在指定目录运行 gogen，返回 stdout+stderr 合并输出和退出码（0 表示成功）。
@@ -94,9 +105,8 @@ func makeSimplePkg(t *testing.T) string {
 
 	// go.mod 是 go/packages 加载包的必要条件
 	gomod := "module example.com/mypkg\n\ngo 1.21\n"
-	if err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(gomod), 0o644); err != nil {
-		t.Fatalf("写入 go.mod 失败: %v", err)
-	}
+	err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(gomod), 0o644)
+	require.NoError(t, err, "写入 go.mod 失败")
 
 	src := `package mypkg
 
@@ -107,9 +117,8 @@ type User struct {
 	Score float64
 }
 `
-	if err := os.WriteFile(filepath.Join(dir, "user.go"), []byte(src), 0o644); err != nil {
-		t.Fatalf("写入测试文件失败: %v", err)
-	}
+	err = os.WriteFile(filepath.Join(dir, "user.go"), []byte(src), 0o644)
+	require.NoError(t, err, "写入测试文件失败")
 	return dir
 }
 
@@ -118,12 +127,8 @@ type User struct {
 func TestVersion(t *testing.T) {
 	root := repoRoot(t)
 	out, code := runGogen(root, "version")
-	if code != 0 {
-		t.Fatalf("version 退出码 = %d, want 0\n输出: %s", code, out)
-	}
-	if !strings.Contains(out, "gogen") {
-		t.Errorf("version 输出应包含 'gogen'，got: %q", out)
-	}
+	require.Zero(t, code, "version 退出码应为 0\n输出: %s", out)
+	assert.Contains(t, out, "gogen", "version 输出应包含 'gogen'")
 }
 
 // ─── generate ────────────────────────────────────────────────────────────────
@@ -131,53 +136,39 @@ func TestVersion(t *testing.T) {
 func TestGenerate_CreatesAccessFile(t *testing.T) {
 	dir := makeSimplePkg(t)
 	out, code := runGogen(dir, ".")
-	if code != 0 {
-		t.Fatalf("generate 退出码 = %d, want 0\n输出: %s", code, out)
-	}
+	require.Zero(t, code, "generate 退出码应为 0\n输出: %s", out)
 
 	generated := filepath.Join(dir, "user_access.go")
-	if _, err := os.Stat(generated); os.IsNotExist(err) {
-		t.Fatalf("generate 后 user_access.go 应存在，但未找到")
-	}
+	_, err := os.Stat(generated)
+	require.NoError(t, err, "generate 后 user_access.go 应存在")
 
 	content, _ := os.ReadFile(generated)
 	code2 := string(content)
-	if !strings.Contains(code2, "func (this *User) GetName()") {
-		t.Errorf("生成文件缺少 GetName()，got:\n%s", code2)
-	}
-	if !strings.Contains(code2, "func (this *User) SetName(") {
-		t.Errorf("生成文件缺少 SetName()，got:\n%s", code2)
-	}
+	assert.Contains(t, code2, "func (this *User) GetName()", "生成文件缺少 GetName()")
+	assert.Contains(t, code2, "func (this *User) SetName(", "生成文件缺少 SetName()")
 }
 
 func TestGenerate_DryRun_NoFileCreated(t *testing.T) {
 	dir := makeSimplePkg(t)
 	out, code := runGogen(dir, "--dry-run", ".")
-	if code != 0 {
-		t.Fatalf("dry-run 退出码 = %d, want 0\n输出: %s", code, out)
-	}
+	require.Zero(t, code, "dry-run 退出码应为 0\n输出: %s", out)
 
 	generated := filepath.Join(dir, "user_access.go")
-	if _, err := os.Stat(generated); !os.IsNotExist(err) {
-		t.Error("--dry-run 不应创建任何文件，但 user_access.go 已存在")
-	}
+	_, err := os.Stat(generated)
+	assert.True(t, os.IsNotExist(err), "--dry-run 不应创建任何文件，但 user_access.go 已存在")
 }
 
 func TestGenerate_CustomSuffix(t *testing.T) {
 	dir := makeSimplePkg(t)
 	out, code := runGogen(dir, "--suffix", "gen", ".")
-	if code != 0 {
-		t.Fatalf("generate --suffix gen 退出码 = %d, want 0\n输出: %s", code, out)
-	}
+	require.Zero(t, code, "generate --suffix gen 退出码应为 0\n输出: %s", out)
 
-	generated := filepath.Join(dir, "user_gen.go")
-	if _, err := os.Stat(generated); os.IsNotExist(err) {
-		t.Fatal("--suffix gen 后 user_gen.go 应存在，但未找到")
-	}
+	_, err := os.Stat(filepath.Join(dir, "user_gen.go"))
+	require.NoError(t, err, "--suffix gen 后 user_gen.go 应存在")
+
 	// 默认后缀文件不应存在
-	if _, err := os.Stat(filepath.Join(dir, "user_access.go")); !os.IsNotExist(err) {
-		t.Error("--suffix gen 时 user_access.go 不应存在")
-	}
+	_, err = os.Stat(filepath.Join(dir, "user_access.go"))
+	assert.True(t, os.IsNotExist(err), "--suffix gen 时 user_access.go 不应存在")
 }
 
 func TestGenerate_ExistingGoldenFiles(t *testing.T) {
@@ -185,9 +176,7 @@ func TestGenerate_ExistingGoldenFiles(t *testing.T) {
 	root := repoRoot(t)
 	examplesDir := filepath.Join(root, "testdata", "examples")
 	out, code := runGogen(examplesDir, "--no-default-excludes", ".")
-	if code != 0 {
-		t.Fatalf("generate testdata/examples 退出码 = %d, want 0\n输出: %s", code, out)
-	}
+	require.Zero(t, code, "generate testdata/examples 退出码应为 0\n输出: %s", out)
 }
 
 // ─── check ───────────────────────────────────────────────────────────────────
@@ -196,38 +185,29 @@ func TestCheck_UpToDate_ExitsZero(t *testing.T) {
 	dir := makeSimplePkg(t)
 
 	// 先生成
-	if _, code := runGogen(dir, "."); code != 0 {
-		t.Fatal("预备步骤：generate 失败")
-	}
+	_, setupCode := runGogen(dir, ".")
+	require.Zero(t, setupCode, "预备步骤：generate 失败")
 
 	// 再 check：文件最新，应返回 0
 	out, code := runGogen(dir, "check", ".")
-	if code != 0 {
-		t.Fatalf("check（文件最新）退出码 = %d, want 0\n输出: %s", code, out)
-	}
-	if !strings.Contains(out, "最新") {
-		t.Errorf("check 通过时输出应含'最新'，got: %q", out)
-	}
+	require.Zero(t, code, "check（文件最新）退出码应为 0\n输出: %s", out)
+	assert.Contains(t, out, "最新", "check 通过时输出应含'最新'")
 }
 
 func TestCheck_Stale_ExitsNonZero(t *testing.T) {
 	dir := makeSimplePkg(t)
 
 	// 先生成
-	if _, code := runGogen(dir, "."); code != 0 {
-		t.Fatal("预备步骤：generate 失败")
-	}
+	_, setupCode := runGogen(dir, ".")
+	require.Zero(t, setupCode, "预备步骤：generate 失败")
 
 	// 删除生成文件，模拟"过期"
-	if err := os.Remove(filepath.Join(dir, "user_access.go")); err != nil {
-		t.Fatalf("删除生成文件失败: %v", err)
-	}
+	err := os.Remove(filepath.Join(dir, "user_access.go"))
+	require.NoError(t, err, "删除生成文件失败")
 
 	// check 应返回非 0
 	out, code := runGogen(dir, "check", ".")
-	if code == 0 {
-		t.Fatalf("check（文件过期）退出码 = 0, want 非 0\n输出: %s", out)
-	}
+	assert.NotZero(t, code, "check（文件过期）退出码应非 0\n输出: %s", out)
 }
 
 func TestCheck_ExistingGoldenFiles(t *testing.T) {
@@ -235,9 +215,7 @@ func TestCheck_ExistingGoldenFiles(t *testing.T) {
 	root := repoRoot(t)
 	examplesDir := filepath.Join(root, "testdata", "examples")
 	out, code := runGogen(examplesDir, "check", "--no-default-excludes", ".")
-	if code != 0 {
-		t.Fatalf("check testdata/examples 退出码 = %d, want 0\n输出: %s", code, out)
-	}
+	require.Zero(t, code, "check testdata/examples 退出码应为 0\n输出: %s", out)
 }
 
 // ─── --output ────────────────────────────────────────────────────────────────
@@ -247,20 +225,15 @@ func TestGenerate_OutputDir_FilesInOutputNotSource(t *testing.T) {
 	outDir := filepath.Join(dir, "gen")
 
 	out, code := runGogen(dir, "--output", outDir, ".")
-	if code != 0 {
-		t.Fatalf("generate --output 退出码 = %d, want 0\n输出: %s", code, out)
-	}
+	require.Zero(t, code, "generate --output 退出码应为 0\n输出: %s", out)
 
 	// 生成文件应在 outDir 中
-	generated := filepath.Join(outDir, "user_access.go")
-	if _, err := os.Stat(generated); os.IsNotExist(err) {
-		t.Fatalf("--output 后 gen/user_access.go 应存在，但未找到")
-	}
+	_, err := os.Stat(filepath.Join(outDir, "user_access.go"))
+	require.NoError(t, err, "--output 后 gen/user_access.go 应存在")
 
 	// 源目录中不应有生成文件
-	if _, err := os.Stat(filepath.Join(dir, "user_access.go")); !os.IsNotExist(err) {
-		t.Error("--output 指定了输出目录，源目录中不应有 user_access.go")
-	}
+	_, err = os.Stat(filepath.Join(dir, "user_access.go"))
+	assert.True(t, os.IsNotExist(err), "--output 指定了输出目录，源目录中不应有 user_access.go")
 }
 
 func TestCheck_OutputDir_UpToDate(t *testing.T) {
@@ -268,15 +241,12 @@ func TestCheck_OutputDir_UpToDate(t *testing.T) {
 	outDir := filepath.Join(dir, "gen")
 
 	// 先生成到 outDir
-	if _, code := runGogen(dir, "--output", outDir, "."); code != 0 {
-		t.Fatal("预备步骤：generate --output 失败")
-	}
+	_, setupCode := runGogen(dir, "--output", outDir, ".")
+	require.Zero(t, setupCode, "预备步骤：generate --output 失败")
 
 	// check 使用相同 --output，文件最新，应返回 0
 	out, code := runGogen(dir, "check", "--output", outDir, ".")
-	if code != 0 {
-		t.Fatalf("check --output（文件最新）退出码 = %d, want 0\n输出: %s", code, out)
-	}
+	require.Zero(t, code, "check --output（文件最新）退出码应为 0\n输出: %s", out)
 }
 
 func TestCheck_OutputDir_Mismatch_ExitsNonZero(t *testing.T) {
@@ -284,15 +254,12 @@ func TestCheck_OutputDir_Mismatch_ExitsNonZero(t *testing.T) {
 	outDir := filepath.Join(dir, "gen")
 
 	// 生成到 outDir
-	if _, code := runGogen(dir, "--output", outDir, "."); code != 0 {
-		t.Fatal("预备步骤：generate --output 失败")
-	}
+	_, setupCode := runGogen(dir, "--output", outDir, ".")
+	require.Zero(t, setupCode, "预备步骤：generate --output 失败")
 
 	// check 不带 --output，在源目录找不到文件，应返回非 0
 	_, code := runGogen(dir, "check", ".")
-	if code == 0 {
-		t.Fatal("check 未指定 --output 但文件在 gen/ 中，退出码应非 0")
-	}
+	assert.NotZero(t, code, "check 未指定 --output 但文件在 gen/ 中，退出码应非 0")
 }
 
 // ─── lint ────────────────────────────────────────────────────────────────────
@@ -301,21 +268,15 @@ func TestLint_ValidPackage_ExitsZero(t *testing.T) {
 	root := repoRoot(t)
 	lintDir := filepath.Join(root, "testdata", "lint")
 	out, code := runGogen(lintDir, "lint", "--no-default-excludes", "./valid")
-	if code != 0 {
-		t.Fatalf("lint valid 退出码 = %d, want 0\n输出: %s", code, out)
-	}
-	if !strings.Contains(out, "未发现问题") {
-		t.Errorf("lint 通过时输出应含 '未发现问题'，got: %q", out)
-	}
+	require.Zero(t, code, "lint valid 退出码应为 0\n输出: %s", out)
+	assert.Contains(t, out, "未发现问题", "lint 通过时输出应含 '未发现问题'")
 }
 
 func TestLint_BadTags_ExitsNonZero(t *testing.T) {
 	root := repoRoot(t)
 	lintDir := filepath.Join(root, "testdata", "lint")
 	out, code := runGogen(lintDir, "lint", "--no-default-excludes", "./bad_tags")
-	if code == 0 {
-		t.Fatalf("lint bad_tags 退出码 = 0, want 非 0\n输出: %s", out)
-	}
+	assert.NotZero(t, code, "lint bad_tags 退出码应非 0\n输出: %s", out)
 }
 
 func TestLint_WarningsOnly_ExitsZero(t *testing.T) {
@@ -323,21 +284,15 @@ func TestLint_WarningsOnly_ExitsZero(t *testing.T) {
 	root := repoRoot(t)
 	lintDir := filepath.Join(root, "testdata", "lint")
 	out, code := runGogen(lintDir, "lint", "--no-default-excludes", "./modify_no_dirty")
-	if code != 0 {
-		t.Fatalf("lint modify_no_dirty（仅 Warning）退出码 = %d, want 0\n输出: %s", code, out)
-	}
-	if !strings.Contains(out, "warning") {
-		t.Errorf("lint modify_no_dirty 应有 warning 输出，got: %q", out)
-	}
+	require.Zero(t, code, "lint modify_no_dirty（仅 Warning）退出码应为 0\n输出: %s", out)
+	assert.Contains(t, out, "warning", "lint modify_no_dirty 应有 warning 输出")
 }
 
 func TestLint_Contradictions_ExitsNonZero(t *testing.T) {
 	root := repoRoot(t)
 	lintDir := filepath.Join(root, "testdata", "lint")
 	_, code := runGogen(lintDir, "lint", "--no-default-excludes", "./contradictions")
-	if code == 0 {
-		t.Fatal("lint contradictions 退出码 = 0, want 非 0")
-	}
+	assert.NotZero(t, code, "lint contradictions 退出码应非 0")
 }
 
 // ─── init ────────────────────────────────────────────────────────────────────
@@ -345,25 +300,18 @@ func TestLint_Contradictions_ExitsNonZero(t *testing.T) {
 func TestInit_CreatesConfigFile(t *testing.T) {
 	dir := t.TempDir()
 	out, code := runGogen(dir, "init")
-	if code != 0 {
-		t.Fatalf("init 退出码 = %d, want 0\n输出: %s", code, out)
-	}
+	require.Zero(t, code, "init 退出码应为 0\n输出: %s", out)
 
-	cfgPath := filepath.Join(dir, ".gogen.yaml")
-	if _, err := os.Stat(cfgPath); os.IsNotExist(err) {
-		t.Fatal("init 后 .gogen.yaml 应存在，但未找到")
-	}
+	_, err := os.Stat(filepath.Join(dir, ".gogen.yaml"))
+	require.NoError(t, err, "init 后 .gogen.yaml 应存在")
 }
 
 func TestInit_FileAlreadyExists_ExitsNonZero(t *testing.T) {
 	dir := t.TempDir()
 	// 预先创建配置文件
-	if err := os.WriteFile(filepath.Join(dir, ".gogen.yaml"), []byte("suffix: gen\n"), 0o644); err != nil {
-		t.Fatalf("写入配置文件失败: %v", err)
-	}
+	err := os.WriteFile(filepath.Join(dir, ".gogen.yaml"), []byte("suffix: gen\n"), 0o644)
+	require.NoError(t, err, "写入配置文件失败")
 
 	_, code := runGogen(dir, "init")
-	if code == 0 {
-		t.Fatal("文件已存在时 init 退出码 = 0, want 非 0")
-	}
+	assert.NotZero(t, code, "文件已存在时 init 退出码应非 0")
 }

@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/motocat46/gogen/pkg/annotations"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParseStructAnnotations(t *testing.T) {
@@ -100,9 +101,7 @@ func TestParseStructAnnotations(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			got := annotations.ParseStructAnnotations(tc.doc)
-			if got != tc.want {
-				t.Errorf("ParseStructAnnotations(%q)\n  got  %+v\n  want %+v", tc.doc, got, tc.want)
-			}
+			assert.Equal(t, tc.want, got)
 		})
 	}
 }
@@ -150,50 +149,36 @@ func TestMethodSetContains(t *testing.T) {
 
 	t.Run("包含匹配的零参无返回值方法", func(t *testing.T) {
 		named := makeNamedWithMethod("MakeDirty", nil)
-		if !annotations.MethodSetContains(named, "MakeDirty") {
-			t.Error("MakeDirty() 存在，MethodSetContains 应返回 true")
-		}
+		assert.True(t, annotations.MethodSetContains(named, "MakeDirty"), "MakeDirty() 存在，应返回 true")
 	})
 
 	t.Run("不包含指定方法名", func(t *testing.T) {
 		named := makeNamedWithMethod("MakeDirty", nil)
-		if annotations.MethodSetContains(named, "MarkDirty") {
-			t.Error("MarkDirty 不存在，MethodSetContains 应返回 false")
-		}
+		assert.False(t, annotations.MethodSetContains(named, "MarkDirty"), "MarkDirty 不存在，应返回 false")
 	})
 
 	t.Run("无任何方法", func(t *testing.T) {
 		named := makeNamedNoMethods()
-		if annotations.MethodSetContains(named, "MakeDirty") {
-			t.Error("无方法，MethodSetContains 应返回 false")
-		}
+		assert.False(t, annotations.MethodSetContains(named, "MakeDirty"), "无方法，应返回 false")
 	})
 
 	t.Run("方法存在但有参数", func(t *testing.T) {
 		obj2 := types.NewTypeName(token.NoPos, pkg, "WithParam", nil)
 		named2 := types.NewNamed(obj2, types.NewStruct(nil, nil), nil)
 		named2.AddMethod(types.NewFunc(token.NoPos, pkg, "SetDirty", withParam(named2)))
-		if annotations.MethodSetContains(named2, "SetDirty") {
-			t.Error("SetDirty(int) 有参数，MethodSetContains 应返回 false")
-		}
+		assert.False(t, annotations.MethodSetContains(named2, "SetDirty"), "SetDirty(int) 有参数，应返回 false")
 	})
 
 	t.Run("方法存在但有返回值", func(t *testing.T) {
 		obj3 := types.NewTypeName(token.NoPos, pkg, "WithResult", nil)
 		named3 := types.NewNamed(obj3, types.NewStruct(nil, nil), nil)
 		named3.AddMethod(types.NewFunc(token.NoPos, pkg, "MakeDirty", withResult(named3)))
-		if annotations.MethodSetContains(named3, "MakeDirty") {
-			t.Error("MakeDirty() error 有返回值，MethodSetContains 应返回 false")
-		}
+		assert.False(t, annotations.MethodSetContains(named3, "MakeDirty"), "MakeDirty() error 有返回值，应返回 false")
 	})
 
 	t.Run("自定义方法名", func(t *testing.T) {
 		named := makeNamedWithMethod("MarkChanged", nil)
-		if !annotations.MethodSetContains(named, "MarkChanged") {
-			t.Error("MarkChanged() 存在，MethodSetContains 应返回 true")
-		}
-		if annotations.MethodSetContains(named, "MakeDirty") {
-			t.Error("MakeDirty 不存在，MethodSetContains 应返回 false")
-		}
+		assert.True(t, annotations.MethodSetContains(named, "MarkChanged"), "MarkChanged() 存在，应返回 true")
+		assert.False(t, annotations.MethodSetContains(named, "MakeDirty"), "MakeDirty 不存在，应返回 false")
 	})
 }

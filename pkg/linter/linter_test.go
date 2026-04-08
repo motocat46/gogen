@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/motocat46/gogen/pkg/linter"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // testdataDir 返回 testdata/lint 目录的绝对路径（作为 Lint 的 dir 参数）。
@@ -62,9 +64,7 @@ func TestLint(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			issues, err := linter.Lint(td, linter.Config{}, "./"+tc.subdir)
-			if err != nil {
-				t.Fatalf("Lint 返回错误: %v", err)
-			}
+			require.NoError(t, err, "Lint 返回错误")
 
 			var errors, warns int
 			for _, iss := range issues {
@@ -80,12 +80,8 @@ func TestLint(t *testing.T) {
 					t.Logf("  %s", iss)
 				}
 			}
-			if errors != tc.wantErrors {
-				t.Errorf("Error 数量：got %d, want %d", errors, tc.wantErrors)
-			}
-			if warns != tc.wantWarns {
-				t.Errorf("Warning 数量：got %d, want %d", warns, tc.wantWarns)
-			}
+			assert.Equal(t, tc.wantErrors, errors, "Error 数量")
+			assert.Equal(t, tc.wantWarns, warns, "Warning 数量")
 		})
 	}
 }

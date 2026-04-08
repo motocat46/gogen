@@ -14,26 +14,14 @@
 // 作者:  yangyuan
 // 创建日期: 2026/4/8
 
-package generator_test
+package model_test
 
 import (
 	"testing"
 
-	"github.com/motocat46/gogen/pkg/generator"
-	"github.com/stretchr/testify/assert"
+	"go.uber.org/goleak"
 )
 
-// TestStructGeneratorNames 验证结构体生成器的 Name() 返回值正确，
-// 用于错误信息中标识生成器来源。
-func TestStructGeneratorNames(t *testing.T) {
-	tests := []struct {
-		g    generator.StructGenerator
-		want string
-	}{
-		{&generator.ModifyGenerator{}, "modify"},
-		{&generator.ResetGenerator{}, "reset"},
-	}
-	for _, tt := range tests {
-		assert.Equal(t, tt.want, tt.g.Name())
-	}
+func TestMain(m *testing.M) {
+	goleak.VerifyTestMain(m)
 }

@@ -26,6 +26,8 @@ import (
 	"github.com/motocat46/gogen/pkg/generator"
 	"github.com/motocat46/gogen/pkg/loader"
 	"github.com/motocat46/gogen/pkg/model"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -39,16 +41,10 @@ import (
 func TestGenerateStructConcurrentSafety(t *testing.T) {
 	dir := goldenDir(t)
 	pkgs, err := loader.Load(dir, loader.Config{}, ".")
-	if err != nil {
-		t.Fatalf("加载 testdata/examples 失败: %v", err)
-	}
+	require.NoError(t, err, "加载 testdata/examples 失败")
 	structs, err := analyzer.Analyze(pkgs, analyzer.Config{})
-	if err != nil {
-		t.Fatalf("分析 testdata/examples 失败: %v", err)
-	}
-	if len(structs) == 0 {
-		t.Fatal("未找到任何结构体，测试无意义")
-	}
+	require.NoError(t, err, "分析 testdata/examples 失败")
+	require.NotEmpty(t, structs, "未找到任何结构体，测试无意义")
 
 	reg := generator.NewRegistry()
 	noop := func(string) {}
@@ -57,9 +53,7 @@ func TestGenerateStructConcurrentSafety(t *testing.T) {
 	sequential := make([][]byte, len(structs))
 	for i, s := range structs {
 		code, err := reg.GenerateStruct(s, noop)
-		if err != nil {
-			t.Fatalf("串行生成 %s 失败: %v", s.Name, err)
-		}
+		require.NoError(t, err, "串行生成 %s 失败", s.Name)
 		sequential[i] = code
 	}
 
@@ -85,10 +79,9 @@ func TestGenerateStructConcurrentSafety(t *testing.T) {
 		wg.Wait()
 
 		for i, s := range structs {
-			if !bytes.Equal(results[i], sequential[i]) {
-				t.Errorf("round %d: %s 并发结果与串行基线不一致（并发 %d 字节，串行 %d 字节）",
-					round, s.Name, len(results[i]), len(sequential[i]))
-			}
+			assert.True(t, bytes.Equal(results[i], sequential[i]),
+				"round %d: %s 并发结果与串行基线不一致（并发 %d 字节，串行 %d 字节）",
+				round, s.Name, len(results[i]), len(sequential[i]))
 		}
 	}
 }
@@ -126,15 +119,9 @@ func TestGenerateStruct_ResetGenerated_NoFields(t *testing.T) {
 	s := minimalStruct("NoFields")
 	reg := generator.NewRegistry()
 	code, err := reg.GenerateStruct(s, func(string) {})
-	if err != nil {
-		t.Fatalf("生成失败: %v", err)
-	}
-	if code == nil {
-		t.Error("零字段结构体：期望生成 Reset()，但 GenerateStruct 返回 nil")
-	}
-	if !bytes.Contains(code, []byte("func (this *NoFields) Reset()")) {
-		t.Errorf("期望生成 Reset() 方法，got:\n%s", code)
-	}
+	require.NoError(t, err, "生成失败")
+	require.NotNil(t, code, "零字段结构体：期望生成 Reset()，但 GenerateStruct 返回 nil")
+	assert.Contains(t, string(code), "func (this *NoFields) Reset()", "期望生成 Reset() 方法")
 }
 
 // TestGenerateStruct_NilResult_ManualResetAllSkipped 验证手写 Reset + 全字段跳过时返回 nil：
@@ -150,16 +137,10 @@ func TestGenerateStruct_NilResult_ManualResetAllSkipped(t *testing.T) {
 	reg := generator.NewRegistry()
 	var msgs []string
 	code, err := reg.GenerateStruct(s, func(msg string) { msgs = append(msgs, msg) })
-	if err != nil {
-		t.Fatalf("生成失败: %v", err)
-	}
-	if code != nil {
-		t.Errorf("手写 Reset + 全字段跳过：期望返回 nil，got %d 字节", len(code))
-	}
+	require.NoError(t, err, "生成失败")
+	assert.Nil(t, code, "手写 Reset + 全字段跳过：期望返回 nil，got %d 字节", len(code))
 	// 副作用：应通过 log 传递 [Info] 消息
-	if len(msgs) == 0 {
-		t.Error("手写 Reset 时：期望 log 收到 [Info] 消息")
-	}
+	assert.NotEmpty(t, msgs, "手写 Reset 时：期望 log 收到 [Info] 消息")
 }
 
 // TestGenerateStruct_NilResult_ResetFieldNameConflict 验证字段名 Reset + 全字段跳过时返回 nil：
@@ -174,12 +155,8 @@ func TestGenerateStruct_NilResult_ResetFieldNameConflict(t *testing.T) {
 
 	reg := generator.NewRegistry()
 	code, err := reg.GenerateStruct(s, func(string) {})
-	if err != nil {
-		t.Fatalf("生成失败: %v", err)
-	}
-	if code != nil {
-		t.Errorf("字段名 Reset + 字段全跳过：期望返回 nil，got %d 字节", len(code))
-	}
+	require.NoError(t, err, "生成失败")
+	assert.Nil(t, code, "字段名 Reset + 字段全跳过：期望返回 nil，got %d 字节", len(code))
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -201,22 +178,12 @@ func TestGenerateStruct_LogCallback_ManualReset(t *testing.T) {
 	reg := generator.NewRegistry()
 	var msgs []string
 	code, err := reg.GenerateStruct(s, func(msg string) { msgs = append(msgs, msg) })
-	if err != nil {
-		t.Fatalf("生成失败: %v", err)
-	}
-	if code != nil {
-		t.Errorf("手写 Reset 且无字段时：期望返回 nil，got %d 字节", len(code))
-	}
-	if len(msgs) == 0 {
-		t.Fatal("手写 Reset() 时：期望 log 回调至少收到 1 条 [Info] 消息，got 0 条")
-	}
+	require.NoError(t, err, "生成失败")
+	assert.Nil(t, code, "手写 Reset 且无字段时：期望返回 nil，got %d 字节", len(code))
+	require.NotEmpty(t, msgs, "手写 Reset() 时：期望 log 回调至少收到 1 条 [Info] 消息")
 	combined := strings.Join(msgs, "\n")
-	if !strings.Contains(combined, "[Info]") {
-		t.Errorf("期望消息包含 [Info]，got: %q", combined)
-	}
-	if !strings.Contains(combined, "Reset") {
-		t.Errorf("期望消息提及 Reset，got: %q", combined)
-	}
+	assert.Contains(t, combined, "[Info]", "期望消息包含 [Info]")
+	assert.Contains(t, combined, "Reset", "期望消息提及 Reset")
 }
 
 func TestGenerateStruct_LogCallback_NoMessages(t *testing.T) {
@@ -230,10 +197,6 @@ func TestGenerateStruct_LogCallback_NoMessages(t *testing.T) {
 	reg := generator.NewRegistry()
 	var msgs []string
 	_, err := reg.GenerateStruct(s, func(msg string) { msgs = append(msgs, msg) })
-	if err != nil {
-		t.Fatalf("生成失败: %v", err)
-	}
-	if len(msgs) != 0 {
-		t.Errorf("正常生成场景：log 不应被调用，got %d 条消息: %v", len(msgs), msgs)
-	}
+	require.NoError(t, err, "生成失败")
+	assert.Empty(t, msgs, "正常生成场景：log 不应被调用，got %d 条消息: %v", len(msgs), msgs)
 }

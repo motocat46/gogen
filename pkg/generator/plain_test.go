@@ -23,6 +23,8 @@ import (
 	"github.com/motocat46/gogen/pkg/analyzer"
 	"github.com/motocat46/gogen/pkg/generator"
 	"github.com/motocat46/gogen/pkg/loader"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestPlainMode 验证 gogen:"plain" tag 对各类型的生成行为：
@@ -33,29 +35,21 @@ import (
 func TestPlainMode(t *testing.T) {
 	dir := goldenDir(t)
 	pkgs, err := loader.Load(dir, loader.Config{}, ".")
-	if err != nil {
-		t.Fatalf("加载 testdata/examples 失败: %v", err)
-	}
+	require.NoError(t, err, "加载 testdata/examples 失败")
 	structs, err := analyzer.Analyze(pkgs, analyzer.Config{})
-	if err != nil {
-		t.Fatalf("分析 testdata/examples 失败: %v", err)
-	}
+	require.NoError(t, err, "分析 testdata/examples 失败")
 
 	var tagControlCode []byte
 	reg := generator.NewRegistry()
 	for _, s := range structs {
 		if s.Name == "TagControl" {
 			code, genErr := reg.GenerateStruct(s, func(string) {})
-			if genErr != nil {
-				t.Fatalf("生成 TagControl 失败: %v", genErr)
-			}
+			require.NoError(t, genErr, "生成 TagControl 失败")
 			tagControlCode = code
 			break
 		}
 	}
-	if tagControlCode == nil {
-		t.Fatal("未找到 TagControl 结构体")
-	}
+	require.NotNil(t, tagControlCode, "未找到 TagControl 结构体")
 
 	// ── plain 模式：不应出现的扩展方法 ──────────────────────────────────────
 	shouldNotExist := []string{
@@ -74,9 +68,9 @@ func TestPlainMode(t *testing.T) {
 		"GetPlainMapCopy",         // map plain：无 GetCopy
 	}
 	for _, method := range shouldNotExist {
-		if bytes.Contains(tagControlCode, []byte("func (this *TagControl) "+method)) {
-			t.Errorf("plain 模式下不应生成方法 %s，但在生成代码中找到了", method)
-		}
+		assert.False(t,
+			bytes.Contains(tagControlCode, []byte("func (this *TagControl) "+method)),
+			"plain 模式下不应生成方法 %s", method)
 	}
 
 	// ── plain 模式：应该存在的核心方法 ──────────────────────────────────────
@@ -98,9 +92,9 @@ func TestPlainMode(t *testing.T) {
 		"DeletePlainMapKey",  // map plain：有 DeleteKey
 	}
 	for _, method := range shouldExist {
-		if !bytes.Contains(tagControlCode, []byte("func (this *TagControl) "+method)) {
-			t.Errorf("plain 模式下应生成方法 %s，但在生成代码中未找到", method)
-		}
+		assert.True(t,
+			bytes.Contains(tagControlCode, []byte("func (this *TagControl) "+method)),
+			"plain 模式下应生成方法 %s", method)
 	}
 
 	// ── rich 模式对照：ReadWrite int（无 tag）应生成全套方法 ─────────────────
@@ -111,8 +105,8 @@ func TestPlainMode(t *testing.T) {
 		"SubReadWrite",
 	}
 	for _, method := range richShouldExist {
-		if !bytes.Contains(tagControlCode, []byte("func (this *TagControl) "+method)) {
-			t.Errorf("rich 模式下应生成方法 %s，但未找到", method)
-		}
+		assert.True(t,
+			bytes.Contains(tagControlCode, []byte("func (this *TagControl) "+method)),
+			"rich 模式下应生成方法 %s", method)
 	}
 }

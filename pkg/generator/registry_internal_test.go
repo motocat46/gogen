@@ -20,12 +20,15 @@ package generator
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFormatDoc(t *testing.T) {
 	tests := []struct {
-		name     string
-		doc      string
+		name      string
+		doc       string
 		wantEmpty bool
 		wantLines []string
 	}{
@@ -76,20 +79,14 @@ func TestFormatDoc(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := formatDoc(tt.doc)
 			if tt.wantEmpty {
-				if got != "" {
-					t.Errorf("formatDoc(%q) = %q, want empty", tt.doc, got)
-				}
+				assert.Empty(t, got)
 				return
 			}
 			gotLines := strings.Split(got, "\n")
-			if len(gotLines) != len(tt.wantLines) {
-				t.Fatalf("formatDoc(%q) 行数 = %d, want %d\ngot:  %q\nwant: %q",
-					tt.doc, len(gotLines), len(tt.wantLines), gotLines, tt.wantLines)
-			}
+			require.Len(t, gotLines, len(tt.wantLines),
+				"formatDoc(%q) 行数不符\ngot:  %q\nwant: %q", tt.doc, gotLines, tt.wantLines)
 			for i, wantLine := range tt.wantLines {
-				if gotLines[i] != wantLine {
-					t.Errorf("formatDoc 第 %d 行 = %q, want %q", i, gotLines[i], wantLine)
-				}
+				assert.Equal(t, wantLine, gotLines[i], "第 %d 行", i)
 			}
 		})
 	}
