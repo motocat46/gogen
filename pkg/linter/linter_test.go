@@ -59,6 +59,12 @@ func TestLint(t *testing.T) {
 			wantErrors: 0,
 			wantWarns:  0,
 		},
+		{
+			name:       "dirty 方法在同包不同文件（跨文件检测）",
+			subdir:     "multi_file",
+			wantErrors: 0, // MakeDirty 定义在 methods.go，类型检查阶段已解析，应无 Error
+			wantWarns:  0,
+		},
 	}
 
 	for _, tc := range cases {

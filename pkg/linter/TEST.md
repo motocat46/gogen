@@ -17,6 +17,7 @@
 | `dirty_missing/` | `gogen:dirty=NonExistentMethod` 指定的方法不存在 | 1 Error |
 | `modify_no_dirty/` | `gogen:modify=XXX` 但未启用 dirty tracking | 2 Warning |
 | `valid/` | 合法的 gogen 注解（含 `gogen:dirty`、`gogen:modify=`） | 0 Error，0 Warning |
+| `multi_file/` | dirty 方法定义在同包不同文件，验证跨文件类型检查解析 | 0 Error，0 Warning |
 
 ## 可执行测试命令
 

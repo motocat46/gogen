@@ -5,6 +5,8 @@
 | 文件 | 覆盖范围 |
 |------|---------|
 | `analyzer_test.go` | 类型提取正确性、字段解析、提升方法检测、排除路径过滤、生成文件自动跳过 |
+| `analyzer_internal_test.go` | 私有函数 `isExcluded` 的全边界场景（8 case）|
+| `typematrix_test.go` | 类型矩阵单元测试：直接对各 TypeKind 做字段级断言，独立于黄金文件 |
 
 ## 测试命令
 
@@ -36,6 +38,26 @@ go test ./pkg/analyzer/... -count=1 -race
 | ExcludePaths 过滤 | 纯目录名（任意层级匹配）和绝对路径前缀匹配 |
 | FileFilter 过滤 | 只处理指定文件中的结构体 |
 | 非导出字段跳过 | 小写开头字段不出现在 Fields 中 |
+
+### typematrix_test.go（类型矩阵直接断言）
+
+| 测试函数 | 验证内容 |
+|---------|---------|
+| `TestTypeMatrix_Basic` | string → KindBasic，无 Elem |
+| `TestTypeMatrix_Bool` | bool → KindBool |
+| `TestTypeMatrix_Numeric` | int/int64/float64/uint32 → KindNumeric，TypeStr 精确 |
+| `TestTypeMatrix_Pointer` | *int 和 *struct → KindPointer，Elem 正确递归 |
+| `TestTypeMatrix_Slice` | []int 和 []*struct → KindSlice，Elem 种类正确 |
+| `TestTypeMatrix_Array` | [8]int → KindArray，ArrayLen="8"，Elem 正确 |
+| `TestTypeMatrix_Map` | map[string]int → KindMap，Key/Value 正确 |
+| `TestTypeMatrix_Struct` | time.Time → KindStruct，TypeStr 含包名前缀 |
+| `TestTypeMatrix_Interface` | interface{} 和 any → KindInterface |
+| `TestTypeMatrix_Func` | func(int) string → KindFunc |
+| `TestTypeMatrix_Chan` | chan int → KindUnsupported |
+| `TestTypeMatrix_NamedTypeUnderlying` | 具名类型底层解析：TypeStr 保留具名名称，Kind 由底层决定 |
+| `TestTypeMatrix_TypeAlias` | type MyTime = time.Time → IsAlias=true，Kind=KindStruct |
+| `TestTypeMatrix_GenericTypeParam` | T/K/V → KindBasic，TypeStr 为参数名 |
+| `TestTypeMatrix_NestedComposite` | map[string][]string 和 []map[string]int 的递归解析 |
 
 ## 注意事项
 
