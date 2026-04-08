@@ -240,6 +240,61 @@ func TestCheck_ExistingGoldenFiles(t *testing.T) {
 	}
 }
 
+// ─── --output ────────────────────────────────────────────────────────────────
+
+func TestGenerate_OutputDir_FilesInOutputNotSource(t *testing.T) {
+	dir := makeSimplePkg(t)
+	outDir := filepath.Join(dir, "gen")
+
+	out, code := runGogen(dir, "--output", outDir, ".")
+	if code != 0 {
+		t.Fatalf("generate --output 退出码 = %d, want 0\n输出: %s", code, out)
+	}
+
+	// 生成文件应在 outDir 中
+	generated := filepath.Join(outDir, "user_access.go")
+	if _, err := os.Stat(generated); os.IsNotExist(err) {
+		t.Fatalf("--output 后 gen/user_access.go 应存在，但未找到")
+	}
+
+	// 源目录中不应有生成文件
+	if _, err := os.Stat(filepath.Join(dir, "user_access.go")); !os.IsNotExist(err) {
+		t.Error("--output 指定了输出目录，源目录中不应有 user_access.go")
+	}
+}
+
+func TestCheck_OutputDir_UpToDate(t *testing.T) {
+	dir := makeSimplePkg(t)
+	outDir := filepath.Join(dir, "gen")
+
+	// 先生成到 outDir
+	if _, code := runGogen(dir, "--output", outDir, "."); code != 0 {
+		t.Fatal("预备步骤：generate --output 失败")
+	}
+
+	// check 使用相同 --output，文件最新，应返回 0
+	out, code := runGogen(dir, "check", "--output", outDir, ".")
+	if code != 0 {
+		t.Fatalf("check --output（文件最新）退出码 = %d, want 0\n输出: %s", code, out)
+	}
+}
+
+func TestCheck_OutputDir_Mismatch_ExitsNonZero(t *testing.T) {
+	dir := makeSimplePkg(t)
+	outDir := filepath.Join(dir, "gen")
+
+	// 生成到 outDir
+	if _, code := runGogen(dir, "--output", outDir, "."); code != 0 {
+		t.Fatal("预备步骤：generate --output 失败")
+	}
+
+	// check 不带 --output，在源目录找不到文件，应返回非 0
+	_, code := runGogen(dir, "check", ".")
+	if code == 0 {
+		t.Fatal("check 未指定 --output 但文件在 gen/ 中，退出码应非 0")
+	}
+}
+
 // ─── lint ────────────────────────────────────────────────────────────────────
 
 func TestLint_ValidPackage_ExitsZero(t *testing.T) {
