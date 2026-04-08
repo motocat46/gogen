@@ -115,6 +115,7 @@ func TestParseFieldConfig_unknownOptions(t *testing.T) {
 		{"单个未知选项", `gogen:"raedonly"`, 1, "raedonly"},
 		{"多个未知选项", `gogen:"foo,bar"`, 2, "foo"},
 		{"dirty= 空值返回哨兵", `gogen:"dirty="`, 1, "dirty="},
+		{"双逗号产生的空选项被忽略", `gogen:"readonly,,writeonly"`, 0, ""},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -271,6 +272,111 @@ func TestCanGenerateMethod(t *testing.T) {
 	}
 }
 
+
+// ─── StructDef.CanGenerateMethodOverride ─────────────────────────────────────
+
+func TestCanGenerateMethodOverride(t *testing.T) {
+	sd := &model.StructDef{
+		Name:            "Example",
+		FieldNames:      map[string]bool{"Count": true},
+		ManualMethods:   map[string]bool{"GetID": true},
+		PromotedMethods: map[string]bool{"GetBase": true},
+	}
+
+	tests := []struct {
+		method string
+		want   bool
+		reason string
+	}{
+		// 层 1：方法名与字段名冲突
+		{"Count", false, "与字段名相同"},
+		// 层 2：手写方法冲突
+		{"GetID", false, "手写文件已有同名方法"},
+		// override 模式：提升方法不阻止生成
+		{"GetBase", true, "提升方法在 override 模式下允许覆盖"},
+		// 无冲突
+		{"GetCount", true, "无冲突"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.method, func(t *testing.T) {
+			if got := sd.CanGenerateMethodOverride(tt.method); got != tt.want {
+				t.Errorf("CanGenerateMethodOverride(%q) = %v, want %v（%s）",
+					tt.method, got, tt.want, tt.reason)
+			}
+		})
+	}
+}
+
+// ─── StructDef.ActiveFields ───────────────────────────────────────────────────
+
+func TestActiveFields(t *testing.T) {
+	makeField := func(name string, skip bool) *model.FieldDef {
+		return &model.FieldDef{Name: name, Config: model.FieldConfig{Skip: skip}}
+	}
+
+	tests := []struct {
+		name      string
+		fields    []*model.FieldDef
+		wantNames []string
+	}{
+		{
+			name:      "空字段列表",
+			fields:    nil,
+			wantNames: nil,
+		},
+		{
+			name:      "全部活跃",
+			fields:    []*model.FieldDef{makeField("A", false), makeField("B", false)},
+			wantNames: []string{"A", "B"},
+		},
+		{
+			name:      "全部跳过",
+			fields:    []*model.FieldDef{makeField("A", true), makeField("B", true)},
+			wantNames: nil,
+		},
+		{
+			name:      "混合：跳过的不出现",
+			fields:    []*model.FieldDef{makeField("A", false), makeField("B", true), makeField("C", false)},
+			wantNames: []string{"A", "C"},
+		},
+		{
+			name:      "单字段活跃",
+			fields:    []*model.FieldDef{makeField("X", false)},
+			wantNames: []string{"X"},
+		},
+		{
+			name:      "单字段跳过",
+			fields:    []*model.FieldDef{makeField("X", true)},
+			wantNames: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sd := &model.StructDef{Fields: tt.fields}
+			got := sd.ActiveFields()
+			if len(got) != len(tt.wantNames) {
+				t.Fatalf("ActiveFields() 长度 = %d, want %d（got %v, want %v）",
+					len(got), len(tt.wantNames), fieldNames(got), tt.wantNames)
+			}
+			for i, f := range got {
+				if f.Name != tt.wantNames[i] {
+					t.Errorf("ActiveFields()[%d].Name = %q, want %q", i, f.Name, tt.wantNames[i])
+				}
+			}
+		})
+	}
+}
+
+// fieldNames 提取字段名列表，用于测试失败信息
+func fieldNames(fields []*model.FieldDef) []string {
+	names := make([]string, len(fields))
+	for i, f := range fields {
+		names[i] = f.Name
+	}
+	return names
+}
 
 // ─── TypeKind.String ──────────────────────────────────────────────────────────
 

@@ -17,6 +17,8 @@
 package annotations_test
 
 import (
+	"go/token"
+	"go/types"
 	"testing"
 
 	"github.com/motocat46/gogen/pkg/annotations"
@@ -103,4 +105,95 @@ func TestParseStructAnnotations(t *testing.T) {
 			}
 		})
 	}
+}
+
+// ─── MethodSetContains ────────────────────────────────────────────────────────
+
+// makeNamedWithMethod 构造一个带指定方法的 *types.Named，用于测试。
+// sig 为 nil 时方法签名为零参无返回值（标准 dirty 方法形式）。
+func makeNamedWithMethod(methodName string, sig *types.Signature) *types.Named {
+	pkg := types.NewPackage("test", "test")
+	obj := types.NewTypeName(token.NoPos, pkg, "MyStruct", nil)
+	named := types.NewNamed(obj, types.NewStruct(nil, nil), nil)
+	if sig == nil {
+		recv := types.NewVar(token.NoPos, pkg, "s", types.NewPointer(named))
+		sig = types.NewSignatureType(recv, nil, nil, types.NewTuple(), types.NewTuple(), false)
+	}
+	method := types.NewFunc(token.NoPos, pkg, methodName, sig)
+	named.AddMethod(method)
+	return named
+}
+
+// makeNamedNoMethods 构造无任何方法的 *types.Named。
+func makeNamedNoMethods() *types.Named {
+	pkg := types.NewPackage("test", "test")
+	obj := types.NewTypeName(token.NoPos, pkg, "Empty", nil)
+	return types.NewNamed(obj, types.NewStruct(nil, nil), nil)
+}
+
+func TestMethodSetContains(t *testing.T) {
+	pkg := types.NewPackage("test", "test")
+
+	// 带参数的方法：func(x int)
+	withParam := func(named *types.Named) *types.Signature {
+		recv := types.NewVar(token.NoPos, pkg, "s", types.NewPointer(named))
+		param := types.NewVar(token.NoPos, pkg, "x", types.Typ[types.Int])
+		return types.NewSignatureType(recv, nil, nil, types.NewTuple(param), types.NewTuple(), false)
+	}
+
+	// 带返回值的方法：func() error
+	withResult := func(named *types.Named) *types.Signature {
+		recv := types.NewVar(token.NoPos, pkg, "s", types.NewPointer(named))
+		result := types.NewVar(token.NoPos, pkg, "", types.Universe.Lookup("error").Type())
+		return types.NewSignatureType(recv, nil, nil, types.NewTuple(), types.NewTuple(result), false)
+	}
+
+	t.Run("包含匹配的零参无返回值方法", func(t *testing.T) {
+		named := makeNamedWithMethod("MakeDirty", nil)
+		if !annotations.MethodSetContains(named, "MakeDirty") {
+			t.Error("MakeDirty() 存在，MethodSetContains 应返回 true")
+		}
+	})
+
+	t.Run("不包含指定方法名", func(t *testing.T) {
+		named := makeNamedWithMethod("MakeDirty", nil)
+		if annotations.MethodSetContains(named, "MarkDirty") {
+			t.Error("MarkDirty 不存在，MethodSetContains 应返回 false")
+		}
+	})
+
+	t.Run("无任何方法", func(t *testing.T) {
+		named := makeNamedNoMethods()
+		if annotations.MethodSetContains(named, "MakeDirty") {
+			t.Error("无方法，MethodSetContains 应返回 false")
+		}
+	})
+
+	t.Run("方法存在但有参数", func(t *testing.T) {
+		obj2 := types.NewTypeName(token.NoPos, pkg, "WithParam", nil)
+		named2 := types.NewNamed(obj2, types.NewStruct(nil, nil), nil)
+		named2.AddMethod(types.NewFunc(token.NoPos, pkg, "SetDirty", withParam(named2)))
+		if annotations.MethodSetContains(named2, "SetDirty") {
+			t.Error("SetDirty(int) 有参数，MethodSetContains 应返回 false")
+		}
+	})
+
+	t.Run("方法存在但有返回值", func(t *testing.T) {
+		obj3 := types.NewTypeName(token.NoPos, pkg, "WithResult", nil)
+		named3 := types.NewNamed(obj3, types.NewStruct(nil, nil), nil)
+		named3.AddMethod(types.NewFunc(token.NoPos, pkg, "MakeDirty", withResult(named3)))
+		if annotations.MethodSetContains(named3, "MakeDirty") {
+			t.Error("MakeDirty() error 有返回值，MethodSetContains 应返回 false")
+		}
+	})
+
+	t.Run("自定义方法名", func(t *testing.T) {
+		named := makeNamedWithMethod("MarkChanged", nil)
+		if !annotations.MethodSetContains(named, "MarkChanged") {
+			t.Error("MarkChanged() 存在，MethodSetContains 应返回 true")
+		}
+		if annotations.MethodSetContains(named, "MakeDirty") {
+			t.Error("MakeDirty 不存在，MethodSetContains 应返回 false")
+		}
+	})
 }

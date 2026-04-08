@@ -103,6 +103,20 @@ func TestLoad_InvalidYAML(t *testing.T) {
 	}
 }
 
+// TestLoad_ReadError 验证路径存在但无法读取时返回 error（非 ErrNotExist 路径）。
+// 使用同名目录代替文件：os.ReadFile 对目录返回 EISDIR，不属于 ErrNotExist。
+func TestLoad_ReadError(t *testing.T) {
+	dir := t.TempDir()
+	// 创建与配置文件同名的目录，ReadFile 会报 EISDIR
+	if err := os.Mkdir(filepath.Join(dir, config.FileName), 0o755); err != nil {
+		t.Fatalf("创建同名目录失败: %v", err)
+	}
+	_, err := config.Load(dir)
+	if err == nil {
+		t.Fatal("读取目录应返回 error，实际为 nil")
+	}
+}
+
 // TestLoad_EmptyFile 验证空配置文件返回零值且无错误。
 func TestLoad_EmptyFile(t *testing.T) {
 	dir := t.TempDir()

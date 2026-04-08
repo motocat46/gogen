@@ -176,6 +176,151 @@ func TestCanGenerateMethodTripleCheck(t *testing.T) {
 	}
 }
 
+// TestAnalyze_ExcludePaths 验证 ExcludePaths 排除后，对应包中的结构体不出现在结果中。
+func TestAnalyze_ExcludePaths(t *testing.T) {
+	dir := testdataDir(t)
+	pkgs, err := loader.Load(dir, loader.Config{}, ".")
+	if err != nil {
+		t.Fatalf("加载包失败: %v", err)
+	}
+
+	// 使用 testdata/examples 目录本身作为排除路径
+	structs, err := analyzer.Analyze(pkgs, analyzer.Config{
+		ExcludePaths: []string{dir},
+	})
+	if err != nil {
+		t.Fatalf("Analyze 失败: %v", err)
+	}
+	if len(structs) != 0 {
+		names := make([]string, len(structs))
+		for i, s := range structs {
+			names[i] = s.Name
+		}
+		t.Errorf("排除目录后期望 0 个结构体，实际得到 %d 个: %v", len(structs), names)
+	}
+}
+
+// TestAnalyze_FileFilter 验证 FileFilter 仅分析指定文件，其他文件中的结构体不出现。
+func TestAnalyze_FileFilter(t *testing.T) {
+	dir := testdataDir(t)
+
+	// 仅分析 embed_cases.go——它只定义嵌入相关的结构体
+	targetFile := filepath.Join(dir, "embed_cases.go")
+
+	pkgs, err := loader.Load(dir, loader.Config{}, ".")
+	if err != nil {
+		t.Fatalf("加载包失败: %v", err)
+	}
+
+	structs, err := analyzer.Analyze(pkgs, analyzer.Config{
+		FileFilter: []string{targetFile},
+	})
+	if err != nil {
+		t.Fatalf("Analyze 失败: %v", err)
+	}
+
+	// 验证：结果不为空，且所有结构体都来自 testdata/examples（Dir 字段相同）
+	if len(structs) == 0 {
+		t.Error("FileFilter 后结果为空，期望包含 embed_cases.go 中的结构体")
+	}
+	for _, s := range structs {
+		if s.Dir != dir {
+			t.Errorf("结构体 %q 的 Dir=%q 不是 testdata/examples，FilterSet 可能未生效", s.Name, s.Dir)
+		}
+	}
+
+	// 验证：types.go 中定义的结构体（AllTypes）不出现在结果中
+	for _, s := range structs {
+		if s.Name == "AllTypes" {
+			t.Errorf("AllTypes 定义在 types.go，FileFilter 过滤后不应出现")
+		}
+	}
+}
+
+// ─── analyzeFields 边界场景 ───────────────────────────────────────────────────
+
+// edgeDir 返回 testdata/analyzer_edge 目录的绝对路径。
+func edgeDir(t *testing.T) string {
+	t.Helper()
+	_, thisFile, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("无法获取当前文件路径")
+	}
+	return filepath.Join(filepath.Dir(thisFile), "..", "..", "testdata", "analyzer_edge")
+}
+
+// loadEdge 加载 testdata/analyzer_edge 包，返回结构体名 → StructDef 的映射。
+func loadEdge(t *testing.T) map[string]*model.StructDef {
+	t.Helper()
+	dir := edgeDir(t)
+	pkgs, err := loader.Load(dir, loader.Config{}, ".")
+	if err != nil {
+		t.Fatalf("加载 testdata/analyzer_edge 失败: %v", err)
+	}
+	structs, err := analyzer.Analyze(pkgs, analyzer.Config{})
+	if err != nil {
+		t.Fatalf("分析 testdata/analyzer_edge 失败: %v", err)
+	}
+	m := make(map[string]*model.StructDef, len(structs))
+	for _, s := range structs {
+		m[s.Name] = s
+	}
+	return m
+}
+
+// TestAnalyzeFields_UnexportedFieldsSkipped 验证非导出字段不出现在 ActiveFields 中。
+func TestAnalyzeFields_UnexportedFieldsSkipped(t *testing.T) {
+	structs := loadEdge(t)
+
+	sd, ok := structs["WithUnexported"]
+	if !ok {
+		t.Fatalf("未找到 WithUnexported 结构体，已加载: %v", structNames(structs))
+	}
+
+	active := sd.ActiveFields()
+	for _, f := range active {
+		if f.Name == "id" || f.Name == "secret" {
+			t.Errorf("非导出字段 %q 不应出现在 ActiveFields 中", f.Name)
+		}
+	}
+
+	exportedNames := make([]string, len(active))
+	for i, f := range active {
+		exportedNames[i] = f.Name
+	}
+	wantExported := map[string]bool{"Name": true, "Score": true}
+	if len(active) != len(wantExported) {
+		t.Errorf("ActiveFields 长度 = %d, want %d（got %v）",
+			len(active), len(wantExported), exportedNames)
+	}
+	for _, f := range active {
+		if !wantExported[f.Name] {
+			t.Errorf("意外的字段 %q 出现在 ActiveFields 中", f.Name)
+		}
+	}
+}
+
+// TestAnalyzeFields_UnknownTagOptions 验证未知 gogen tag 选项不阻止正常字段收集。
+// 未知选项会向 stderr 发出警告，但字段本身仍被收集。
+func TestAnalyzeFields_UnknownTagOptions(t *testing.T) {
+	structs := loadEdge(t)
+
+	sd, ok := structs["UnknownTagOption"]
+	if !ok {
+		t.Fatalf("未找到 UnknownTagOption 结构体，已加载: %v", structNames(structs))
+	}
+
+	// 字段仍被收集（警告不阻止收集）
+	active := sd.ActiveFields()
+	if len(active) != 2 {
+		names := make([]string, len(active))
+		for i, f := range active {
+			names[i] = f.Name
+		}
+		t.Errorf("UnknownTagOption 应有 2 个活跃字段，got %d: %v", len(active), names)
+	}
+}
+
 // structNames 返回映射中所有结构体名，用于诊断输出。
 func structNames(m map[string]*model.StructDef) []string {
 	names := make([]string, 0, len(m))

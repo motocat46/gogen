@@ -27,3 +27,16 @@ type ValidModify struct {
 }
 
 func (v *ValidModify) MarkChanged() {}
+
+// 以下非 struct 类型声明用于覆盖 lintPackage 中跳过非 struct 的分支。
+
+// Status 是枚举类型，不是 struct，lintPackage 应跳过。
+type Status int
+
+const (
+	StatusActive   Status = 1
+	StatusInactive Status = 2
+)
+
+// Tags 是切片类型别名，lintPackage 应跳过。
+type Tags []string
