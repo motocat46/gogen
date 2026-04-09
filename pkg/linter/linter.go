@@ -82,19 +82,7 @@ func Lint(dir string, cfg Config, patterns ...string) ([]Issue, error) {
 		issues = append(issues, lintPackage(pkg)...)
 	}
 
-	slices.SortFunc(issues, func(a, b Issue) int {
-		pa, pb := a.Pos, b.Pos
-		if pa.Filename != pb.Filename {
-			if pa.Filename < pb.Filename {
-				return -1
-			}
-			return 1
-		}
-		if pa.Line != pb.Line {
-			return pa.Line - pb.Line
-		}
-		return pa.Column - pb.Column
-	})
+	slices.SortFunc(issues, compareIssues)
 	return issues, nil
 }
 
@@ -146,4 +134,19 @@ func extractDocText(genDoc, specComment *ast.CommentGroup) string {
 		return specComment.Text()
 	}
 	return ""
+}
+
+// compareIssues 按文件名→行号→列号升序比较两个 Issue，供 slices.SortFunc 使用。
+func compareIssues(a, b Issue) int {
+	pa, pb := a.Pos, b.Pos
+	if pa.Filename != pb.Filename {
+		if pa.Filename < pb.Filename {
+			return -1
+		}
+		return 1
+	}
+	if pa.Line != pb.Line {
+		return pa.Line - pb.Line
+	}
+	return pa.Column - pb.Column
 }

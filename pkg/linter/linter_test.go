@@ -65,6 +65,18 @@ func TestLint(t *testing.T) {
 			wantErrors: 0, // MakeDirty 定义在 methods.go，类型检查阶段已解析，应无 Error
 			wantWarns:  0,
 		},
+		{
+			name:       "多文件各含 issue（覆盖跨文件排序分支）",
+			subdir:     "multi_file_errors",
+			wantErrors: 14, // a.go 贡献 7 个 Error，b.go 贡献 7 个 Error；共 14 个触发 pdqsort 递归，覆盖 return -1/1
+			wantWarns:  0,
+		},
+		{
+			name:       "gogen tag 值为空字符串（跳过，不产生 issue）",
+			subdir:     "empty_tag_value",
+			wantErrors: 0,
+			wantWarns:  0,
+		},
 	}
 
 	for _, tc := range cases {
@@ -90,4 +102,11 @@ func TestLint(t *testing.T) {
 			assert.Equal(t, tc.wantWarns, warns, "Warning 数量")
 		})
 	}
+}
+
+// TestLint_LoadError 验证传入含编译错误的包时 Lint 返回非 nil error（覆盖 Load 错误路径）。
+func TestLint_LoadError(t *testing.T) {
+	td := testdataDir(t)
+	_, err := linter.Lint(td, linter.Config{}, "./broken_syntax")
+	assert.Error(t, err, "加载含编译错误的包应返回 error")
 }

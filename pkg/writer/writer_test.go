@@ -275,6 +275,40 @@ func TestIsGogenGenerated(t *testing.T) {
 	}
 }
 
+// TestWrite_Verbose 验证 Verbose=true 时写入成功（覆盖 Verbose 日志分支）。
+func TestWrite_Verbose(t *testing.T) {
+	dir := t.TempDir()
+	s := makeStruct(dir, "example", "MyStruct")
+	cfg := writer.Config{Suffix: "access", Verbose: true}
+
+	written, err := writer.Write(s, []byte(gogenCode), cfg)
+	require.NoError(t, err, "Write Verbose 失败")
+	assert.True(t, written, "期望 written=true")
+
+	outPath := filepath.Join(dir, cfg.OutputFilename(s.Name))
+	_, err = os.Stat(outPath)
+	assert.NoError(t, err, "期望文件 %s 存在", outPath)
+}
+
+// TestClean_Verbose 验证 Verbose=true 时删除成功（覆盖 Verbose 日志分支）。
+func TestClean_Verbose(t *testing.T) {
+	dir := t.TempDir()
+	s := makeStruct(dir, "example", "MyStruct")
+	cfg := writer.Config{Suffix: "access"}
+
+	// 先写入文件
+	_, err := writer.Write(s, []byte(gogenCode), cfg)
+	require.NoError(t, err, "Write 失败")
+
+	// Verbose Clean 应删除文件并打印日志
+	verboseCfg := writer.Config{Suffix: "access", Verbose: true}
+	require.NoError(t, writer.Clean(s, verboseCfg), "Clean Verbose 失败")
+
+	outPath := filepath.Join(dir, cfg.OutputFilename(s.Name))
+	_, err = os.Stat(outPath)
+	assert.True(t, os.IsNotExist(err), "Clean 后文件 %s 应不存在", outPath)
+}
+
 // TestCheck_CodeNil 验证 code=nil 时 Check 的行为（检查是否应该删除旧文件）
 func TestCheck_CodeNil(t *testing.T) {
 	dir := t.TempDir()
@@ -308,6 +342,30 @@ func TestCheck_CodeNil(t *testing.T) {
 		require.NoError(t, err)
 		assert.True(t, upToDate, "手写文件时应返回 upToDate=true（不应删除）")
 	})
+}
+
+// TestWrite_InvalidCode_FormatError 验证传入语法无效的代码时 Write 返回格式化错误。
+func TestWrite_InvalidCode_FormatError(t *testing.T) {
+	dir := t.TempDir()
+	s := makeStruct(dir, "example", "MyStruct")
+	cfg := writer.Config{Suffix: "access"}
+
+	invalidCode := []byte("this is NOT valid Go { syntax !!!") // 触发 imports.Process 失败
+	_, err := writer.Write(s, invalidCode, cfg)
+	require.Error(t, err, "语法无效时 Write 应返回格式化错误")
+	assert.Contains(t, err.Error(), "格式化失败")
+}
+
+// TestCheck_InvalidCode_FormatError 验证 Check 传入语法无效的代码时返回格式化错误。
+func TestCheck_InvalidCode_FormatError(t *testing.T) {
+	dir := t.TempDir()
+	s := makeStruct(dir, "example", "MyStruct")
+	cfg := writer.Config{}
+
+	invalidCode := []byte("this is NOT valid Go { syntax !!!") // 触发 imports.Process 失败
+	_, err := writer.Check(s, invalidCode, cfg)
+	require.Error(t, err, "语法无效时 Check 应返回格式化错误")
+	assert.Contains(t, err.Error(), "格式化失败")
 }
 
 // TestCheck_WithCode 验证 code 非 nil 时 Check 的增量对比行为

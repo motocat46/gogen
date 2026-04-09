@@ -53,6 +53,31 @@ func TestIssueString(t *testing.T) {
 	assert.Equal(t, "foo.go:10:5: [warning] unused annotation", iss2.String())
 }
 
+// ─── compareIssues ────────────────────────────────────────────────────────────
+
+func TestCompareIssues(t *testing.T) {
+	make := func(file string, line, col int) Issue {
+		return Issue{Pos: token.Position{Filename: file, Line: line, Column: col}}
+	}
+	tests := []struct {
+		name string
+		a, b Issue
+		want int // 负数/<0, 0, 正数/>0
+	}{
+		{"a 文件名小于 b，返回 -1", make("a.go", 1, 1), make("b.go", 1, 1), -1},
+		{"a 文件名大于 b，返回 1", make("b.go", 1, 1), make("a.go", 1, 1), 1},
+		{"同文件 a 行小于 b，返回负数", make("x.go", 1, 1), make("x.go", 5, 1), -4},
+		{"同文件同行 a 列小于 b，返回负数", make("x.go", 3, 2), make("x.go", 3, 7), -5},
+		{"完全相同，返回 0", make("x.go", 3, 3), make("x.go", 3, 3), 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := compareIssues(tt.a, tt.b)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
 // ─── extractDocText ───────────────────────────────────────────────────────────
 
 func makeCommentGroup(text string) *ast.CommentGroup {
