@@ -58,6 +58,7 @@ go test ./pkg/analyzer/... -count=1 -race
 | `TestTypeMatrix_TypeAlias` | type MyTime = time.Time → IsAlias=true，Kind=KindStruct |
 | `TestTypeMatrix_GenericTypeParam` | T/K/V → KindBasic，TypeStr 为参数名 |
 | `TestTypeMatrix_NestedComposite` | map[string][]string 和 []map[string]int 的递归解析 |
+| `TestTypeMatrix_GenericInstance` | Container[int] → KindGeneric，TypeArgs 递归解析（int → KindNumeric） |
 
 ## 注意事项
 

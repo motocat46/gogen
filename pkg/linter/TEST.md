@@ -5,6 +5,7 @@
 | 文件 | 覆盖范围 |
 |------|---------|
 | `linter_test.go` | 端到端测试：加载 testdata/lint/ 下各场景目录，验证 Error/Warning 数量 |
+| `linter_internal_test.go` | 私有函数 `compareIssues`（排序比较三分支）、`Severity.String`、`Issue.String`、`extractDocText` |
 
 ## 测试数据目录（testdata/lint/）
 
@@ -18,6 +19,9 @@
 | `modify_no_dirty/` | `gogen:modify=XXX` 但未启用 dirty tracking | 2 Warning |
 | `valid/` | 合法的 gogen 注解（含 `gogen:dirty`、`gogen:modify=`） | 0 Error，0 Warning |
 | `multi_file/` | dirty 方法定义在同包不同文件，验证跨文件类型检查解析 | 0 Error，0 Warning |
+| `multi_file_errors/` | a.go + b.go 各贡献 7 个 Error（共 14），触发 pdqsort 递归，覆盖 `-1`/`1` 两个排序分支 | 14 Error |
+| `broken_syntax/` | 含编译错误的包，验证 `Lint` 返回 error（`TestLint_LoadError`） | error |
+| `empty_tag_value/` | `gogen:""` 空值 tag，验证被静默跳过（覆盖 `tagVal==""` 路径） | 0 Error |
 
 ## 可执行测试命令
 

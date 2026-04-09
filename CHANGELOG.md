@@ -11,6 +11,11 @@
 - **E2E 测试框架**：新增 `e2e/` 包，`TestMain` 编译一次 gogen 二进制，14 个测试覆盖所有 CLI 子命令：`generate`（含幂等性、`--dry-run`、`--suffix`）、`check`（最新/过期两种状态）、`lint`（Error/Warning/clean 三种退出码）、`init`（创建/已存在）、`version`。
 - **单元测试补全**：为各包补充 17 个测试文件，覆盖率从 50.5% 提升至 54.4%；涵盖 `MethodSetContains`、`CanGenerateMethodOverride`、`ActiveFields`、`ModifyGenerator.Generate`、`ResetGenerator.Generate`、`formatDoc`、`isExcluded`/`isExcludedPath`、`Severity.String`、`Issue.String`、`extractDocText`、`packageDir` 等此前零覆盖函数。
 - **analyzer 集成测试**：新增 `ExcludePaths` 和 `FileFilter` 配置的集成测试；新增 `testdata/analyzer_edge/` 包，覆盖非导出字段跳过和未知 tag 选项警告路径（`analyzeFields` 覆盖率 73.5% → 97.1%）。
+- **覆盖率系统性提升（pkg/ 整体 94.8%）**：
+  - `linter`（92.5% → 97.5%）：提取 `compareIssues` 为包私有函数，内部测试覆盖排序三分支（`-1`/`1`/column）；新增 `empty_tag_value`/`broken_syntax`/`multi_file_errors` testdata，覆盖空 tag 值跳过、LoadError、跨文件排序路径。
+  - `loader`（91.3% → 96.5%）：新增 `TestLoad_NoGoFilesSkipped`，覆盖 phase 1/2 的 `isNoGoFilesError` 静默跳过分支。
+  - `writer`（88.9% → 95.2%）：新增格式化错误测试（`Write`/`Check` 传入无效 Go 代码），覆盖 `imports.Process` 错误路径。
+  - `analyzer`（93.1% → 95.0%）：新增 `Holder{Items Container[int]}` 测试结构体，覆盖 `buildTypeInfo` 中 `*types.Named{TypeArgs>0}` → `KindGeneric` 路径。
 
 ---
 

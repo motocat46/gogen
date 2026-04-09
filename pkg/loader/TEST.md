@@ -29,7 +29,7 @@ go test ./pkg/loader/... -count=1 -race
 | 两阶段恢复：有问题的生成文件 | 旧 `*_access.go` 有编译错误时，overlay 后重新加载成功 |
 | 两阶段恢复：用户代码错误 | 用户代码有真实编译错误时，正确返回错误而非静默忽略 |
 | ExtractFileFilter | 从 patterns 正确提取文件绝对路径 |
-| no Go files 静默跳过 | 不含 .go 文件的目录不触发错误 |
+| no Go files 静默跳过 | 不含 .go 文件的目录在 phase 1 classifyErrors 和 phase 2 循环中均被静默跳过 |
 
 ## 注意事项
 
