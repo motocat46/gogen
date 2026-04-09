@@ -292,3 +292,20 @@ func TestTypeMatrix_NestedComposite(t *testing.T) {
 			"Elem 应为 KindMap，got %s", ti.Elem.Kind)
 	})
 }
+
+// TestTypeMatrix_GenericInstance 验证已实例化的泛型类型（Container[int]）
+// 被正确识别为 KindGeneric，TypeArgs 被递归解析。
+// 覆盖 buildTypeInfo 中 *types.Named{TypeArgs().Len() > 0} 分支。
+func TestTypeMatrix_GenericInstance(t *testing.T) {
+	structs := loadExamples(t)
+	ti := structField(t, structs, "Holder", "Items")
+
+	assert.Equal(t, model.KindGeneric, ti.Kind,
+		"Container[int] 应为 KindGeneric，got %s", ti.Kind)
+	assert.Equal(t, "Container[int]", ti.TypeStr,
+		"TypeStr 应保留完整实例化名称")
+	require.NotEmpty(t, ti.TypeArgs, "TypeArgs 应包含类型参数")
+	assert.Equal(t, model.KindNumeric, ti.TypeArgs[0].Kind,
+		"类型参数 int 应为 KindNumeric，got %s", ti.TypeArgs[0].Kind)
+	assert.Equal(t, "int", ti.TypeArgs[0].TypeStr)
+}
