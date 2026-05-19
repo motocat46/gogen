@@ -6,6 +6,10 @@
 
 ## [Unreleased]
 
+### 破坏性变更
+
+- **`Modify()` 签名从 `fn func(*T)` 改为 `fn func()`**：fn 不再接收结构体指针参数，改为通过闭包捕获外层变量。迁移方式：将 `obj.Modify(func(p *Player) { p.SetXxx(...) })` 改为 `obj.Modify(func() { obj.SetXxx(...) })`。
+
 ### 测试
 
 - **E2E 测试框架**：新增 `e2e/` 包，`TestMain` 编译一次 gogen 二进制，14 个测试覆盖所有 CLI 子命令：`generate`（含幂等性、`--dry-run`、`--suffix`）、`check`（最新/过期两种状态）、`lint`（Error/Warning/clean 三种退出码）、`init`（创建/已存在）、`version`。
@@ -46,13 +50,13 @@
   // 旧用法（不再支持）
   player.SetName("x")   // setter 内部自动调用 MakeDirty()
   // 新用法
-  player.Modify(func(p *Player) { p.SetName("x") })
+  player.Modify(func() { player.SetName("x") })
   ```
 - **字段级 `gogen:"dirty=XXX"` tag 废除**：现为 lint Error，请改用结构体注解 `// gogen:dirty` 或 `// gogen:dirty=MethodName`。
 
 ### 新特性
 
-- **`Modify()` 方法生成**：为启用 dirty tracking 的结构体生成 `Modify(fn func(*T))` 方法，fn 执行后统一调用 dirty 方法；fn panic 时不调用。方法名可通过 `// gogen:modify=Apply` 自定义。
+- **`Modify()` 方法生成**：为启用 dirty tracking 的结构体生成 `Modify(fn func())` 方法，fn 执行后统一调用 dirty 方法；fn panic 时不调用。方法名可通过 `// gogen:modify=Apply` 自定义。
 - **`Reset()` 生成**：为所有结构体自动生成 `Reset()` 方法（`*this = T{}`），将所有字段重置为零值（slice/map 重置为 nil 释放内存）。已有手写 `Reset()` 时跳过生成并输出 `[Info]` 说明原因。
 - **`gogen lint` 子命令**：静态检查 struct tag 和注解；捕获拼写错误（附近似建议）、矛盾组合（`readonly+writeonly`）、dirty 方法引用错误；Error 级别问题时以非零退出码退出，可接入 CI。
 

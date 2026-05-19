@@ -105,6 +105,28 @@ func TestModifyGenerator_Generate(t *testing.T) {
 		assert.Contains(t, code, "func (this *Config) Apply(fn func())", "期望自定义方法名 Apply")
 		assert.Contains(t, code, "this.MarkChanged()", "期望自定义 dirty 方法 MarkChanged")
 	})
+
+	t.Run("panic 契约：fn() 在 DirtyMethod 前且无 defer", func(t *testing.T) {
+		// 契约：fn panic 时 DirtyMethod 不被调用。
+		// 证据：生成代码无 defer，fn() 在 DirtyMethod 调用之前。
+		s := &model.StructDef{
+			Name:          "Player",
+			PackageName:   "game",
+			ModifyMethod:  "Modify",
+			DirtyMethod:   "MakeDirty",
+			FieldNames:    map[string]bool{},
+			ManualMethods: map[string]bool{},
+		}
+		out, err := g.Generate(s, nopLog)
+		require.NoError(t, err)
+		code := string(out)
+		assert.NotContains(t, code, "defer", "DirtyMethod 不得用 defer 包裹，否则 panic 时也会调用")
+		fnIdx := strings.Index(code, "fn()")
+		dirtyIdx := strings.Index(code, "this.MakeDirty()")
+		assert.Greater(t, fnIdx, 0, "生成代码必须包含 fn() 调用")
+		assert.Greater(t, dirtyIdx, 0, "生成代码必须包含 this.MakeDirty() 调用")
+		assert.Less(t, fnIdx, dirtyIdx, "fn() 必须在 this.MakeDirty() 之前，否则 panic 时 dirty 已被调用")
+	})
 }
 
 // ─── ResetGenerator.Generate ─────────────────────────────────────────────────

@@ -263,7 +263,7 @@ func (this *Player) Modify(fn func()) {
 // 调用：
 player.Modify(func() {
     player.SetGold(player.GetGold() + 100)  // 基础类型
-    player.Queue.Enqueue(item)              // 自定义类型，无需额外处理
+    player.GetQueue().Enqueue(item)         // 自定义类型，无需额外处理
 })
 
 // 场景 2：自定义 dirty 方法名

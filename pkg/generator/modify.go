@@ -30,7 +30,7 @@ import (
 //   - 调用方在 fn 中自由修改结构体的任何字段或嵌入对象，Modify 在 fn 返回后统一调用 dirty 方法
 //   - 方法名默认 "Modify"，可通过结构体文档注释 gogen:modify=Xxx 自定义
 const modifyTmplStr = `
-// {{ .ModifyMethod }} 在 fn 中修改结构体内容，fn 执行完毕后自动调用 {{ .DirtyMethod }}()。
+// {{ .ModifyMethod }} 在 fn 中修改结构体内容，fn 执行完毕后自动调用 {{ .DirtyMethod }}()；fn panic 时不调用。
 // 适用于所有类型的字段变更，包括嵌入的自定义结构体和第三方类型。
 //
 // 示例（obj 为该结构体的变量）：
@@ -42,7 +42,6 @@ const modifyTmplStr = `
 // 注意：
 //   - fn 是无参闭包，编译器不验证闭包内操作的目标；作用域内有多个对象时，
 //     确保闭包引用的是调用 {{ .ModifyMethod }} 的那个变量，而非其他同类对象。
-//   - fn 发生 panic 时不调用 {{ .DirtyMethod }}()。
 //   - 嵌套调用 {{ .ModifyMethod }} 会触发多次 {{ .DirtyMethod }}()，仅在后者幂等时无害。
 func (this *{{ .ReceiverType }}) {{ .ModifyMethod }}(fn func()) {
 	fn()
