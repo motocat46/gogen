@@ -23,6 +23,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"runtime/debug"
 	"sort"
 	"strings"
 	"sync"
@@ -48,9 +49,22 @@ var defaultExcludeNames = []string{
 	"mocks",    // mock 目录复数形式（任意层级）
 }
 
-// Version 由构建时通过 -ldflags "-X main.Version=v1.x.x" 注入；
-// 未注入时显示 "dev"（本地开发构建）。
+// Version 由以下来源按优先级确定：
+//  1. 构建时 -ldflags "-X main.Version=v1.x.x"（goreleaser / CI）
+//  2. go install pkg@vX.Y.Z 写入的模块版本（debug.ReadBuildInfo）
+//  3. 回退 "dev"（本地 go run / go build 未打 tag）
 var Version = "dev"
+
+func init() {
+	if Version != "dev" {
+		return // ldflags 已注入，优先使用
+	}
+	if info, ok := debug.ReadBuildInfo(); ok &&
+		info.Main.Version != "" &&
+		info.Main.Version != "(devel)" {
+		Version = info.Main.Version
+	}
+}
 
 var (
 	outputDir         string
