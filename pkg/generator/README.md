@@ -150,13 +150,13 @@ type MethodGenerator interface {
 | 方法 | 签名 | 说明 |
 |------|------|------|
 | `Reset()` | `Reset()` | `*this = T{}`，slice/map 重置为 nil；若启用了 dirty tracking，末尾追加 dirty 调用 |
-| `Modify()` | `Modify(fn func(*T))` | dirty tracking 唯一变更入口；fn 完成后调用 dirty 方法，fn panic 则不调用。仅在启用 dirty tracking 时生成 |
+| `Modify()` | `Modify(fn func())` | dirty tracking 唯一变更入口；fn 完成后调用 dirty 方法，fn panic 则不调用。仅在启用 dirty tracking 时生成 |
 
 手写的 `Reset()` 受保护，不会被覆盖，并打印 `[Info]` 说明原因（手写实现可能含自定义逻辑，gogen 不覆盖）；嵌入类型提升的 `Reset()` 会被静默覆盖（提升的实现只清零嵌入部分，不清零外层字段，几乎必然是错的）。
 
 ## Dirty Tracking
 
-生成 `Modify(fn func(*T))` 作为唯一的变更入口（由 `ModifyGenerator` 实现）。**默认不生成**（opt-in）。
+生成 `Modify(fn func())` 作为唯一的变更入口（由 `ModifyGenerator` 实现）。**默认不生成**（opt-in）。
 
 ### 触发条件
 
@@ -172,8 +172,8 @@ type MethodGenerator interface {
 
 ```go
 // 启用 dirty tracking 后生成：
-func (this *Player) Modify(fn func(*Player)) {
-    fn(this)
+func (this *Player) Modify(fn func()) {
+    fn()
     this.MakeDirty()
 }
 ```

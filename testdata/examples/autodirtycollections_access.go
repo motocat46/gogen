@@ -172,9 +172,21 @@ func (this *AutoDirtyCollections) Reset() {
 	this.MakeDirty()
 }
 
-// Modify 在 fn 中修改结构体内容，fn 执行完毕后自动调用 MakeDirty()，若 fn 发生 panic 则不调用。
+// Modify 在 fn 中修改结构体内容，fn 执行完毕后自动调用 MakeDirty()。
 // 适用于所有类型的字段变更，包括嵌入的自定义结构体和第三方类型。
-func (this *AutoDirtyCollections) Modify(fn func(*AutoDirtyCollections)) {
-	fn(this)
+//
+// 示例（obj 为该结构体的变量）：
+//
+//	obj.Modify(func() {
+//	    obj.SetXxx(newValue)
+//	})
+//
+// 注意：
+//   - fn 是无参闭包，编译器不验证闭包内操作的目标；作用域内有多个对象时，
+//     确保闭包引用的是调用 Modify 的那个变量，而非其他同类对象。
+//   - fn 发生 panic 时不调用 MakeDirty()。
+//   - 嵌套调用 Modify 会触发多次 MakeDirty()，仅在后者幂等时无害。
+func (this *AutoDirtyCollections) Modify(fn func()) {
+	fn()
 	this.MakeDirty()
 }

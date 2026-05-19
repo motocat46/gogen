@@ -86,7 +86,7 @@ func TestModifyGenerator_Generate(t *testing.T) {
 		out, err := g.Generate(s, nopLog)
 		require.NoError(t, err)
 		code := string(out)
-		assert.Contains(t, code, "func (this *Player) Modify(", "生成代码缺少方法签名")
+		assert.Contains(t, code, "func (this *Player) Modify(fn func())", "生成代码缺少方法签名")
 		assert.Contains(t, code, "this.MakeDirty()", "生成代码缺少 dirty 调用")
 	})
 
@@ -102,7 +102,7 @@ func TestModifyGenerator_Generate(t *testing.T) {
 		out, err := g.Generate(s, nopLog)
 		require.NoError(t, err)
 		code := string(out)
-		assert.Contains(t, code, "func (this *Config) Apply(", "期望自定义方法名 Apply")
+		assert.Contains(t, code, "func (this *Config) Apply(fn func())", "期望自定义方法名 Apply")
 		assert.Contains(t, code, "this.MarkChanged()", "期望自定义 dirty 方法 MarkChanged")
 	})
 }

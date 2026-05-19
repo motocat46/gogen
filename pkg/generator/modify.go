@@ -30,10 +30,22 @@ import (
 //   - 调用方在 fn 中自由修改结构体的任何字段或嵌入对象，Modify 在 fn 返回后统一调用 dirty 方法
 //   - 方法名默认 "Modify"，可通过结构体文档注释 gogen:modify=Xxx 自定义
 const modifyTmplStr = `
-// {{ .ModifyMethod }} 在 fn 中修改结构体内容，fn 执行完毕后自动调用 {{ .DirtyMethod }}()，若 fn 发生 panic 则不调用。
+// {{ .ModifyMethod }} 在 fn 中修改结构体内容，fn 执行完毕后自动调用 {{ .DirtyMethod }}()。
 // 适用于所有类型的字段变更，包括嵌入的自定义结构体和第三方类型。
-func (this *{{ .ReceiverType }}) {{ .ModifyMethod }}(fn func(*{{ .ReceiverType }})) {
-	fn(this)
+//
+// 示例（obj 为该结构体的变量）：
+//
+//	obj.{{ .ModifyMethod }}(func() {
+//	    obj.SetXxx(newValue)
+//	})
+//
+// 注意：
+//   - fn 是无参闭包，编译器不验证闭包内操作的目标；作用域内有多个对象时，
+//     确保闭包引用的是调用 {{ .ModifyMethod }} 的那个变量，而非其他同类对象。
+//   - fn 发生 panic 时不调用 {{ .DirtyMethod }}()。
+//   - 嵌套调用 {{ .ModifyMethod }} 会触发多次 {{ .DirtyMethod }}()，仅在后者幂等时无害。
+func (this *{{ .ReceiverType }}) {{ .ModifyMethod }}(fn func()) {
+	fn()
 	this.{{ .DirtyMethod }}()
 }
 `
@@ -55,8 +67,8 @@ func (g *ModifyGenerator) Generate(s *model.StructDef, log func(string)) ([]byte
 		return nil, nil
 	}
 	// 使用 CanGenerateMethodOverride：允许覆盖从嵌入类型提升的同名方法。
-	// 典型场景：DirtyBase.Modify(fn func(*DirtyBase)) 被 Child.Modify(fn func(*Child)) 覆盖，
-	// 覆盖是正确行为（Child 的 Modify 签名更具体，更有用）。
+	// 典型场景：DirtyBase.Modify(fn func()) 被 Child.Modify(fn func()) 覆盖，
+	// 覆盖是正确行为（Child 的 Modify 绑定了正确的 dirty 方法，语义更具体）。
 	// 仍然检查手写方法冲突（ManualMethods），保护用户自定义的 Modify 实现。
 	// 注：不打印 Warning——Modify() 语义固定（fn + dirty），覆盖提升方法与 Reset() 一样是必然正确的行为。
 	if !s.CanGenerateMethodOverride(s.ModifyMethod) {
