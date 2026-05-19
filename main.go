@@ -335,8 +335,12 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	// Step 5: 孤儿文件清理
 	// 扫描本次处理的目录，删除 *_{suffix}.go 中含 gogen 标记但不在 validPaths 的文件。
 	// 安全原则：只扫描本次实际处理的目录，只删除 gogen 生成文件（含标记），绝不误删手写文件。
-	if err := cleanOrphans(processedDirs, validPaths, writerCfg, dir, verbose, dryRun); err != nil {
-		return err
+	// 单文件模式（fileFilter 非空）下跳过：只处理了包内部分文件的结构体，
+	// 无法判断同目录其他文件对应的 _access.go 是否仍有效，不得误删。
+	if len(fileFilter) == 0 {
+		if err := cleanOrphans(processedDirs, validPaths, writerCfg, dir, verbose, dryRun); err != nil {
+			return err
+		}
 	}
 
 	// 打印汇总
