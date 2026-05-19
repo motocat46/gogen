@@ -6,6 +6,10 @@
 
 ## [Unreleased]
 
+---
+
+## [v0.4.3] — 2026-05-19
+
 ### 破坏性变更
 
 - **`Modify()` 签名从 `fn func(*T)` 改为 `fn func()`**：fn 不再接收结构体指针参数，改为通过闭包捕获外层变量。迁移方式：将 `obj.Modify(func(p *Player) { p.SetXxx(...) })` 改为 `obj.Modify(func() { obj.SetXxx(...) })`。
